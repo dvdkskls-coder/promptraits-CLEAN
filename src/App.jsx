@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp, Lightbulb, Trash2, Upload, Sparkles } from "lucide-react";
 
+// ===================================================================================
+// 🔴 AQUÍ VA TU RAW_PROMPTS COMPLETO (NO LO TOQUES)
+// ===================================================================================
 const RAW_PROMPTS = [
   { title: "Retrato de perfil B/N", src: "09ij0fdi32j9d8j32g34.jpg", prompt: `Ultra-realistic cinematic street fashion portrait on a rainy London-style sidewalk, surrounded by dark wet buildings and reflective pavement, moody overcast ambiance with subdued contrast and crisp blacks, evoking modern editorial minimalism. Using the exact face from the provided selfie — no editing, no retouching, no smoothing. Mid-step walking pose, torso leaning forward with natural kinetic energy, left hand inside coat pocket, right hand swinging slightly backward, head turned left with confident focused gaze, subtle tension in jaw, expression calm but determined. Long camel wool overcoat slightly open and flaring with motion over matte black hoodie, hood framing neck softly, hem swaying mid-step; slim black trousers tapering at ankle, clean white sneakers damp from rain, soft knit black beanie worn low covering ear tips and sitting loosely at crown, silver wristwatch gleaming subtly. Soft diffused daylight key from full overcast sky (~65° elevation) with ambient fill lifted by street reflections at +1 stop under key; black stone walls provide negative fill (–1.5 stops); faint rim reflection from wet glass phone booth behind subject; WB 5400 K, no color gels, thin atmospheric haze. Full-frame sensor, 85 mm lens at ~2.8 m distance, f/2.0, 1/200 s, ISO 160, eye-AF locked on nearest eye, vertical 4:5 crop from mid-thigh upward, subject centered in lower third, background softly compressed with shallow depth and wet asphalt reflections leading diagonally. Low-contrast filter applied, deep clean blacks retained, lifted shadows for filmic roll-off, gentle Luma S-curve, neutral-cool desaturated grading (grey, camel, slate, black tones), fine film grain, 1/8 diffusion halation on highlights, subtle vignette, no beauty retouching. cinematic portrait, urban rain, camel coat, black hoodie, loose beanie, reflective street, pure blacks, low contrast, 85mm lens, editorial fashion, atmospheric haze, shallow depth, modern minimalism, wet pavement, soft light, fine grain, natural motion`, category: "hombre" },
   { title: "Retrato de perfil B/N", src: "gewrgerg443g5g.jpg", prompt: `Cinematic urban portrait at dusk in front of a modern stone building entrance, warm tungsten reflections blending with cool ambient tones for a balanced filmic mood. Using the exact face from the provided selfie — no editing, no retouching, no smoothing. Half-body shot from waist up, body slightly angled left, head turned toward camera with calm, confident expression, one hand in pocket, relaxed shoulders. Matte black puffer jacket over dark sweatshirt, casual streetwear layering, no visible logos, minimal accessories. Soft cinematic key light from camera-left at 45°, +0 EV, warm bounce fill -1.5 stops from glass reflection camera-right, subtle rim from doorway practical +0.5 stop, gentle top diffusion, WB 4800 K. Full-frame, 85 mm at ~1.4 m, f/2.0, 1/160 s, ISO 200, Rec.709 film emulation; medium shot vertical 4:5, eyes on upper third, shallow depth with creamy background bokeh. Filmic color grading with teal–orange tones, gentle S-curve, fine grain, slight halation from 1/8 diffusion, lifted blacks for cinematic softness, no beauty retouching. cinematic portrait, urban dusk, tungsten reflections, black puffer jacket, 85 mm lens, teal-orange grading, halation, shallow depth, fine grain, filmic tone, medium shot, warm highlights, architectural background, streetwear style, natural light mix, modern editorial`, category: "hombre" },
@@ -87,15 +90,12 @@ const CATEGORIES = [
 ];
 
 // ===================================================================================
-// PRESETS ACTUALIZADOS (15 TOTAL: 6 FREE + 9 PRO)
+// PRESETS (15 TOTAL: 3 FREE + 12 PRO)
 // ===================================================================================
 const PRESETS = [
-    // FREE
     { id: 1, name: "Cinematográfico Editorial", subtitle: "Low-Key Rembrandt", free: true, promptBlock: "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting with key at 45° camera-left, fill -2 stops, rim separation from behind, high contrast chiaroscuro mood, deep blacks, cinematic film grain, HDR preserved." },
     { id: 2, name: "Golden Hour Lifestyle", subtitle: "Cálido atardecer", free: true, promptBlock: "Warm golden hour portrait, 50mm f/1.8, natural sunlight key from low angle, soft fill from reflector, pastel sky background, shallow depth of field, bokeh lights, warm tones, fine grain, editorial outdoor look." },
     { id: 3, name: "Corporate Clean", subtitle: "High-Key profesional", free: true, promptBlock: "High-key professional headshot, 85mm f/2.2, large softbox frontal key, gentle fill from opposite side, neutral gray backdrop, even illumination, sharp focus, natural skin texture, business portrait style." },
-    
-    // PRO
     { id: 4, name: "Environmental Portrait", subtitle: "Sujeto en su entorno", free: false, promptBlock: "Environmental portrait, 35mm f/2, subject in natural setting, balanced ambient light, contextual background in focus, storytelling composition, photojournalistic style, authentic moment capture." },
     { id: 5, name: "Beauty Soft Front", subtitle: "Beauty homogéneo", free: false, promptBlock: "Beauty portrait, 100mm macro or 85mm f/2, ring light or beauty dish frontal, soft even illumination, flawless skin rendering, shallow depth, white or pastel backdrop, cosmetic editorial aesthetic." },
     { id: 6, name: "B/N Clásico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait, 85mm f/2, single hard key light Rembrandt style, no fill, deep shadows, monochrome conversion, strong S-curve contrast, analog film grain, timeless noir mood." },
@@ -111,7 +111,7 @@ const PRESETS = [
 ];
 
 // ===================================================================================
-// ESCENARIOS PREDEFINIDOS (8 TOTAL - TODOS PRO)
+// ESCENARIOS (8 TOTAL - TODOS PRO)
 // ===================================================================================
 const SCENARIOS = [
     { id: 1, name: "Estudio Fondo Negro", description: "Minimalista, dramático, fondo oscuro", prompt: "Professional studio with seamless black backdrop, dramatic lighting, minimalist setup, high contrast, centered composition" },
@@ -124,6 +124,33 @@ const SCENARIOS = [
     { id: 8, name: "Industrial Warehouse Oscuro", description: "Grungy, luces prácticas, textura", prompt: "Dark industrial warehouse, practical hanging lights, exposed brick or concrete, gritty textures, moody low-key lighting, urban decay aesthetic" }
 ];
 
+// ===================================================================================
+// BANCO DE IDEAS ALEATORIAS (Para Generador de Ideas PRO)
+// ===================================================================================
+const PHOTO_TYPES = ["Retrato", "Acción", "Lifestyle", "Fashion", "Editorial", "Conceptual", "Street", "Beauty"];
+const PHOTO_STYLES = ["Cinematográfico", "Vintage", "Cyberpunk", "Minimalista", "Noir", "Etéreo", "Urbano", "Natural"];
+const TIME_OF_DAY = ["Golden Hour (atardecer)", "Blue Hour (anochecer)", "Mediodía (luz dura)", "Noche", "Amanecer", "Overcast (nublado)"];
+const OUTFITS = [
+    "Traje negro elegante",
+    "Atuendo casual urbano (sudadera y jeans)",
+    "Vestido largo fluido",
+    "Chaqueta de cuero y jeans oscuros",
+    "Ropa deportiva moderna",
+    "Atuendo minimalista monocromático",
+    "Estilo vintage (años 70)",
+    "Look editorial de moda"
+];
+const POSES = [
+    "De pie, manos en bolsillos, mirada directa",
+    "Caminando hacia la cámara, pose dinámica",
+    "Sentado/a en el suelo, pose relajada",
+    "Apoyado/a contra una pared, brazos cruzados",
+    "Perfil de tres cuartos, mirando hacia un lado",
+    "En movimiento, capturando acción",
+    "Pose editorial con mano en rostro",
+    "Postura segura, hombros hacia atrás"
+];
+
 const SUBSCRIPTION_PLANS = [
     { name: "FREE", price: "0", period: "por registrarte", popular: false, icon: <Gift className="w-6 h-6" />, features: ["4 créditos de bienvenida", "Newsletter con consejos y trucos", "4 prompts exclusivos al mes"] },
     { name: "PRO", price: "10", period: "/mes", popular: true, icon: <Crown className="w-6 h-6" />, features: ["30 créditos", "3 prompts personalizados (entrega 24/48h)", "Revisiones incluidas", "Newsletter con consejos y trucos", "8 prompts exclusivos al mes"] },
@@ -131,7 +158,7 @@ const SUBSCRIPTION_PLANS = [
 ];
 
 // ===================================================================================
-// COMPONENTES
+// COMPONENTES BASE
 // ===================================================================================
 const AnimatedSection = ({ children, className }) => <div className={className}>{children}</div>;
 
@@ -145,11 +172,10 @@ const CategoryTabs = ({ selected, onSelect }) => (
         ))}
     </div>
 );
-
 // ===================================================================================
-// COMPONENTE: ANÁLISIS DE CALIDAD (SOLO PRO)
+// COMPONENTE: ANÁLISIS DE CALIDAD CON BOTÓN "APLICAR SUGERENCIAS" (SOLO PRO)
 // ===================================================================================
-const QualityAnalysis = ({ analysis, isPro }) => {
+const QualityAnalysis = ({ analysis, isPro, onApplySuggestions, isApplying }) => {
     if (!isPro) {
         return (
             <div className="relative bg-white/5 border border-white/10 rounded-2xl p-8 mt-8">
@@ -214,6 +240,18 @@ const QualityAnalysis = ({ analysis, isPro }) => {
                         ))}
                     </ul>
                 </div>
+
+                {/* BOTÓN APLICAR SUGERENCIAS */}
+                {analysis.suggestions && analysis.suggestions.length > 0 && (
+                    <button
+                        onClick={onApplySuggestions}
+                        disabled={isApplying}
+                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-xl hover:shadow-orange-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <Sparkles size={20} />
+                        <span>{isApplying ? "Aplicando sugerencias..." : "Aplicar Sugerencias al Prompt"}</span>
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -230,8 +268,10 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
     const [imagePreview, setImagePreview] = useState("");
     const [selectedPreset, setSelectedPreset] = useState(null);
     const [selectedScenario, setSelectedScenario] = useState(null);
+    const [showProTools, setShowProTools] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [qualityAnalysis, setQualityAnalysis] = useState(null);
+    const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
     
     // Sliders (valores por defecto)
     const [sliders, setSliders] = useState({
@@ -242,6 +282,45 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
         temperature: 5500
     });
 
+    // ===================================================================================
+    // GENERADOR DE IDEAS ALEATORIAS
+    // ===================================================================================
+    const generateRandomIdea = () => {
+        const randomType = PHOTO_TYPES[Math.floor(Math.random() * PHOTO_TYPES.length)];
+        const randomStyle = PHOTO_STYLES[Math.floor(Math.random() * PHOTO_STYLES.length)];
+        const randomTime = TIME_OF_DAY[Math.floor(Math.random() * TIME_OF_DAY.length)];
+        const randomOutfit = OUTFITS[Math.floor(Math.random() * OUTFITS.length)];
+        const randomPose = POSES[Math.floor(Math.random() * POSES.length)];
+        
+        // Seleccionar preset y escenario aleatorios que coincidan con el estilo
+        const matchingPresets = PRESETS.filter(p => p.name.toLowerCase().includes(randomStyle.toLowerCase()));
+        const suggestedPreset = matchingPresets.length > 0 
+            ? matchingPresets[Math.floor(Math.random() * matchingPresets.length)]
+            : PRESETS[Math.floor(Math.random() * PRESETS.length)];
+        
+        const suggestedScenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+        
+        // Seleccionar automáticamente
+        setSelectedPreset(suggestedPreset.id);
+        setSelectedScenario(suggestedScenario.id);
+        
+        // Mostrar la idea en el textarea
+        const ideaText = `💡 IDEA ALEATORIA GENERADA:
+
+📸 Tipo: ${randomType}
+🎨 Estilo: ${randomStyle}
+🕐 Hora: ${randomTime}
+👔 Vestuario: ${randomOutfit}
+🧍 Pose: ${randomPose}
+
+✨ Preset recomendado: ${suggestedPreset.name}
+🏙️ Escenario sugerido: ${suggestedScenario.name}
+
+Puedes editar esta idea o generar el prompt directamente con los ajustes aplicados.`;
+        
+        setPrompt(ideaText);
+    };
+
     const handleImageChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
@@ -250,6 +329,11 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
             reader.onloadend = () => setImagePreview(reader.result);
             reader.readAsDataURL(file);
         }
+    };
+
+    const removeImage = () => {
+        setReferenceImage(null);
+        setImagePreview("");
     };
 
     const fileToBase64 = (file) => new Promise((resolve, reject) => {
@@ -308,6 +392,43 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
         }
     };
 
+    // ===================================================================================
+    // APLICAR SUGERENCIAS
+    // ===================================================================================
+    const handleApplySuggestions = async () => {
+        if (!qualityAnalysis || !qualityAnalysis.suggestions || qualityAnalysis.suggestions.length === 0) return;
+
+        setIsApplyingSuggestions(true);
+        const functionURL = '/api/gemini-processor';
+
+        try {
+            const res = await fetch(functionURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    applySuggestions: true,
+                    currentPrompt: response,
+                    suggestions: qualityAnalysis.suggestions,
+                    isPro: isPro
+                }),
+            });
+            
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: `Error del servidor: ${res.status}` }));
+                throw new Error(errorData.error);
+            }
+            
+            const data = await res.json();
+            setResponse(data.prompt);
+            setQualityAnalysis(null); // Limpiar análisis anterior
+        } catch (error) {
+            console.error("Error al aplicar sugerencias:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            setIsApplyingSuggestions(false);
+        }
+    };
+
     return (
         <section id="prompt-generator" className="py-24 px-4 bg-black/20">
             <div className="max-w-6xl mx-auto">
@@ -320,207 +441,243 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
 
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* TEXTO + IMAGEN */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="md:col-span-2">
-                                <label htmlFor="inputText" className="block text-sm font-medium text-gray-300 mb-2">
-                                    Describe tu idea:
-                                </label>
-                                <textarea id="inputText" rows="8"
-                                    className="w-full h-full bg-black/50 border border-white/10 rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-cyan-500"
-                                    placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
-                                    value={prompt}
-                                    onChange={(e) => setPrompt(e.target.value)}
-                                ></textarea>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Imagen de Referencia:</label>
-                                <label htmlFor="referenceImage" className="w-full bg-black/50 border border-white/10 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-black/70 min-h-[200px]">
-                                    <Camera className="w-8 h-8 text-gray-400" />
-                                    <span className="mt-2 text-sm text-gray-300">Sube una imagen</span>
-                                </label>
-                                <input id="referenceImage" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
-                                <p className="text-xs text-gray-500 mt-2">Sube una imagen y la IA la analizará para recrear la escena.</p>
-                                {imagePreview && <img src={imagePreview} alt="Vista previa" className="mt-4 rounded-lg w-full" />}
-                            </div>
-                        </div>
-
-                        {/* PRESETS */}
+                        {/* TEXTO */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">🎨 Estilo del Prompt:</label>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                {PRESETS.map(preset => (
-                                    <div key={preset.id} className="relative">
-                                        {!preset.free && !isPro && (
-                                            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-                                                <Lock className="w-5 h-5 text-purple-400" />
-                                            </div>
-                                        )}
-                                        <button
-                                            type="button"
-                                            disabled={!preset.free && !isPro}
-                                            onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
-                                            className={`w-full p-3 rounded-lg text-left transition-all ${
-                                                selectedPreset === preset.id 
-                                                    ? 'bg-purple-500/20 border-2 border-purple-500' 
-                                                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                                            } ${!preset.free && !isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        >
-                                            <div className="text-sm font-bold">{preset.name}</div>
-                                            <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
-                                            {preset.free && <div className="text-xs text-green-400 mt-1">GRATIS</div>}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                            <label htmlFor="inputText" className="block text-sm font-medium text-gray-300 mb-2">
+                                Describe tu idea:
+                            </label>
+                            <textarea id="inputText" rows="8"
+                                className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-cyan-500"
+                                placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                            ></textarea>
                         </div>
 
-                        {/* ESCENARIOS (PRO) */}
-                        <div className="relative">
-                            {!isPro && (
-                                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
-                                    <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
-                                    <p className="text-white font-bold text-lg mb-2">Escenarios Predefinidos - Plan PRO</p>
-                                    <a href="#planes" className="text-purple-400 hover:text-purple-300 text-sm font-semibold">
-                                        Actualizar a PRO →
-                                    </a>
-                                </div>
-                            )}
-                            <label className="block text-sm font-medium text-gray-300 mb-3">🏙️ Escenario Predefinido:</label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {SCENARIOS.map(scenario => (
+                        {/* BOTÓN SUBIR IMAGEN (REDISEÑADO) */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Imagen de Referencia (opcional):</label>
+                            {!imagePreview ? (
+                                <label htmlFor="referenceImage" className="flex items-center justify-center space-x-2 bg-white/10 border border-white/10 rounded-lg p-4 cursor-pointer hover:bg-white/20 transition-all">
+                                    <Upload className="w-5 h-5 text-cyan-400" />
+                                    <span className="font-semibold">Subir Imagen de Referencia</span>
+                                </label>
+                            ) : (
+                                <div className="relative">
+                                    <img src={imagePreview} alt="Vista previa" className="w-full rounded-lg border border-white/10" />
                                     <button
-                                        key={scenario.id}
                                         type="button"
-                                        disabled={!isPro}
-                                        onClick={() => setSelectedScenario(selectedScenario === scenario.id ? null : scenario.id)}
-                                        className={`p-3 rounded-lg text-left transition-all ${
-                                            selectedScenario === scenario.id 
-                                                ? 'bg-cyan-500/20 border-2 border-cyan-500' 
-                                                : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                                        }`}
+                                        onClick={removeImage}
+                                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-all"
                                     >
-                                        <div className="text-sm font-bold">{scenario.name}</div>
-                                        <div className="text-xs text-gray-400 mt-1">{scenario.description}</div>
+                                        <Trash2 size={18} />
                                     </button>
-                                ))}
-                            </div>
+                                </div>
+                            )}
+                            <input id="referenceImage" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                            <p className="text-xs text-gray-500 mt-2">La IA analizará la imagen para recrear la escena técnicamente.</p>
                         </div>
 
-                        {/* OPCIONES AVANZADAS (PRO - COLAPSABLE) */}
+                        {/* HERRAMIENTAS PRO (DESPLEGABLE) */}
                         <div className="relative">
                             {!isPro && (
                                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
                                     <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
-                                    <p className="text-white font-bold text-lg mb-2">Opciones Avanzadas - Plan PRO</p>
+                                    <p className="text-white font-bold text-lg mb-2">Herramientas PRO</p>
                                     <a href="#planes" className="text-purple-400 hover:text-purple-300 text-sm font-semibold">
                                         Actualizar a PRO →
                                     </a>
                                 </div>
                             )}
+                            
                             <button
                                 type="button"
-                                onClick={() => setShowAdvanced(!showAdvanced)}
+                                onClick={() => setShowProTools(!showProTools)}
                                 disabled={!isPro}
-                                className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+                                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg hover:border-purple-500/50 transition-all"
                             >
-                                <span className="font-bold">⚙️ Opciones Avanzadas (Parámetros Técnicos)</span>
-                                {showAdvanced ? <ChevronUp /> : <ChevronDown />}
+                                <span className="font-bold flex items-center space-x-2">
+                                    <Crown className="w-5 h-5 text-purple-400" />
+                                    <span>Herramientas PRO</span>
+                                </span>
+                                {showProTools ? <ChevronUp /> : <ChevronDown />}
                             </button>
                             
-                            {showAdvanced && isPro && (
+                            {showProTools && isPro && (
                                 <div className="mt-4 p-6 bg-black/30 border border-white/10 rounded-lg space-y-6">
-                                    {/* Apertura */}
+                                    
+                                    {/* 1. GENERADOR DE IDEAS ALEATORIAS */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            Apertura: f/{sliders.aperture}
-                                        </label>
-                                        <input
-                                            type="range"
-                                            min="1.4"
-                                            max="16"
-                                            step="0.1"
-                                            value={sliders.aperture}
-                                            onChange={(e) => setSliders({...sliders, aperture: parseFloat(e.target.value)})}
-                                            className="w-full"
-                                        />
-                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                            <span>f/1.4 (muy abierta)</span>
-                                            <span>f/16 (cerrada)</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Distancia Focal */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            Distancia Focal: {sliders.focalLength}mm
-                                        </label>
-                                        <input
-                                            type="range"
-                                            min="35"
-                                            max="200"
-                                            step="5"
-                                            value={sliders.focalLength}
-                                            onChange={(e) => setSliders({...sliders, focalLength: parseInt(e.target.value)})}
-                                            className="w-full"
-                                        />
-                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                            <span>35mm (gran angular)</span>
-                                            <span>200mm (teleobjetivo)</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Contraste */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            Contraste: {sliders.contrast}
-                                        </label>
-                                        <select
-                                            value={sliders.contrast}
-                                            onChange={(e) => setSliders({...sliders, contrast: e.target.value})}
-                                            className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
+                                        <button
+                                            type="button"
+                                            onClick={generateRandomIdea}
+                                            className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black px-6 py-4 rounded-lg font-bold hover:shadow-xl hover:shadow-cyan-500/20 transition-all"
                                         >
-                                            <option value="low">Bajo</option>
-                                            <option value="medium">Medio</option>
-                                            <option value="high">Alto</option>
-                                        </select>
+                                            <Lightbulb size={20} />
+                                            <span>💡 Generar Idea Aleatoria de Foto</span>
+                                        </button>
+                                        <p className="text-xs text-gray-500 mt-2 text-center">
+                                            Genera una idea completa con estilo, escenario, vestuario y pose aleatoria
+                                        </p>
                                     </div>
 
-                                    {/* Grano */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            Grano de Película: {sliders.grain}
-                                        </label>
-                                        <select
-                                            value={sliders.grain}
-                                            onChange={(e) => setSliders({...sliders, grain: e.target.value})}
-                                            className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
-                                        >
-                                            <option value="none">Sin grano</option>
-                                            <option value="subtle">Sutil</option>
-                                            <option value="moderate">Moderado</option>
-                                            <option value="heavy">Intenso</option>
-                                        </select>
-                                    </div>
+                                    <div className="border-t border-white/10 my-4"></div>
 
-                                    {/* Temperatura de Color */}
+                                    {/* 2. PRESETS */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                                            Temperatura de Color: {sliders.temperature}K
-                                        </label>
-                                        <input
-                                            type="range"
-                                            min="3000"
-                                            max="7000"
-step="100"
-                                            value={sliders.temperature}
-                                            onChange={(e) => setSliders({...sliders, temperature: parseInt(e.target.value)})}
-                                            className="w-full"
-                                        />
-                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                            <span>3000K (cálido/tungsteno)</span>
-                                            <span>7000K (frío/nublado)</span>
+                                        <label className="block text-sm font-medium text-gray-300 mb-3">🎨 Presets de Estilo:</label>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                            {PRESETS.map(preset => (
+                                                <button
+                                                    key={preset.id}
+                                                    type="button"
+                                                    onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
+                                                    className={`p-3 rounded-lg text-left transition-all ${
+                                                        selectedPreset === preset.id 
+                                                            ? 'bg-purple-500/20 border-2 border-purple-500' 
+                                                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                                    }`}
+                                                >
+                                                    <div className="text-sm font-bold">{preset.name}</div>
+                                                    <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
+                                                </button>
+                                            ))}
                                         </div>
+                                    </div>
+
+                                    <div className="border-t border-white/10 my-4"></div>
+
+                                    {/* 3. ESCENARIOS */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-3">🏙️ Escenarios Predefinidos:</label>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            {SCENARIOS.map(scenario => (
+                                                <button
+                                                    key={scenario.id}
+                                                    type="button"
+                                                    onClick={() => setSelectedScenario(selectedScenario === scenario.id ? null : scenario.id)}
+                                                    className={`p-3 rounded-lg text-left transition-all ${
+                                                        selectedScenario === scenario.id 
+                                                            ? 'bg-cyan-500/20 border-2 border-cyan-500' 
+                                                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                                    }`}
+                                                >
+                                                    <div className="text-sm font-bold">{scenario.name}</div>
+                                                    <div className="text-xs text-gray-400 mt-1">{scenario.description}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-white/10 my-4"></div>
+
+                                    {/* 4. OPCIONES AVANZADAS (SLIDERS) */}
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAdvanced(!showAdvanced)}
+                                            className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+                                        >
+                                            <span className="font-bold">⚙️ Opciones Avanzadas (Parámetros Técnicos)</span>
+                                            {showAdvanced ? <ChevronUp /> : <ChevronDown />}
+                                        </button>
+                                        
+                                        {showAdvanced && (
+                                            <div className="mt-4 p-6 bg-black/30 border border-white/10 rounded-lg space-y-6">
+                                                {/* Apertura */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                        Apertura: f/{sliders.aperture}
+                                                    </label>
+                                                    <input
+                                                        type="range"
+                                                        min="1.4"
+                                                        max="16"
+                                                        step="0.1"
+                                                        value={sliders.aperture}
+                                                        onChange={(e) => setSliders({...sliders, aperture: parseFloat(e.target.value)})}
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                                        <span>f/1.4 (muy abierta)</span>
+                                                        <span>f/16 (cerrada)</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Distancia Focal */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                        Distancia Focal: {sliders.focalLength}mm
+                                                    </label>
+                                                    <input
+                                                        type="range"
+                                                        min="35"
+                                                        max="200"
+                                                        step="5"
+                                                        value={sliders.focalLength}
+                                                        onChange={(e) => setSliders({...sliders, focalLength: parseInt(e.target.value)})}
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                                        <span>35mm (gran angular)</span>
+                                                        <span>200mm (teleobjetivo)</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Contraste */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                        Contraste: {sliders.contrast}
+                                                    </label>
+                                                    <select
+                                                        value={sliders.contrast}
+                                                        onChange={(e) => setSliders({...sliders, contrast: e.target.value})}
+                                                        className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
+                                                    >
+                                                        <option value="low">Bajo</option>
+                                                        <option value="medium">Medio</option>
+                                                        <option value="high">Alto</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Grano */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                        Grano de Película: {sliders.grain}
+                                                    </label>
+                                                    <select
+                                                        value={sliders.grain}
+                                                        onChange={(e) => setSliders({...sliders, grain: e.target.value})}
+                                                        className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
+                                                    >
+                                                        <option value="none">Sin grano</option>
+                                                        <option value="subtle">Sutil</option>
+                                                        <option value="moderate">Moderado</option>
+                                                        <option value="heavy">Intenso</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Temperatura de Color */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                        Temperatura de Color: {sliders.temperature}K
+                                                    </label>
+                                                    <input
+                                                        type="range"
+                                                        min="3000"
+                                                        max="7000"
+                                                        step="100"
+                                                        value={sliders.temperature}
+                                                        onChange={(e) => setSliders({...sliders, temperature: parseInt(e.target.value)})}
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                                        <span>3000K (cálido)</span>
+                                                        <span>7000K (frío)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -529,14 +686,19 @@ step="100"
                         <button 
                             type="submit" 
                             disabled={isLoading || (!prompt && !referenceImage)} 
-                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-purple-500/20 transition-all"
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-purple-500/20 transition-all text-lg"
                         >
                             {isLoading ? "Generando..." : "Generar Prompt"}
                         </button>
                     </form>
 
                     {/* ANÁLISIS DE CALIDAD */}
-                    <QualityAnalysis analysis={qualityAnalysis} isPro={isPro} />
+                    <QualityAnalysis 
+                        analysis={qualityAnalysis} 
+                        isPro={isPro} 
+                        onApplySuggestions={handleApplySuggestions}
+                        isApplying={isApplyingSuggestions}
+                    />
 
                     {/* PROMPT GENERADO */}
                     <div className="mt-8">
@@ -561,7 +723,6 @@ step="100"
         </section>
     );
 };
-
 // ===================================================================================
 // COMPONENTE PRINCIPAL APP
 // ===================================================================================

@@ -13,23 +13,86 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, referenceImage, mimeType, preset, scenario, sliders, analyzeQuality, isPro } = req.body;
-
-    if (!prompt && !referenceImage) {
-      return res.status(400).json({ error: 'Debes proporcionar un prompt o una imagen de referencia' });
-    }
+    const { 
+      prompt, 
+      referenceImage, 
+      mimeType, 
+      preset, 
+      scenario, 
+      sliders, 
+      analyzeQuality, 
+      isPro,
+      applySuggestions,
+      currentPrompt,
+      suggestions
+    } = req.body;
 
     const API_KEY = process.env.GEMINI_API_KEY;
     
     if (!API_KEY) {
       console.error('❌ API key no configurada');
-      return res.status(500).json({ error: 'API key no configurada' });
+      return res.status(500).json({ error: 'API key no configurada en el servidor' });
+    }
+
+    // ===================================================================================
+    // MODO: APLICAR SUGERENCIAS (Solo PRO)
+    // ===================================================================================
+    if (applySuggestions && currentPrompt && suggestions) {
+      console.log('✅ Aplicando sugerencias al prompt...');
+
+      const improvementPrompt = `You are Promptraits. Improve this photography prompt by applying these suggestions:
+
+CURRENT PROMPT:
+${currentPrompt}
+
+SUGGESTIONS TO APPLY (in Spanish, but apply them in English):
+${suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+OUTPUT: Return ONLY the improved prompt in the same 8-paragraph format (NO headers, NO labels). Apply all suggestions naturally without breaking the structure. Maintain the exact same format as the original.
+
+CRITICAL: Output ONLY the improved prompt, nothing else.`;
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: improvementPrompt }] }]
+          })
+        }
+      );
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('❌ Error de Gemini:', data);
+        return res.status(response.status).json({ 
+          error: 'Error al aplicar sugerencias',
+          details: data.error?.message || 'Error desconocido'
+        });
+      }
+
+      const improvedPrompt = data.candidates[0].content.parts[0].text;
+      
+      console.log('✅ Prompt mejorado generado');
+      return res.status(200).json({
+        prompt: improvedPrompt,
+        qualityAnalysis: null // No re-analizar, solo devolver el prompt mejorado
+      });
+    }
+
+    // ===================================================================================
+    // MODO: GENERACIÓN NORMAL DE PROMPT
+    // ===================================================================================
+    if (!prompt && !referenceImage) {
+      return res.status(400).json({ error: 'Debes proporcionar un prompt o una imagen de referencia' });
     }
 
     console.log('✅ Generando prompt profesional...');
 
     // Construir system prompt base
-let systemPrompt = `You are Promptraits, an expert in ultra-realistic portrait prompts for AI image generation (Nano-Banana, MidJourney, Stable Diffusion, FLUX, SDXL).
+    let systemPrompt = `You are Promptraits, an expert in ultra-realistic portrait prompts for AI image generation (Nano-Banana, MidJourney, Stable Diffusion, FLUX, SDXL).
 
 MANDATORY OUTPUT FORMAT (8 paragraphs separated by blank lines, NO headers, NO labels):
 
@@ -81,9 +144,9 @@ CRITICAL RULES:
 - Color temperature: ${sliders.temperature}K`;
     }
 
-   // Si hay imagen de referencia, cambiar instrucciones
-if (referenceImage) {
-  systemPrompt = `You are Promptraits, an expert in analyzing reference images and creating ultra-realistic portrait prompts.
+    // Si hay imagen de referencia, cambiar instrucciones
+    if (referenceImage) {
+      systemPrompt = `You are Promptraits, an expert in analyzing reference images and creating ultra-realistic portrait prompts.
 
 TASK: Analyze the provided reference image and generate a technical prompt that recreates the EXACT scene, but make it UNISEX/SHAREABLE (no specific facial features).
 
@@ -125,17 +188,17 @@ CRITICAL RULES:
 - Professional cinematographic tone
 - Output ONLY the 8 paragraphs, nothing else`;
 
-  if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
-  if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
-  if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
-}
+      if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
+      if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
+      if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
+    }
 
     // Añadir solicitud del usuario
     if (prompt && !referenceImage) {
       systemPrompt += `\n\nUSER REQUEST: "${prompt}"`;
     }
 
-    systemPrompt += `\n\nGenerate the prompt NOW in ENGLISH following the 8-line structure. NO explanations, ONLY the prompt.`;
+    systemPrompt += `\n\nGenerate the prompt NOW in ENGLISH. NO explanations, ONLY the prompt.`;
 
     // Construir body para Gemini
     const contents = [{
@@ -153,13 +216,13 @@ CRITICAL RULES:
     }];
 
     const response = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents })
-  }
-);
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents })
+      }
+    );
 
     const data = await response.json();
     
@@ -176,7 +239,7 @@ CRITICAL RULES:
     // Si es PRO y pide análisis de calidad
     let qualityAnalysis = null;
     if (isPro && analyzeQuality) {
-      const analysisPrompt = `Analyze this photography prompt and provide a quality score:
+      const analysisPrompt = `Analyze this photography prompt and provide quality feedback IN SPANISH.
 
 PROMPT TO ANALYZE:
 ${generatedPrompt}
@@ -185,41 +248,41 @@ Provide ONLY a JSON response with this exact structure:
 {
   "score": 9.2,
   "included": [
-    "Detailed lighting setup (key, fill, rim)",
-    "Complete camera specifications (lens, aperture, ISO, WB)",
-    "Clear composition guidelines (framing, orientation, aspect ratio)",
-    "Post-processing details (grading, grain, contrast)"
+    "Iluminación detallada con key, fill y rim especificados",
+    "Especificaciones completas de cámara (lente, apertura, ISO, WB)",
+    "Composición clara con framing y orientación definidos",
+    "Post-procesamiento detallado con grading y grain"
   ],
   "suggestions": [
-    "Consider adding more specific background details",
-    "Could benefit from mentioning practical lights or ambient sources",
-    "Specify exact outfit colors for better consistency"
+    "Considera añadir más detalles específicos del fondo o escenario",
+    "Podrías mencionar luces prácticas o fuentes ambientales adicionales",
+    "Especifica colores exactos del vestuario para mayor consistencia"
   ]
 }
 
 Rules:
+- ALL text in SPANISH (score labels, included items, suggestions)
 - Score from 0-10 (one decimal)
-- 3-5 items in "included" array
-- 2-4 items in "suggestions" array
+- 3-5 items in "included" array (what's already good)
+- 2-4 items in "suggestions" array (how to improve)
 - Be constructive and specific
 - Output ONLY valid JSON, nothing else`;
 
       const analysisResponse = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: analysisPrompt }] }]
-    })
-  }
-);
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: analysisPrompt }] }]
+          })
+        }
+      );
 
       const analysisData = await analysisResponse.json();
       if (analysisResponse.ok) {
         try {
           const analysisText = analysisData.candidates[0].content.parts[0].text;
-          // Extraer JSON del texto (por si Gemini añade markdown)
           const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             qualityAnalysis = JSON.parse(jsonMatch[0]);
