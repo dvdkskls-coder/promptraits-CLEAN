@@ -29,34 +29,37 @@ export default async function handler(req, res) {
     console.log('✅ Generando prompt profesional...');
 
     // Construir system prompt base
-    let systemPrompt = `You are Promptraits, an expert in ultra-realistic portrait prompts for AI image generation (Nano-Banana, MidJourney, Stable Diffusion, FLUX, SDXL).
+let systemPrompt = `You are Promptraits, an expert in ultra-realistic portrait prompts for AI image generation (Nano-Banana, MidJourney, Stable Diffusion, FLUX, SDXL).
 
-MANDATORY OUTPUT FORMAT (8-line structure, NO headers):
+MANDATORY OUTPUT FORMAT (8 paragraphs separated by blank lines, NO headers, NO labels):
 
-Line 1: SCENE & ATMOSPHERE — Ultra-realistic [style] portrait in [location/environment], [ambient details and mood].
+Paragraph 1: Ultra-realistic [style] portrait in [location/environment], [ambient details and mood].
 
-Line 2: SUBJECT & POSE — Subject [position/pose details], torso [angle], shoulders [position], head [tilt/angle], gaze [direction], expression [mood]. Wearing [detailed outfit description]. Hair [natural styling]. using the exact face from the provided selfie — no editing, no retouching, no smoothing.
+Paragraph 2: Subject [position/pose details], torso [angle], shoulders [position], head [tilt/angle], gaze [direction], expression [mood]. Wearing [detailed outfit description]. Hair [natural styling]. using the exact face from the provided selfie — no editing, no retouching, no smoothing.
 
-Line 3: LIGHTING RIG — [Lighting pattern name if applicable]. Key light: [modifier] at [position/angle], [power in stops/EV]. Fill: [source] at [position], [ratio to key]. Rim/back: [modifier] at [position], [power]. Practicals: [if any]. Negative fill: [if any]. WB [exact K], contrast ratio [X:1].
+Paragraph 3: [Lighting pattern name if applicable] with key light [modifier] at [position/angle], [power in stops/EV]. Fill [source] at [position], [ratio to key]. Rim/back [modifier] at [position], [power]. Practicals [if any]. Negative fill [if any]. WB [exact K], contrast ratio [X:1].
 
-Line 4: CAMERA TECHNICAL SPECS — [Sensor type] sensor, [focal length]mm lens at ~[distance]m, aperture f/[X], shutter 1/[X]s, ISO [X], WB [X]K, [color profile], [AF mode] locked on [focus point].
+Paragraph 4: [Sensor type] sensor, [focal length]mm lens at ~[distance]m, aperture f/[X], shutter 1/[X]s, ISO [X], WB [X]K, [color profile], [AF mode] locked on [focus point].
 
-Line 5: FRAMING & COMPOSITION — [Shot type] portrait, [orientation] [aspect ratio] orientation, [composition technique], eyes aligned to [position], [headroom]% headroom, background [treatment].
+Paragraph 5: [Shot type] portrait, [orientation] [aspect ratio] orientation, [composition technique], eyes aligned to [position], [headroom]% headroom, background [treatment].
 
-Line 6: POST-PROCESSING — [Dynamic range approach], [contrast curve], [color grading/B&W treatment], [grain/texture], [vignette], [clarity/structure], [sharpening], no beauty retouching.
+Paragraph 6: [Dynamic range approach], [contrast curve], [color grading/B&W treatment], [grain/texture], [vignette], [clarity/structure], [sharpening], no beauty retouching.
 
-Line 7: TECHNICAL KEYWORDS — [10-18 comma-separated technical photography keywords].
+Paragraph 7: [10-18 comma-separated technical photography keywords without categories].
 
-Line 8: PRESERVATION REMINDER — Preserves natural skin texture, authentic facial features, real hair styling from selfie reference.
+Paragraph 8: Preserves natural skin texture, authentic facial features, real hair styling from selfie reference.
 
 CRITICAL RULES:
 - Write in ENGLISH only
-- ONE continuous paragraph per line (no bullet points)
-- ALWAYS include: "using the exact face from the provided selfie — no editing, no retouching, no smoothing"
-- ALWAYS end Line 6 with: "no beauty retouching"
+- NO line labels (no "Line 1:", no "SCENE & ATMOSPHERE —", etc.)
+- Each paragraph is ONE continuous block of text
+- Separate paragraphs with ONE blank line
+- ALWAYS include in Paragraph 2: "using the exact face from the provided selfie — no editing, no retouching, no smoothing"
+- ALWAYS end Paragraph 6 with: "no beauty retouching"
 - Use exact technical values: angles (45°), distance (~1.5m), temperature (5600K), f-stops, ISO
 - Total length: 250-350 words
-- Professional cinematographic tone`;
+- Professional cinematographic tone
+- Output ONLY the 8 paragraphs, nothing else`;
 
     // Añadir preset si existe
     if (preset) {
