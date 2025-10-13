@@ -82,8 +82,9 @@ CRITICAL RULES:
     }
 
     // Si hay imagen de referencia, cambiar instrucciones
-    if (referenceImage) {
-      systemPrompt = `You are Promptraits, an expert in analyzing reference images and creating ultra-realistic portrait prompts.
+    // Si hay imagen de referencia, cambiar instrucciones
+if (referenceImage) {
+  systemPrompt = `You are Promptraits, an expert in analyzing reference images and creating ultra-realistic portrait prompts.
 
 TASK: Analyze the provided reference image and generate a technical prompt that recreates the EXACT scene, but make it UNISEX/SHAREABLE (no specific facial features).
 
@@ -96,25 +97,40 @@ ANALYZE FROM THE IMAGE:
 6. Composition (framing, orientation, rule of thirds, negative space)
 7. Post-processing (color grading, contrast, grain, mood)
 
-OUTPUT FORMAT (8-line structure):
-Line 1: SCENE & ATMOSPHERE
-Line 2: SUBJECT & POSE (UNISEX description) + "using the exact face from the provided selfie — no editing, no retouching, no smoothing"
-Line 3: LIGHTING RIG (technical details with exact positions and ratios)
-Line 4: CAMERA TECHNICAL SPECS
-Line 5: FRAMING & COMPOSITION
-Line 6: POST-PROCESSING + "no beauty retouching"
-Line 7: TECHNICAL KEYWORDS
-Line 8: PRESERVATION REMINDER
+OUTPUT FORMAT (8 paragraphs separated by blank lines, NO headers, NO labels):
 
-CRITICAL:
+Paragraph 1: Ultra-realistic [style] portrait in [analyzed location/environment], [ambient details and mood from image].
+
+Paragraph 2: Subject [analyzed pose details], torso [angle], shoulders [position], head [tilt/angle], gaze [direction from image], expression [mood]. Wearing [analyzed outfit from image]. Hair [natural styling from image]. using the exact face from the provided selfie — no editing, no retouching, no smoothing.
+
+Paragraph 3: [Analyzed lighting pattern] with key light [inferred modifier] at [position/angle], [power estimate]. Fill [source] at [position], [ratio to key]. Rim/back [if visible], practicals [if any]. WB [estimate from image], contrast ratio [estimate].
+
+Paragraph 4: [Inferred sensor type] sensor, [estimated focal length]mm lens at ~[distance]m, aperture f/[estimate from DOF], shutter 1/[X]s, ISO [estimate], WB [X]K, [color profile], [AF mode] locked on [focus point].
+
+Paragraph 5: [Analyzed shot type] portrait, [orientation from image] [aspect ratio], [composition technique observed], eyes aligned to [position], [headroom estimate]% headroom, background [treatment observed].
+
+Paragraph 6: [Observed dynamic range], [analyzed contrast curve], [color grading observed], [grain/texture visible], [vignette if any], [clarity level], [sharpening], no beauty retouching.
+
+Paragraph 7: [10-18 comma-separated technical photography keywords describing the image style].
+
+Paragraph 8: Preserves natural skin texture, authentic facial features, real hair styling from selfie reference.
+
+CRITICAL RULES:
+- Write in ENGLISH only
+- NO line labels (no "Paragraph 1:", no "SCENE & ATMOSPHERE:", etc.)
+- Each paragraph is ONE continuous block of text
+- Separate paragraphs with ONE blank line
 - Make the prompt SHAREABLE (no specific gender/age/race mentions)
 - Focus on TECHNICAL recreation (lighting, camera, composition)
 - Length: 250-350 words
-- Professional cinematographic tone`;
+- Professional cinematographic tone
+- Output ONLY the 8 paragraphs, nothing else`;
 
-      if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
-      if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
-      if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
+  if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
+  if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
+  if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
+}
+${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
     }
 
     // Añadir solicitud del usuario
