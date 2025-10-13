@@ -13,10 +13,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt } = req.body;
+    const { prompt, referenceImage, mimeType, preset, scenario, sliders, analyzeQuality, isPro } = req.body;
 
-    if (!prompt) {
-      return res.status(400).json({ error: 'Debes proporcionar un prompt' });
+    if (!prompt && !referenceImage) {
+      return res.status(400).json({ error: 'Debes proporcionar un prompt o una imagen de referencia' });
     }
 
     const API_KEY = process.env.GEMINI_API_KEY;
@@ -26,11 +26,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API key no configurada' });
     }
 
-    console.log('✅ Generando prompt...');
+    console.log('✅ Generando prompt profesional...');
 
-    const systemPrompt = `You are Promptraits, an expert in ultra-realistic portrait prompts for AI image generation (Nano-Banana, MidJourney, Stable Diffusion, FLUX, SDXL). You deliver consistent, repeatable prompts with brief narrative and professional technical pack (camera/optics/lighting/composition/post). You preserve selfie identity at 100%.
-
-USER REQUEST: "${prompt}"
+    // Construir system prompt base
+    let systemPrompt = `You are Promptraits, an expert in ultra-realistic portrait prompts for AI image generation (Nano-Banana, MidJourney, Stable Diffusion, FLUX, SDXL).
 
 MANDATORY OUTPUT FORMAT (8-line structure, NO headers):
 
@@ -57,23 +56,92 @@ CRITICAL RULES:
 - ALWAYS end Line 6 with: "no beauty retouching"
 - Use exact technical values: angles (45°), distance (~1.5m), temperature (5600K), f-stops, ISO
 - Total length: 250-350 words
-- Professional cinematographic tone
+- Professional cinematographic tone`;
 
-EXAMPLE OUTPUT:
-Ultra-realistic cinematic street portrait in a narrow European city street, tall stone buildings and colorful storefronts blurred into painterly bokeh, pedestrians rendered as indistinct silhouettes for depth, atmosphere urban modern editorial fashion-driven. Subject centered, torso slightly angled left, shoulders relaxed, head straight, intense direct gaze into lens, lips closed with serious neutral expression, wearing tailored black wool overcoat with wide lapels layered with black scarf entire outfit in deep matte black tones emphasizing sleek minimalist styling, hair naturally styled with soft lift from ambient breeze, using the exact face from the provided selfie — no editing, no retouching, no smoothing. Diffuse natural daylight from overcast sky acting as broad frontal-cenital softbox with even illumination and smooth shadow transitions no harsh highlights, ambient reflections from nearby buildings add subtle fill ensuring balanced contrast, WB 5600K, contrast ratio 3:1. Full-frame sensor, 85mm portrait lens at ~1.5m, aperture f/1.8, shutter 1/200s, ISO 200, WB 5600K, sRGB profile, eye-AF locked on nearest eye. Close-up bust portrait head and upper torso, vertical 9:16 orientation, centered framing with eyes aligned to upper third, 10% headroom, background compressed into creamy blur with perspective lines receding down street. High dynamic range preserved, soft S-curve contrast, muted saturation with teal-orange tonal balance, fine cinematic grain, slight vignette for subject isolation, no beauty retouching. ultra-realistic, cinematic editorial, urban street fashion, overcast daylight, diffusion filter, teal-orange grading, muted tones, black outfit, confident gaze, natural skin texture, stylish, authentic, timeless, immersive atmosphere. Preserves natural skin texture, authentic facial features, real hair styling from selfie reference.
+    // Añadir preset si existe
+    if (preset) {
+      systemPrompt += `\n\nAPPLY THIS PRESET STYLE:\n${preset}`;
+    }
 
-Generate the prompt NOW in ENGLISH following the 8-line structure. NO explanations, ONLY the prompt.`;
+    // Añadir escenario si existe
+    if (scenario) {
+      systemPrompt += `\n\nUSE THIS SCENARIO AS BASE:\n${scenario}`;
+    }
+
+    // Añadir parámetros de sliders si existen
+    if (sliders) {
+      systemPrompt += `\n\nAPPLY THESE TECHNICAL PARAMETERS:
+- Aperture: f/${sliders.aperture}
+- Focal length: ${sliders.focalLength}mm
+- Contrast: ${sliders.contrast}
+- Film grain: ${sliders.grain}
+- Color temperature: ${sliders.temperature}K`;
+    }
+
+    // Si hay imagen de referencia, cambiar instrucciones
+    if (referenceImage) {
+      systemPrompt = `You are Promptraits, an expert in analyzing reference images and creating ultra-realistic portrait prompts.
+
+TASK: Analyze the provided reference image and generate a technical prompt that recreates the EXACT scene, but make it UNISEX/SHAREABLE (no specific facial features).
+
+ANALYZE FROM THE IMAGE:
+1. Scene/Environment (location, background, atmosphere)
+2. Lighting setup (key, fill, rim, practicals, direction, quality, temperature)
+3. Subject pose and body language (angle, stance, expression type)
+4. Outfit/styling (describe clothes, accessories, colors)
+5. Camera specs (infer focal length, aperture, framing from depth of field and perspective)
+6. Composition (framing, orientation, rule of thirds, negative space)
+7. Post-processing (color grading, contrast, grain, mood)
+
+OUTPUT FORMAT (8-line structure):
+Line 1: SCENE & ATMOSPHERE
+Line 2: SUBJECT & POSE (UNISEX description) + "using the exact face from the provided selfie — no editing, no retouching, no smoothing"
+Line 3: LIGHTING RIG (technical details with exact positions and ratios)
+Line 4: CAMERA TECHNICAL SPECS
+Line 5: FRAMING & COMPOSITION
+Line 6: POST-PROCESSING + "no beauty retouching"
+Line 7: TECHNICAL KEYWORDS
+Line 8: PRESERVATION REMINDER
+
+CRITICAL:
+- Make the prompt SHAREABLE (no specific gender/age/race mentions)
+- Focus on TECHNICAL recreation (lighting, camera, composition)
+- Length: 250-350 words
+- Professional cinematographic tone`;
+
+      if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
+      if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
+      if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
+    }
+
+    // Añadir solicitud del usuario
+    if (prompt && !referenceImage) {
+      systemPrompt += `\n\nUSER REQUEST: "${prompt}"`;
+    }
+
+    systemPrompt += `\n\nGenerate the prompt NOW in ENGLISH following the 8-line structure. NO explanations, ONLY the prompt.`;
+
+    // Construir body para Gemini
+    const contents = [{
+      parts: referenceImage 
+        ? [
+            { text: systemPrompt },
+            { 
+              inlineData: {
+                mimeType: mimeType || 'image/jpeg',
+                data: referenceImage
+              }
+            }
+          ]
+        : [{ text: systemPrompt }]
+    }];
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: systemPrompt }]
-          }]
-        })
+        body: JSON.stringify({ contents })
       }
     );
 
@@ -87,10 +155,70 @@ Generate the prompt NOW in ENGLISH following the 8-line structure. NO explanatio
       });
     }
 
-    const text = data.candidates[0].content.parts[0].text;
+    let generatedPrompt = data.candidates[0].content.parts[0].text;
+
+    // Si es PRO y pide análisis de calidad
+    let qualityAnalysis = null;
+    if (isPro && analyzeQuality) {
+      const analysisPrompt = `Analyze this photography prompt and provide a quality score:
+
+PROMPT TO ANALYZE:
+${generatedPrompt}
+
+Provide ONLY a JSON response with this exact structure:
+{
+  "score": 9.2,
+  "included": [
+    "Detailed lighting setup (key, fill, rim)",
+    "Complete camera specifications (lens, aperture, ISO, WB)",
+    "Clear composition guidelines (framing, orientation, aspect ratio)",
+    "Post-processing details (grading, grain, contrast)"
+  ],
+  "suggestions": [
+    "Consider adding more specific background details",
+    "Could benefit from mentioning practical lights or ambient sources",
+    "Specify exact outfit colors for better consistency"
+  ]
+}
+
+Rules:
+- Score from 0-10 (one decimal)
+- 3-5 items in "included" array
+- 2-4 items in "suggestions" array
+- Be constructive and specific
+- Output ONLY valid JSON, nothing else`;
+
+      const analysisResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: analysisPrompt }] }]
+          })
+        }
+      );
+
+      const analysisData = await analysisResponse.json();
+      if (analysisResponse.ok) {
+        try {
+          const analysisText = analysisData.candidates[0].content.parts[0].text;
+          // Extraer JSON del texto (por si Gemini añade markdown)
+          const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            qualityAnalysis = JSON.parse(jsonMatch[0]);
+          }
+        } catch (e) {
+          console.error('Error parsing quality analysis:', e);
+        }
+      }
+    }
     
     console.log('✅ Prompt generado');
-    return res.status(200).send(text);
+    return res.status(200).json({
+      prompt: generatedPrompt,
+      qualityAnalysis: qualityAnalysis
+    });
 
   } catch (error) {
     console.error('❌ Error:', error.message);
