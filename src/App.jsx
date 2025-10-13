@@ -328,23 +328,31 @@ export default function App() {
                     </section>
 
                     <section id="home-gallery" className="py-12 px-4">
-                        <div className="max-w-7xl mx-auto">
-                            <AnimatedSection className="text-center mb-16">
-                                <h2 className="text-4xl md:text-5xl font-bold mb-4">Muestra de la Galería <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GRATIS</span></h2>
-                                <p className="text-gray-400 text-lg max-w-3xl mx-auto">Una selección por categoría. Pulsa en "Galería" para ver todos los prompts.</p>
-                            </AnimatedSection>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-                                {homePrompts.map(item => (
-                                    <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transform hover:-translate-y-2 transition-transform duration-300 aspect-[3/4]">
-                                        <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x400.png?text=Imagen+no+encontrada"; }} />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
-                                            <Copy className="w-12 h-12 text-white/80" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
+    <div className="max-w-7xl mx-auto">
+        <AnimatedSection className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Muestra de la Galería <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GRATIS</span></h2>
+            <p className="text-gray-400 text-lg max-w-3xl mx-auto">Una selección por categoría. Pulsa en "Galería" para ver todos los prompts.</p>
+        </AnimatedSection>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            {homePrompts.map(item => (
+                <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transform hover:-translate-y-2 transition-transform duration-300 aspect-[3/4]">
+                    <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x400.png?text=Imagen+no+encontrada"; }} />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
+                        <Copy className="w-12 h-12 text-white/80" />
+                    </div>
+                </div>
+            ))}
+        </div>
+        <div className="flex justify-center mt-12">
+            <button 
+                onClick={() => navigateToPage('gallery')} 
+                className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-400 to-cyan-500 text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-cyan-500/20 transform hover:scale-105 transition-all duration-300"
+            >
+                <span>Ver todos</span>
+            </button>
+        </div>
+    </div>
+</section>
 
                     <section id="presets" className="py-24 px-4">
                         <div className="max-w-7xl mx-auto">
