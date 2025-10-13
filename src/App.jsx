@@ -68,9 +68,7 @@ const RAW_PROMPTS = [
   { title: "Retrato en pareja B/N", src: "Retrato-en-blanco-y-negro-de-pareja.jpg", prompt: `Couple posing in a photography studio with a dark plain backdrop, woman slightly in front with her body turned toward the camera, man standing just behind her to the side, both wearing shiny black leather jackets over plain shirts, large dark sunglasses, confident serious expressions, using the exact faces from the provided selfies — no editing, no retouching, no smoothing, dramatic soft Rembrandt lighting with controlled shadows, shot on full-frame DSLR with 85mm f/1.8 lens, vertical 9:16 format, 4K resolution, ultra-realistic, high-dynamic-range, detailed leather texture, cinematic editorial style, black and white photography with deep contrast and rich tonal range.`, category: "pareja" },
   { title: "Retrato Gato", src: "7171nu187drf.jpg", prompt: `A studio portrait of a subject dressed as a medieval king before the 15th century, seated with dignity on a plain floor against a seamless dark gray studio backdrop. The subject is wearing a mantle with a white-and-black fur collar, a deep red cape embroidered with metallic gold patterns in ornate medieval style, and a royal crown slightly hooked to one side. Using the exact face from the provided selfie — no editing, no retouching, no smoothing, preserving natural fur texture and expression. The lighting rig: a large softbox key light at 45° camera left, fill light 1.5 stops lower from camera right, and a very subtle rim light behind to create gentle contour, all balanced at 5500K. Camera: full-frame body with 85 mm lens, shot at about 2 meters, f/4, 1/125 s, ISO 200, white balance 5500K, eye-AF on the closest eye. Framing: vertical portrait 9:16, medium shot with centered composition. Post: high-dynamic-range, natural texture, no beauty filters. Ultra-realistic, professional photography, cinematic style`, category: "mascotas" },
 ];
-const RAW_PROMPTS = [
-  // 🔴 TUS PROMPTS AQUÍ (NO BORRES LOS QUE TIENES, SOLO REEMPLAZA ESTA LÍNEA)
-];
+
 
 const ALL_PROMPTS = RAW_PROMPTS.map(p => ({
     ...p,
