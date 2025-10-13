@@ -430,298 +430,339 @@ Puedes editar esta idea o generar el prompt directamente con los ajustes aplicad
     };
 
     return (
-        <section id="prompt-generator" className="py-24 px-4 bg-black/20">
-            <div className="max-w-6xl mx-auto">
-                <AnimatedSection className="text-center mb-12">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                        Generador de Prompts <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">PROMPTRAITS</span>
-                    </h2>
-                    <p className="text-gray-400 text-lg">Describe tu idea o sube una imagen de referencia para generar un prompt profesional.</p>
-                </AnimatedSection>
+    <section id="prompt-generator" className="py-24 px-4 bg-black/20">
+        <div className="max-w-6xl mx-auto">
+            <AnimatedSection className="text-center mb-12">
+                <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                    Generador de Prompts <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">PROMPTRAITS</span>
+                </h2>
+                <p className="text-gray-400 text-lg">Describe tu idea o sube una imagen de referencia para generar un prompt profesional.</p>
+            </AnimatedSection>
 
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* TEXTO */}
-                        <div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    
+                    {/* GRID: TEXTO + BOTÓN IMAGEN */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* TEXTAREA (2/3 del ancho) */}
+                        <div className="md:col-span-2">
                             <label htmlFor="inputText" className="block text-sm font-medium text-gray-300 mb-2">
                                 Describe tu idea:
                             </label>
-                            <textarea id="inputText" rows="8"
-                                className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-cyan-500"
+                            <textarea 
+                                id="inputText" 
+                                rows="10"
+                                className="w-full h-full bg-black/50 border border-white/10 rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-cyan-500 resize-none"
                                 placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
                             ></textarea>
                         </div>
 
-                        {/* BOTÓN SUBIR IMAGEN (REDISEÑADO) */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Imagen de Referencia (opcional):</label>
+                        {/* BOTÓN/PREVIEW IMAGEN (1/3 del ancho) */}
+                        <div className="flex flex-col">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Imagen de referencia:
+                            </label>
                             {!imagePreview ? (
-                                <label htmlFor="referenceImage" className="flex items-center justify-center space-x-2 bg-white/10 border border-white/10 rounded-lg p-4 cursor-pointer hover:bg-white/20 transition-all">
-                                    <Upload className="w-5 h-5 text-cyan-400" />
-                                    <span className="font-semibold">Subir Imagen de Referencia</span>
+                                <label 
+                                    htmlFor="referenceImage" 
+                                    className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border-2 border-dashed border-cyan-500/30 rounded-lg cursor-pointer hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all p-6"
+                                >
+                                    <Upload className="w-10 h-10 text-cyan-400 mb-3" />
+                                    <span className="text-sm font-semibold text-center">Subir imagen</span>
+                                    <span className="text-xs text-gray-500 mt-2 text-center">Opcional</span>
                                 </label>
                             ) : (
-                                <div className="relative">
-                                    <img src={imagePreview} alt="Vista previa" className="w-full rounded-lg border border-white/10" />
+                                <div className="relative flex-1 rounded-lg overflow-hidden border border-white/10">
+                                    <img src={imagePreview} alt="Referencia" className="w-full h-full object-cover" />
                                     <button
                                         type="button"
                                         onClick={removeImage}
-                                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-all"
+                                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-all shadow-lg"
                                     >
-                                        <Trash2 size={18} />
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             )}
                             <input id="referenceImage" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
-                            <p className="text-xs text-gray-500 mt-2">La IA analizará la imagen para recrear la escena técnicamente.</p>
                         </div>
+                    </div>
 
-                        {/* HERRAMIENTAS PRO (DESPLEGABLE) */}
-                        <div className="relative">
-                            {!isPro && (
-                                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
-                                    <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
-                                    <p className="text-white font-bold text-lg mb-2">Herramientas PRO</p>
-                                    <a href="#planes" className="text-purple-400 hover:text-purple-300 text-sm font-semibold">
-                                        Actualizar a PRO →
-                                    </a>
+                    {/* PRESETS FREE (SIEMPRE VISIBLES) */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-3">
+                            🎨 Estilos Básicos (GRATIS):
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {PRESETS.filter(p => p.free).map(preset => (
+                                <button
+                                    key={preset.id}
+                                    type="button"
+                                    onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
+                                    className={`p-4 rounded-lg text-left transition-all ${
+                                        selectedPreset === preset.id 
+                                            ? 'bg-green-500/20 border-2 border-green-500 shadow-lg shadow-green-500/20' 
+                                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                    }`}
+                                >
+                                    <div className="text-sm font-bold">{preset.name}</div>
+                                    <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
+                                    <div className="text-xs text-green-400 mt-2 font-semibold">✓ GRATIS</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* HERRAMIENTAS PRO (DESPLEGABLE) */}
+                    <div className="relative">
+                        {!isPro && (
+                            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
+                                <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
+                                <p className="text-white font-bold text-lg mb-2">Herramientas PRO</p>
+                                <a href="#planes" className="text-purple-400 hover:text-purple-300 text-sm font-semibold">
+                                    Actualizar a PRO →
+                                </a>
+                            </div>
+                        )}
+                        
+                        <button
+                            type="button"
+                            onClick={() => setShowProTools(!showProTools)}
+                            disabled={!isPro}
+                            className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg hover:border-purple-500/50 transition-all"
+                        >
+                            <span className="font-bold flex items-center space-x-2">
+                                <Crown className="w-5 h-5 text-purple-400" />
+                                <span>Herramientas PRO</span>
+                            </span>
+                            {showProTools ? <ChevronUp /> : <ChevronDown />}
+                        </button>
+                        
+                        {showProTools && isPro && (
+                            <div className="mt-4 p-6 bg-black/30 border border-white/10 rounded-lg space-y-6">
+                                
+                                {/* 1. GENERADOR DE IDEAS ALEATORIAS */}
+                                <div>
+                                    <button
+                                        type="button"
+                                        onClick={generateRandomIdea}
+                                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black px-6 py-4 rounded-lg font-bold hover:shadow-xl hover:shadow-cyan-500/20 transition-all"
+                                    >
+                                        <Lightbulb size={20} />
+                                        <span>💡 Generar Idea Aleatoria</span>
+                                    </button>
+                                    <p className="text-xs text-gray-500 mt-2 text-center">
+                                        Genera ideas completas con estilo, escenario y vestuario
+                                    </p>
                                 </div>
-                            )}
-                            
-                            <button
-                                type="button"
-                                onClick={() => setShowProTools(!showProTools)}
-                                disabled={!isPro}
-                                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg hover:border-purple-500/50 transition-all"
-                            >
-                                <span className="font-bold flex items-center space-x-2">
-                                    <Crown className="w-5 h-5 text-purple-400" />
-                                    <span>Herramientas PRO</span>
-                                </span>
-                                {showProTools ? <ChevronUp /> : <ChevronDown />}
-                            </button>
-                            
-                            {showProTools && isPro && (
-                                <div className="mt-4 p-6 bg-black/30 border border-white/10 rounded-lg space-y-6">
+
+                                <div className="border-t border-white/10 my-4"></div>
+
+                                {/* 2. PRESETS PRO (12 ADICIONALES) */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                                        ✨ Presets PRO (12 adicionales):
+                                    </label>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {PRESETS.filter(p => !p.free).map(preset => (
+                                            <button
+                                                key={preset.id}
+                                                type="button"
+                                                onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
+                                                className={`p-3 rounded-lg text-left transition-all ${
+                                                    selectedPreset === preset.id 
+                                                        ? 'bg-purple-500/20 border-2 border-purple-500' 
+                                                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                                }`}
+                                            >
+                                                <div className="text-sm font-bold">{preset.name}</div>
+                                                <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-white/10 my-4"></div>
+
+                                {/* 3. ESCENARIOS */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                                        🏙️ Escenarios Predefinidos:
+                                    </label>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {SCENARIOS.map(scenario => (
+                                            <button
+                                                key={scenario.id}
+                                                type="button"
+                                                onClick={() => setSelectedScenario(selectedScenario === scenario.id ? null : scenario.id)}
+                                                className={`p-3 rounded-lg text-left transition-all ${
+                                                    selectedScenario === scenario.id 
+                                                        ? 'bg-cyan-500/20 border-2 border-cyan-500' 
+                                                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                                }`}
+                                            >
+                                                <div className="text-sm font-bold">{scenario.name}</div>
+                                                <div className="text-xs text-gray-400 mt-1">{scenario.description}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-white/10 my-4"></div>
+
+                                {/* 4. OPCIONES AVANZADAS (SLIDERS) */}
+                                <div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAdvanced(!showAdvanced)}
+                                        className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+                                    >
+                                        <span className="font-bold">⚙️ Opciones Avanzadas</span>
+                                        {showAdvanced ? <ChevronUp /> : <ChevronDown />}
+                                    </button>
                                     
-                                    {/* 1. GENERADOR DE IDEAS ALEATORIAS */}
-                                    <div>
-                                        <button
-                                            type="button"
-                                            onClick={generateRandomIdea}
-                                            className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black px-6 py-4 rounded-lg font-bold hover:shadow-xl hover:shadow-cyan-500/20 transition-all"
-                                        >
-                                            <Lightbulb size={20} />
-                                            <span>💡 Generar Idea Aleatoria de Foto</span>
-                                        </button>
-                                        <p className="text-xs text-gray-500 mt-2 text-center">
-                                            Genera una idea completa con estilo, escenario, vestuario y pose aleatoria
-                                        </p>
-                                    </div>
-
-                                    <div className="border-t border-white/10 my-4"></div>
-
-                                    {/* 2. PRESETS */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-3">🎨 Presets de Estilo:</label>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                            {PRESETS.map(preset => (
-                                                <button
-                                                    key={preset.id}
-                                                    type="button"
-                                                    onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
-                                                    className={`p-3 rounded-lg text-left transition-all ${
-                                                        selectedPreset === preset.id 
-                                                            ? 'bg-purple-500/20 border-2 border-purple-500' 
-                                                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                                                    }`}
-                                                >
-                                                    <div className="text-sm font-bold">{preset.name}</div>
-                                                    <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="border-t border-white/10 my-4"></div>
-
-                                    {/* 3. ESCENARIOS */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-3">🏙️ Escenarios Predefinidos:</label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            {SCENARIOS.map(scenario => (
-                                                <button
-                                                    key={scenario.id}
-                                                    type="button"
-                                                    onClick={() => setSelectedScenario(selectedScenario === scenario.id ? null : scenario.id)}
-                                                    className={`p-3 rounded-lg text-left transition-all ${
-                                                        selectedScenario === scenario.id 
-                                                            ? 'bg-cyan-500/20 border-2 border-cyan-500' 
-                                                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                                                    }`}
-                                                >
-                                                    <div className="text-sm font-bold">{scenario.name}</div>
-                                                    <div className="text-xs text-gray-400 mt-1">{scenario.description}</div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="border-t border-white/10 my-4"></div>
-
-                                    {/* 4. OPCIONES AVANZADAS (SLIDERS) */}
-                                    <div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAdvanced(!showAdvanced)}
-                                            className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
-                                        >
-                                            <span className="font-bold">⚙️ Opciones Avanzadas (Parámetros Técnicos)</span>
-                                            {showAdvanced ? <ChevronUp /> : <ChevronDown />}
-                                        </button>
-                                        
-                                        {showAdvanced && (
-                                            <div className="mt-4 p-6 bg-black/30 border border-white/10 rounded-lg space-y-6">
-                                                {/* Apertura */}
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                        Apertura: f/{sliders.aperture}
-                                                    </label>
-                                                    <input
-                                                        type="range"
-                                                        min="1.4"
-                                                        max="16"
-                                                        step="0.1"
-                                                        value={sliders.aperture}
-                                                        onChange={(e) => setSliders({...sliders, aperture: parseFloat(e.target.value)})}
-                                                        className="w-full"
-                                                    />
-                                                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                                        <span>f/1.4 (muy abierta)</span>
-                                                        <span>f/16 (cerrada)</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Distancia Focal */}
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                        Distancia Focal: {sliders.focalLength}mm
-                                                    </label>
-                                                    <input
-                                                        type="range"
-                                                        min="35"
-                                                        max="200"
-                                                        step="5"
-                                                        value={sliders.focalLength}
-                                                        onChange={(e) => setSliders({...sliders, focalLength: parseInt(e.target.value)})}
-                                                        className="w-full"
-                                                    />
-                                                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                                        <span>35mm (gran angular)</span>
-                                                        <span>200mm (teleobjetivo)</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Contraste */}
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                        Contraste: {sliders.contrast}
-                                                    </label>
-                                                    <select
-                                                        value={sliders.contrast}
-                                                        onChange={(e) => setSliders({...sliders, contrast: e.target.value})}
-                                                        className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
-                                                    >
-                                                        <option value="low">Bajo</option>
-                                                        <option value="medium">Medio</option>
-                                                        <option value="high">Alto</option>
-                                                    </select>
-                                                </div>
-
-                                                {/* Grano */}
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                        Grano de Película: {sliders.grain}
-                                                    </label>
-                                                    <select
-                                                        value={sliders.grain}
-                                                        onChange={(e) => setSliders({...sliders, grain: e.target.value})}
-                                                        className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
-                                                    >
-                                                        <option value="none">Sin grano</option>
-                                                        <option value="subtle">Sutil</option>
-                                                        <option value="moderate">Moderado</option>
-                                                        <option value="heavy">Intenso</option>
-                                                    </select>
-                                                </div>
-
-                                                {/* Temperatura de Color */}
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                        Temperatura de Color: {sliders.temperature}K
-                                                    </label>
-                                                    <input
-                                                        type="range"
-                                                        min="3000"
-                                                        max="7000"
-                                                        step="100"
-                                                        value={sliders.temperature}
-                                                        onChange={(e) => setSliders({...sliders, temperature: parseInt(e.target.value)})}
-                                                        className="w-full"
-                                                    />
-                                                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                                        <span>3000K (cálido)</span>
-                                                        <span>7000K (frío)</span>
-                                                    </div>
+                                    {showAdvanced && (
+                                        <div className="mt-4 p-6 bg-black/30 border border-white/10 rounded-lg space-y-6">
+                                            {/* Apertura */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Apertura: f/{sliders.aperture}
+                                                </label>
+                                                <input
+                                                    type="range"
+                                                    min="1.4"
+                                                    max="16"
+                                                    step="0.1"
+                                                    value={sliders.aperture}
+                                                    onChange={(e) => setSliders({...sliders, aperture: parseFloat(e.target.value)})}
+                                                    className="w-full"
+                                                />
+                                                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                                    <span>f/1.4</span>
+                                                    <span>f/16</span>
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
+
+                                            {/* Distancia Focal */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Distancia Focal: {sliders.focalLength}mm
+                                                </label>
+                                                <input
+                                                    type="range"
+                                                    min="35"
+                                                    max="200"
+                                                    step="5"
+                                                    value={sliders.focalLength}
+                                                    onChange={(e) => setSliders({...sliders, focalLength: parseInt(e.target.value)})}
+                                                    className="w-full"
+                                                />
+                                                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                                    <span>35mm</span>
+                                                    <span>200mm</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Contraste */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Contraste:
+                                                </label>
+                                                <select
+                                                    value={sliders.contrast}
+                                                    onChange={(e) => setSliders({...sliders, contrast: e.target.value})}
+                                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
+                                                >
+                                                    <option value="low">Bajo</option>
+                                                    <option value="medium">Medio</option>
+                                                    <option value="high">Alto</option>
+                                                </select>
+                                            </div>
+
+                                            {/* Grano */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Grano:
+                                                </label>
+                                                <select
+                                                    value={sliders.grain}
+                                                    onChange={(e) => setSliders({...sliders, grain: e.target.value})}
+                                                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
+                                                >
+                                                    <option value="none">Sin grano</option>
+                                                    <option value="subtle">Sutil</option>
+                                                    <option value="moderate">Moderado</option>
+                                                    <option value="heavy">Intenso</option>
+                                                </select>
+                                            </div>
+
+                                            {/* Temperatura */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                                    Temperatura: {sliders.temperature}K
+                                                </label>
+                                                <input
+                                                    type="range"
+                                                    min="3000"
+                                                    max="7000"
+                                                    step="100"
+                                                    value={sliders.temperature}
+                                                    onChange={(e) => setSliders({...sliders, temperature: parseInt(e.target.value)})}
+                                                    className="w-full"
+                                                />
+                                                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                                    <span>3000K</span>
+                                                    <span>7000K</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                    </div>
 
-                        <button 
-                            type="submit" 
-                            disabled={isLoading || (!prompt && !referenceImage)} 
-                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-purple-500/20 transition-all text-lg"
-                        >
-                            {isLoading ? "Generando..." : "Generar Prompt"}
-                        </button>
-                    </form>
+                    {/* BOTÓN GENERAR */}
+                    <button 
+                        type="submit" 
+                        disabled={isLoading || (!prompt && !referenceImage)} 
+                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-purple-500/20 transition-all text-lg"
+                    >
+                        {isLoading ? "Generando..." : "Generar Prompt"}
+                    </button>
+                </form>
 
-                    {/* ANÁLISIS DE CALIDAD */}
-                    <QualityAnalysis 
-                        analysis={qualityAnalysis} 
-                        isPro={isPro} 
-                        onApplySuggestions={handleApplySuggestions}
-                        isApplying={isApplyingSuggestions}
-                    />
+                {/* ANÁLISIS DE CALIDAD */}
+                <QualityAnalysis 
+                    analysis={qualityAnalysis} 
+                    isPro={isPro} 
+                    onApplySuggestions={handleApplySuggestions}
+                    isApplying={isApplyingSuggestions}
+                />
 
-                    {/* PROMPT GENERADO */}
-                    <div className="mt-8">
-                        <h3 className="font-bold text-xl mb-4">Prompt Generado:</h3>
-                        <div className="bg-black/40 border border-white/10 rounded-lg p-4">
-                            <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">
-                                {response}
-                            </pre>
-                            {response && !isLoading && !response.startsWith("Error") && response !== "Aquí aparecerá el prompt generado..." && (
-                                <button 
-                                    onClick={() => onCopy(response)} 
-                                    className="mt-4 w-full flex items-center justify-center space-x-2 bg-white/10 text-white px-4 py-3 rounded-lg font-bold hover:bg-white/20 transition-colors duration-300"
-                                >
-                                    <Copy size={18} />
-                                    <span>Copiar Prompt Generado</span>
-                                </button>
-                            )}
-                        </div>
+                {/* PROMPT GENERADO */}
+                <div className="mt-8">
+                    <h3 className="font-bold text-xl mb-4">Prompt Generado:</h3>
+                    <div className="bg-black/40 border border-white/10 rounded-lg p-4">
+                        <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">
+                            {response}
+                        </pre>
+                        {response && !isLoading && !response.startsWith("Error") && response !== "Aquí aparecerá el prompt generado..." && (
+                            <button 
+                                onClick={() => onCopy(response)} 
+                                className="mt-4 w-full flex items-center justify-center space-x-2 bg-white/10 text-white px-4 py-3 rounded-lg font-bold hover:bg-white/20 transition-colors duration-300"
+                            >
+                                <Copy size={18} />
+                                <span>Copiar Prompt Generado</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
-        </section>
-    );
+        </div>
+    </section>
+);
 };
 // ===================================================================================
 // COMPONENTE PRINCIPAL APP
