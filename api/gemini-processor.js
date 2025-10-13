@@ -81,8 +81,7 @@ CRITICAL RULES:
 - Color temperature: ${sliders.temperature}K`;
     }
 
-    // Si hay imagen de referencia, cambiar instrucciones
-    // Si hay imagen de referencia, cambiar instrucciones
+   // Si hay imagen de referencia, cambiar instrucciones
 if (referenceImage) {
   systemPrompt = `You are Promptraits, an expert in analyzing reference images and creating ultra-realistic portrait prompts.
 
@@ -129,6 +128,7 @@ CRITICAL RULES:
   if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
   if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
   if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
+}${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
 }
 ${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
     }
