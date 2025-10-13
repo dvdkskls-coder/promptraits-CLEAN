@@ -1,9 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock } from "lucide-react";
+import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp } from "lucide-react";
 
-// ===================================================================================
-// BASE DE DATOS Y CONFIGURACIÓN
-// ===================================================================================
 const RAW_PROMPTS = [
   { title: "Retrato de perfil B/N", src: "09ij0fdi32j9d8j32g34.jpg", prompt: `Ultra-realistic cinematic street fashion portrait on a rainy London-style sidewalk, surrounded by dark wet buildings and reflective pavement, moody overcast ambiance with subdued contrast and crisp blacks, evoking modern editorial minimalism. Using the exact face from the provided selfie — no editing, no retouching, no smoothing. Mid-step walking pose, torso leaning forward with natural kinetic energy, left hand inside coat pocket, right hand swinging slightly backward, head turned left with confident focused gaze, subtle tension in jaw, expression calm but determined. Long camel wool overcoat slightly open and flaring with motion over matte black hoodie, hood framing neck softly, hem swaying mid-step; slim black trousers tapering at ankle, clean white sneakers damp from rain, soft knit black beanie worn low covering ear tips and sitting loosely at crown, silver wristwatch gleaming subtly. Soft diffused daylight key from full overcast sky (~65° elevation) with ambient fill lifted by street reflections at +1 stop under key; black stone walls provide negative fill (–1.5 stops); faint rim reflection from wet glass phone booth behind subject; WB 5400 K, no color gels, thin atmospheric haze. Full-frame sensor, 85 mm lens at ~2.8 m distance, f/2.0, 1/200 s, ISO 160, eye-AF locked on nearest eye, vertical 4:5 crop from mid-thigh upward, subject centered in lower third, background softly compressed with shallow depth and wet asphalt reflections leading diagonally. Low-contrast filter applied, deep clean blacks retained, lifted shadows for filmic roll-off, gentle Luma S-curve, neutral-cool desaturated grading (grey, camel, slate, black tones), fine film grain, 1/8 diffusion halation on highlights, subtle vignette, no beauty retouching. cinematic portrait, urban rain, camel coat, black hoodie, loose beanie, reflective street, pure blacks, low contrast, 85mm lens, editorial fashion, atmospheric haze, shallow depth, modern minimalism, wet pavement, soft light, fine grain, natural motion`, category: "hombre" },
   { title: "Retrato de perfil B/N", src: "gewrgerg443g5g.jpg", prompt: `Cinematic urban portrait at dusk in front of a modern stone building entrance, warm tungsten reflections blending with cool ambient tones for a balanced filmic mood. Using the exact face from the provided selfie — no editing, no retouching, no smoothing. Half-body shot from waist up, body slightly angled left, head turned toward camera with calm, confident expression, one hand in pocket, relaxed shoulders. Matte black puffer jacket over dark sweatshirt, casual streetwear layering, no visible logos, minimal accessories. Soft cinematic key light from camera-left at 45°, +0 EV, warm bounce fill -1.5 stops from glass reflection camera-right, subtle rim from doorway practical +0.5 stop, gentle top diffusion, WB 4800 K. Full-frame, 85 mm at ~1.4 m, f/2.0, 1/160 s, ISO 200, Rec.709 film emulation; medium shot vertical 4:5, eyes on upper third, shallow depth with creamy background bokeh. Filmic color grading with teal–orange tones, gentle S-curve, fine grain, slight halation from 1/8 diffusion, lifted blacks for cinematic softness, no beauty retouching. cinematic portrait, urban dusk, tungsten reflections, black puffer jacket, 85 mm lens, teal-orange grading, halation, shallow depth, fine grain, filmic tone, medium shot, warm highlights, architectural background, streetwear style, natural light mix, modern editorial`, category: "hombre" },
@@ -71,6 +68,9 @@ const RAW_PROMPTS = [
   { title: "Retrato en pareja B/N", src: "Retrato-en-blanco-y-negro-de-pareja.jpg", prompt: `Couple posing in a photography studio with a dark plain backdrop, woman slightly in front with her body turned toward the camera, man standing just behind her to the side, both wearing shiny black leather jackets over plain shirts, large dark sunglasses, confident serious expressions, using the exact faces from the provided selfies — no editing, no retouching, no smoothing, dramatic soft Rembrandt lighting with controlled shadows, shot on full-frame DSLR with 85mm f/1.8 lens, vertical 9:16 format, 4K resolution, ultra-realistic, high-dynamic-range, detailed leather texture, cinematic editorial style, black and white photography with deep contrast and rich tonal range.`, category: "pareja" },
   { title: "Retrato Gato", src: "7171nu187drf.jpg", prompt: `A studio portrait of a subject dressed as a medieval king before the 15th century, seated with dignity on a plain floor against a seamless dark gray studio backdrop. The subject is wearing a mantle with a white-and-black fur collar, a deep red cape embroidered with metallic gold patterns in ornate medieval style, and a royal crown slightly hooked to one side. Using the exact face from the provided selfie — no editing, no retouching, no smoothing, preserving natural fur texture and expression. The lighting rig: a large softbox key light at 45° camera left, fill light 1.5 stops lower from camera right, and a very subtle rim light behind to create gentle contour, all balanced at 5500K. Camera: full-frame body with 85 mm lens, shot at about 2 meters, f/4, 1/125 s, ISO 200, white balance 5500K, eye-AF on the closest eye. Framing: vertical portrait 9:16, medium shot with centered composition. Post: high-dynamic-range, natural texture, no beauty filters. Ultra-realistic, professional photography, cinematic style`, category: "mascotas" },
 ];
+const RAW_PROMPTS = [
+  // 🔴 TUS PROMPTS AQUÍ (NO BORRES LOS QUE TIENES, SOLO REEMPLAZA ESTA LÍNEA)
+];
 
 const ALL_PROMPTS = RAW_PROMPTS.map(p => ({
     ...p,
@@ -88,13 +88,42 @@ const CATEGORIES = [
     { id: 'pareja', name: 'Parejas' }
 ];
 
+// ===================================================================================
+// PRESETS ACTUALIZADOS (15 TOTAL: 6 FREE + 9 PRO)
+// ===================================================================================
 const PRESETS = [
+    // FREE
     { id: 1, name: "Cinematográfico Editorial", subtitle: "Low-Key Rembrandt", free: true, promptBlock: "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting with key at 45° camera-left, fill -2 stops, rim separation from behind, high contrast chiaroscuro mood, deep blacks, cinematic film grain, HDR preserved." },
     { id: 2, name: "Golden Hour Lifestyle", subtitle: "Cálido atardecer", free: true, promptBlock: "Warm golden hour portrait, 50mm f/1.8, natural sunlight key from low angle, soft fill from reflector, pastel sky background, shallow depth of field, bokeh lights, warm tones, fine grain, editorial outdoor look." },
     { id: 3, name: "Corporate Clean", subtitle: "High-Key profesional", free: true, promptBlock: "High-key professional headshot, 85mm f/2.2, large softbox frontal key, gentle fill from opposite side, neutral gray backdrop, even illumination, sharp focus, natural skin texture, business portrait style." },
+    
+    // PRO
     { id: 4, name: "Environmental Portrait", subtitle: "Sujeto en su entorno", free: false, promptBlock: "Environmental portrait, 35mm f/2, subject in natural setting, balanced ambient light, contextual background in focus, storytelling composition, photojournalistic style, authentic moment capture." },
     { id: 5, name: "Beauty Soft Front", subtitle: "Beauty homogéneo", free: false, promptBlock: "Beauty portrait, 100mm macro or 85mm f/2, ring light or beauty dish frontal, soft even illumination, flawless skin rendering, shallow depth, white or pastel backdrop, cosmetic editorial aesthetic." },
-    { id: 6, name: "B/N Clásico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait, 85mm f/2, single hard key light Rembrandt style, no fill, deep shadows, monochrome conversion, strong S-curve contrast, analog film grain, timeless noir mood." }
+    { id: 6, name: "B/N Clásico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait, 85mm f/2, single hard key light Rembrandt style, no fill, deep shadows, monochrome conversion, strong S-curve contrast, analog film grain, timeless noir mood." },
+    { id: 7, name: "Fotografía Urbana Street", subtitle: "Energía callejera", free: false, promptBlock: "Urban street photography, 35mm f/2.8, available natural light, strong contrasts and urban shadows, 3:2 horizontal, auto WB tendency cool ~5500K, increased clarity and micro-contrast, selective desaturation, subtle vignette." },
+    { id: 8, name: "Ensueño Vintage 70s", subtitle: "Nostálgico y cálido", free: false, promptBlock: "Vintage 70s dreamy portrait, 50mm f/2, soft diffused light during golden hour with intentional lens flares, 4:5 ratio, WB 6500K, sepia/warm tones, lifted blacks, noticeable film grain, subtle chromatic aberration." },
+    { id: 9, name: "Film Noir Clásico", subtitle: "Drama B/N años 40-50", free: false, promptBlock: "Classic film noir portrait, 85mm f/2.2, hard directional single light source creating deep defined shadows (e.g. light through blinds), 16:9 or 4:5, monochrome, very high contrast, deep blacks without detail, blown highlights, fine hard grain." },
+    { id: 10, name: "Neón Cyberpunk", subtitle: "Futurista urbano nocturno", free: false, promptBlock: "Cyberpunk neon portrait, 35mm or 50mm f/1.8, city neon lights as key and rim, dark ambient, reflections on wet surfaces, 16:9, WB 4500K, split toning (blues/purples in shadows, cyan/pink in highlights), increased saturation and luminance of neon colors, glow effect." },
+    { id: 11, name: "Retrato Íntimo Ventana", subtitle: "Luz natural pensativa", free: false, promptBlock: "Intimate window light portrait, 50mm f/2.0, single soft light from large side window, negative fill opposite side for depth, 4:5, WB 5600K, soft tone curve, low overall contrast, subtle sharpening on eyes, slight desaturation for melancholic look." },
+    { id: 12, name: "Acción Deportiva Congelado", subtitle: "Movimiento nítido", free: false, promptBlock: "Frozen sports action, 200mm f/2.8, bright hard daylight with slight backlight for edge separation, 16:9 horizontal, WB 5500K, high contrast and clarity to emphasize muscles and sweat detail, vibrant saturation on sports gear." },
+    { id: 13, name: "Producto Minimalista Lujo", subtitle: "Elegante y limpio", free: false, promptBlock: "Luxury minimalist product, 100mm macro f/8, very soft diffused studio light (large softbox) to avoid harsh reflections, small reflectors for fill, 1:1, WB 5200K, imperfection removal, increased micro-contrast for texture, perfectly uniform background, precise color correction." },
+    { id: 14, name: "Fantasía Surrealista Etéreo", subtitle: "Onírico y de otro mundo", free: false, promptBlock: "Surreal ethereal fantasy, 35mm f/2.2, projectors with pastel color gels (pink, lavender, cyan), fog or smoke to diffuse light and create visible rays, 4:5, WB 5000K, glow effect on highlights, very softened skin (almost pictorial), selective saturation of gel colors, added floating light particles." },
+    { id: 15, name: "Editorial Fashion", subtitle: "Alta moda dramática", free: false, promptBlock: "Editorial fashion portrait, 85mm f/1.8, dramatic side lighting with hard key, minimal fill for deep shadows, rim light separation, 9:16 vertical, high contrast S-curve, muted selective colors, crisp texture on fabric, cinematic grain, sharp focus on eyes." }
+];
+
+// ===================================================================================
+// ESCENARIOS PREDEFINIDOS (8 TOTAL - TODOS PRO)
+// ===================================================================================
+const SCENARIOS = [
+    { id: 1, name: "Estudio Fondo Negro", description: "Minimalista, dramático, fondo oscuro", prompt: "Professional studio with seamless black backdrop, dramatic lighting, minimalist setup, high contrast, centered composition" },
+    { id: 2, name: "Calle Europea Atardecer", description: "Arquitectura clásica, luz dorada", prompt: "Narrow European street at golden hour, cobblestone pavement, classic stone buildings, warm ambient light, blurred urban background, bokeh from street lamps" },
+    { id: 3, name: "Playa Amanecer Contraluz", description: "Costa, luz suave, horizonte marino", prompt: "Sandy beach at sunrise, soft backlight from rising sun, gentle waves, pastel sky, reflective wet sand, serene coastal atmosphere" },
+    { id: 4, name: "Urbano Nocturno Neones", description: "Ciudad de noche, luces vibrantes", prompt: "Night city street with neon signs, wet pavement reflections, blurred bokeh lights, urban energy, cool blue and warm orange tones, cinematic atmosphere" },
+    { id: 5, name: "Interior Ventana Natural", description: "Luz de ventana lateral suave", prompt: "Indoor setting with large window as single light source, soft natural daylight, clean minimalist interior, neutral walls, gentle shadows" },
+    { id: 6, name: "Bosque Niebla Atmosférico", description: "Naturaleza, bruma, luz filtrada", prompt: "Misty forest setting, diffused light through canopy, atmospheric haze, earthy tones, natural greenery, ethereal woodland mood" },
+    { id: 7, name: "Azotea Ciudad Atardecer", description: "Skyline urbano, golden hour", prompt: "Rooftop location at sunset, blurred city skyline background, warm golden light, modern urban setting, bokeh from distant buildings" },
+    { id: 8, name: "Industrial Warehouse Oscuro", description: "Grungy, luces prácticas, textura", prompt: "Dark industrial warehouse, practical hanging lights, exposed brick or concrete, gritty textures, moody low-key lighting, urban decay aesthetic" }
 ];
 
 const SUBSCRIPTION_PLANS = [
@@ -103,7 +132,9 @@ const SUBSCRIPTION_PLANS = [
     { name: "PREMIUM", price: "25", period: "/mes", popular: false, icon: <Crown className="w-6 h-6" />, features: ["Acceso al agente personalizado", "Asesoría 1 a 1", "5 prompts personalizados", "100 créditos para generar prompts"] }
 ];
 
-// --- COMPONENTES ---
+// ===================================================================================
+// COMPONENTES
+// ===================================================================================
 const AnimatedSection = ({ children, className }) => <div className={className}>{children}</div>;
 
 const CategoryTabs = ({ selected, onSelect }) => (
@@ -117,12 +148,101 @@ const CategoryTabs = ({ selected, onSelect }) => (
     </div>
 );
 
-const GeminiAssistantView = ({ onCopy }) => {
+// ===================================================================================
+// COMPONENTE: ANÁLISIS DE CALIDAD (SOLO PRO)
+// ===================================================================================
+const QualityAnalysis = ({ analysis, isPro }) => {
+    if (!isPro) {
+        return (
+            <div className="relative bg-white/5 border border-white/10 rounded-2xl p-8 mt-8">
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-10 p-4 text-center">
+                    <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
+                    <p className="text-white font-bold text-lg mb-2">Análisis de Calidad - Plan PRO</p>
+                    <a href="#planes" className="text-purple-400 hover:text-purple-300 text-sm font-semibold">
+                        Actualizar a PRO →
+                    </a>
+                </div>
+                <div className="opacity-30">
+                    <h3 className="text-xl font-bold mb-4">📊 Análisis de Calidad</h3>
+                    <div className="space-y-4">
+                        <div className="text-gray-500">Contenido bloqueado...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!analysis) return null;
+
+    return (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 mt-8">
+            <h3 className="text-xl font-bold mb-4">📊 Análisis de Calidad del Prompt</h3>
+            
+            <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-2xl font-bold">Score: {analysis.score}/10</span>
+                    <div className="flex items-center space-x-1">
+                        {[...Array(10)].map((_, i) => (
+                            <div key={i} className={`w-3 h-8 rounded ${i < Math.floor(analysis.score) ? 'bg-green-500' : 'bg-white/10'}`}></div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-6">
+                <div>
+                    <h4 className="text-green-400 font-bold mb-3 flex items-center">
+                        <Check className="w-5 h-5 mr-2" />
+                        Elementos incluidos:
+                    </h4>
+                    <ul className="space-y-2">
+                        {analysis.included.map((item, i) => (
+                            <li key={i} className="flex items-start space-x-3">
+                                <Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                                <span className="text-gray-300">{item}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 className="text-yellow-400 font-bold mb-3">⚠️ Sugerencias de mejora:</h4>
+                    <ul className="space-y-2">
+                        {analysis.suggestions.map((item, i) => (
+                            <li key={i} className="flex items-start space-x-3">
+                                <span className="text-yellow-400 flex-shrink-0">•</span>
+                                <span className="text-gray-300">{item}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ===================================================================================
+// COMPONENTE: GENERADOR DE PROMPTS CON IA
+// ===================================================================================
+const GeminiAssistantView = ({ onCopy, isPro }) => {
     const [prompt, setPrompt] = useState("");
     const [response, setResponse] = useState("Aquí aparecerá el prompt generado...");
     const [isLoading, setIsLoading] = useState(false);
     const [referenceImage, setReferenceImage] = useState(null);
     const [imagePreview, setImagePreview] = useState("");
+    const [selectedPreset, setSelectedPreset] = useState(null);
+    const [selectedScenario, setSelectedScenario] = useState(null);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [qualityAnalysis, setQualityAnalysis] = useState(null);
+    
+    // Sliders (valores por defecto)
+    const [sliders, setSliders] = useState({
+        aperture: 2.8,
+        focalLength: 85,
+        contrast: "medium",
+        grain: "subtle",
+        temperature: 5500
+    });
 
     const handleImageChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -147,6 +267,7 @@ const GeminiAssistantView = ({ onCopy }) => {
 
         setIsLoading(true);
         setResponse("Generando prompt con IA... por favor, espera.");
+        setQualityAnalysis(null);
 
         let imageBase64 = null;
         if (referenceImage) {
@@ -162,15 +283,25 @@ const GeminiAssistantView = ({ onCopy }) => {
                 body: JSON.stringify({
                     prompt: prompt,
                     referenceImage: imageBase64,
-                    mimeType: referenceImage ? referenceImage.type : null
+                    mimeType: referenceImage ? referenceImage.type : null,
+                    preset: selectedPreset ? PRESETS.find(p => p.id === selectedPreset)?.promptBlock : null,
+                    scenario: selectedScenario ? SCENARIOS.find(s => s.id === selectedScenario)?.prompt : null,
+                    sliders: isPro && showAdvanced ? sliders : null,
+                    analyzeQuality: isPro,
+                    isPro: isPro
                 }),
             });
+            
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({ error: `Error del servidor: ${res.status}` }));
                 throw new Error(errorData.error);
             }
-            const data = await res.text();
-            setResponse(data);
+            
+            const data = await res.json();
+            setResponse(data.prompt);
+            if (data.qualityAnalysis) {
+                setQualityAnalysis(data.qualityAnalysis);
+            }
         } catch (error) {
             console.error("Error al llamar a la función:", error);
             setResponse(`Error: ${error.message}. No se pudo contactar al asistente.`);
@@ -181,46 +312,246 @@ const GeminiAssistantView = ({ onCopy }) => {
 
     return (
         <section id="prompt-generator" className="py-24 px-4 bg-black/20">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <AnimatedSection className="text-center mb-12">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4">Generador de Prompts <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">PROMPTRAITS</span></h2>
-                    <p className="text-gray-400 text-lg">Sube una imagen de referencia o describe tu idea y deja que la IA genere un prompt profesional para ti.</p>
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                        Generador de Prompts <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">PROMPTRAITS</span>
+                    </h2>
+                    <p className="text-gray-400 text-lg">Describe tu idea o sube una imagen de referencia para generar un prompt profesional.</p>
                 </AnimatedSection>
+
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* TEXTO + IMAGEN */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="md:col-span-2">
-                                <label htmlFor="inputText" className="block text-sm font-medium text-gray-300 mb-2">Describe tu idea (opcional si subes una imagen):</label>
+                                <label htmlFor="inputText" className="block text-sm font-medium text-gray-300 mb-2">
+                                    Describe tu idea:
+                                </label>
                                 <textarea id="inputText" rows="8"
                                     className="w-full h-full bg-black/50 border border-white/10 rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-cyan-500"
-                                    placeholder="Ej: un retrato de un astronauta en un campo de flores, estilo cinematográfico..."
+                                    placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
                                     value={prompt}
                                     onChange={(e) => setPrompt(e.target.value)}
                                 ></textarea>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">Imagen de Referencia:</label>
-                                <label htmlFor="referenceImage" className="w-full bg-black/50 border border-white/10 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-black/70">
+                                <label htmlFor="referenceImage" className="w-full bg-black/50 border border-white/10 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-black/70 min-h-[200px]">
                                     <Camera className="w-8 h-8 text-gray-400" />
                                     <span className="mt-2 text-sm text-gray-300">Sube una imagen</span>
                                 </label>
                                 <input id="referenceImage" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
-                                <p className="text-xs text-gray-500 mt-2">Sube una imagen de referencia para recrear una escena similar.</p>
+                                <p className="text-xs text-gray-500 mt-2">Sube una imagen y la IA la analizará para recrear la escena.</p>
                                 {imagePreview && <img src={imagePreview} alt="Vista previa" className="mt-4 rounded-lg w-full" />}
                             </div>
                         </div>
-                        <button type="submit" disabled={isLoading || (!prompt && !referenceImage)} className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed">
+
+                        {/* PRESETS */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-3">🎨 Estilo del Prompt:</label>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {PRESETS.map(preset => (
+                                    <div key={preset.id} className="relative">
+                                        {!preset.free && !isPro && (
+                                            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                                                <Lock className="w-5 h-5 text-purple-400" />
+                                            </div>
+                                        )}
+                                        <button
+                                            type="button"
+                                            disabled={!preset.free && !isPro}
+                                            onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
+                                            className={`w-full p-3 rounded-lg text-left transition-all ${
+                                                selectedPreset === preset.id 
+                                                    ? 'bg-purple-500/20 border-2 border-purple-500' 
+                                                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                            } ${!preset.free && !isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className="text-sm font-bold">{preset.name}</div>
+                                            <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
+                                            {preset.free && <div className="text-xs text-green-400 mt-1">GRATIS</div>}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ESCENARIOS (PRO) */}
+                        <div className="relative">
+                            {!isPro && (
+                                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
+                                    <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
+                                    <p className="text-white font-bold text-lg mb-2">Escenarios Predefinidos - Plan PRO</p>
+                                    <a href="#planes" className="text-purple-400 hover:text-purple-300 text-sm font-semibold">
+                                        Actualizar a PRO →
+                                    </a>
+                                </div>
+                            )}
+                            <label className="block text-sm font-medium text-gray-300 mb-3">🏙️ Escenario Predefinido:</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {SCENARIOS.map(scenario => (
+                                    <button
+                                        key={scenario.id}
+                                        type="button"
+                                        disabled={!isPro}
+                                        onClick={() => setSelectedScenario(selectedScenario === scenario.id ? null : scenario.id)}
+                                        className={`p-3 rounded-lg text-left transition-all ${
+                                            selectedScenario === scenario.id 
+                                                ? 'bg-cyan-500/20 border-2 border-cyan-500' 
+                                                : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                        }`}
+                                    >
+                                        <div className="text-sm font-bold">{scenario.name}</div>
+                                        <div className="text-xs text-gray-400 mt-1">{scenario.description}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* OPCIONES AVANZADAS (PRO - COLAPSABLE) */}
+                        <div className="relative">
+                            {!isPro && (
+                                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
+                                    <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
+                                    <p className="text-white font-bold text-lg mb-2">Opciones Avanzadas - Plan PRO</p>
+                                    <a href="#planes" className="text-purple-400 hover:text-purple-300 text-sm font-semibold">
+                                        Actualizar a PRO →
+                                    </a>
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setShowAdvanced(!showAdvanced)}
+                                disabled={!isPro}
+                                className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+                            >
+                                <span className="font-bold">⚙️ Opciones Avanzadas (Parámetros Técnicos)</span>
+                                {showAdvanced ? <ChevronUp /> : <ChevronDown />}
+                            </button>
+                            
+                            {showAdvanced && isPro && (
+                                <div className="mt-4 p-6 bg-black/30 border border-white/10 rounded-lg space-y-6">
+                                    {/* Apertura */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Apertura: f/{sliders.aperture}
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="1.4"
+                                            max="16"
+                                            step="0.1"
+                                            value={sliders.aperture}
+                                            onChange={(e) => setSliders({...sliders, aperture: parseFloat(e.target.value)})}
+                                            className="w-full"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>f/1.4 (muy abierta)</span>
+                                            <span>f/16 (cerrada)</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Distancia Focal */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Distancia Focal: {sliders.focalLength}mm
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="35"
+                                            max="200"
+                                            step="5"
+                                            value={sliders.focalLength}
+                                            onChange={(e) => setSliders({...sliders, focalLength: parseInt(e.target.value)})}
+                                            className="w-full"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>35mm (gran angular)</span>
+                                            <span>200mm (teleobjetivo)</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Contraste */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Contraste: {sliders.contrast}
+                                        </label>
+                                        <select
+                                            value={sliders.contrast}
+                                            onChange={(e) => setSliders({...sliders, contrast: e.target.value})}
+                                            className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
+                                        >
+                                            <option value="low">Bajo</option>
+                                            <option value="medium">Medio</option>
+                                            <option value="high">Alto</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Grano */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Grano de Película: {sliders.grain}
+                                        </label>
+                                        <select
+                                            value={sliders.grain}
+                                            onChange={(e) => setSliders({...sliders, grain: e.target.value})}
+                                            className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-gray-300"
+                                        >
+                                            <option value="none">Sin grano</option>
+                                            <option value="subtle">Sutil</option>
+                                            <option value="moderate">Moderado</option>
+                                            <option value="heavy">Intenso</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Temperatura de Color */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Temperatura de Color: {sliders.temperature}K
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="3000"
+                                            max="7000"
+step="100"
+                                            value={sliders.temperature}
+                                            onChange={(e) => setSliders({...sliders, temperature: parseInt(e.target.value)})}
+                                            className="w-full"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>3000K (cálido/tungsteno)</span>
+                                            <span>7000K (frío/nublado)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            disabled={isLoading || (!prompt && !referenceImage)} 
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-purple-500/20 transition-all"
+                        >
                             {isLoading ? "Generando..." : "Generar Prompt"}
                         </button>
                     </form>
+
+                    {/* ANÁLISIS DE CALIDAD */}
+                    <QualityAnalysis analysis={qualityAnalysis} isPro={isPro} />
+
+                    {/* PROMPT GENERADO */}
                     <div className="mt-8">
                         <h3 className="font-bold text-xl mb-4">Prompt Generado:</h3>
                         <div className="bg-black/40 border border-white/10 rounded-lg p-4">
-                            <pre className="text-gray-300 whitespace-pre-wrap font-sans">
+                            <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">
                                 {response}
                             </pre>
                             {response && !isLoading && !response.startsWith("Error") && response !== "Aquí aparecerá el prompt generado..." && (
-                                <button onClick={() => onCopy(response)} className="mt-4 w-full flex items-center justify-center space-x-2 bg-white/10 text-white px-4 py-3 rounded-lg font-bold hover:bg-white/20 transition-colors duration-300">
+                                <button 
+                                    onClick={() => onCopy(response)} 
+                                    className="mt-4 w-full flex items-center justify-center space-x-2 bg-white/10 text-white px-4 py-3 rounded-lg font-bold hover:bg-white/20 transition-colors duration-300"
+                                >
                                     <Copy size={18} />
                                     <span>Copiar Prompt Generado</span>
                                 </button>
@@ -233,11 +564,17 @@ const GeminiAssistantView = ({ onCopy }) => {
     );
 };
 
+// ===================================================================================
+// COMPONENTE PRINCIPAL APP
+// ===================================================================================
 export default function App() {
     const [view, setView] = useState('home');
     const [galleryFilter, setGalleryFilter] = useState('todos');
     const [toastText, setToastText] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    
+    // 🔥 SIMULADOR DE CUENTA PRO (cambiar a true/false para probar)
+    const [isPro, setIsPro] = useState(false);
 
     const showToast = (text) => {
         setToastText(text);
@@ -269,6 +606,7 @@ export default function App() {
     
     return (
         <div className="min-h-screen bg-[#0D0D0D] text-gray-200 font-sans">
+            {/* NAVEGACIÓN */}
             <nav className="fixed top-0 w-full z-50 bg-[#0D0D0D]/80 backdrop-blur-lg border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
@@ -279,6 +617,18 @@ export default function App() {
                         <div className="hidden md:flex items-center space-x-8">
                             <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">Galería</button>
                             <button onClick={() => navigateToPage('assistant')} className="text-gray-300 hover:text-white transition duration-300">Generador IA</button>
+                            
+                            {/* 🔥 BOTÓN SIMULADOR PRO (TEMPORAL - SOLO DESARROLLO) */}
+                            <button 
+                                onClick={() => setIsPro(!isPro)}
+                                className={`px-4 py-2 rounded-full font-bold transition-all ${
+                                    isPro 
+                                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black' 
+                                        : 'bg-white/10 text-white hover:bg-white/20'
+                                }`}
+                            >
+                                {isPro ? '👑 Modo PRO' : '🆓 Modo FREE'}
+                            </button>
                         </div>
                         <div className="hidden md:flex items-center">
                             <a href="#login" className="bg-white/10 text-white px-6 py-2 rounded-full font-semibold hover:bg-white/20 transition duration-300">Login</a>
@@ -293,20 +643,29 @@ export default function App() {
                         <div className="px-4 py-4 space-y-4">
                             <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">Galería</button>
                             <button onClick={() => navigateToPage('assistant')} className="block w-full text-left text-gray-300 hover:text-white">Generador IA</button>
+                            <button 
+                                onClick={() => setIsPro(!isPro)}
+                                className="block w-full text-left text-gray-300 hover:text-white"
+                            >
+                                {isPro ? '👑 Modo PRO' : '🆓 Modo FREE'}
+                            </button>
                             <a href="#login" onClick={() => setMobileMenuOpen(false)} className="block text-gray-300 hover:text-white">Login</a>
                         </div>
                     </div>
                 )}
             </nav>
 
+            {/* TOAST NOTIFICATIONS */}
             {toastText && (
                 <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-green-500 text-black px-6 py-3 rounded-full font-bold shadow-lg z-[110]">
                     {toastText}
                 </div>
             )}
 
+            {/* VISTA: HOME */}
             {view === 'home' && (
                 <main>
+                    {/* HERO */}
                     <section className="relative pt-40 pb-24 px-4 overflow-hidden text-center">
                         <AnimatedSection className="max-w-5xl mx-auto relative z-10">
                             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight tracking-tighter">
@@ -327,33 +686,37 @@ export default function App() {
                         </AnimatedSection>
                     </section>
 
+                    {/* GALERÍA HOME (4 MUESTRAS) */}
                     <section id="home-gallery" className="py-12 px-4">
-    <div className="max-w-7xl mx-auto">
-        <AnimatedSection className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Muestra de la Galería <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GRATIS</span></h2>
-            <p className="text-gray-400 text-lg max-w-3xl mx-auto">Una selección por categoría. Pulsa en "Galería" para ver todos los prompts.</p>
-        </AnimatedSection>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-            {homePrompts.map(item => (
-                <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transform hover:-translate-y-2 transition-transform duration-300 aspect-[3/4]">
-                    <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x400.png?text=Imagen+no+encontrada"; }} />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
-                        <Copy className="w-12 h-12 text-white/80" />
-                    </div>
-                </div>
-            ))}
-        </div>
-        <div className="flex justify-center mt-12">
-            <button 
-                onClick={() => navigateToPage('gallery')} 
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-400 to-cyan-500 text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-cyan-500/20 transform hover:scale-105 transition-all duration-300"
-            >
-                <span>Ver todos</span>
-            </button>
-        </div>
-    </div>
-</section>
+                        <div className="max-w-7xl mx-auto">
+                            <AnimatedSection className="text-center mb-16">
+                                <h2 className="text-4xl md:text-5xl font-bold mb-4">Muestra de la Galería <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GRATIS</span></h2>
+                                <p className="text-gray-400 text-lg max-w-3xl mx-auto">Una selección por categoría. Pulsa en "Galería" para ver todos los prompts.</p>
+                            </AnimatedSection>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                                {homePrompts.map(item => (
+                                    <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transform hover:-translate-y-2 transition-transform duration-300 aspect-[3/4]">
+                                        <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x400.png?text=Imagen+no+encontrada"; }} />
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
+                                            <Copy className="w-12 h-12 text-white/80" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            {/* BOTÓN VER TODOS */}
+                            <div className="flex justify-center mt-12">
+                                <button 
+                                    onClick={() => navigateToPage('gallery')} 
+                                    className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-400 to-cyan-500 text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-cyan-500/20 transform hover:scale-105 transition-all duration-300"
+                                >
+                                    <span>Ver todos</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
 
+                    {/* PRESETS */}
                     <section id="presets" className="py-24 px-4">
                         <div className="max-w-7xl mx-auto">
                             <AnimatedSection className="text-center mb-16">
@@ -363,7 +726,7 @@ export default function App() {
                                 <p className="text-gray-400 text-lg max-w-2xl mx-auto">Bloques de código listos para copiar y pegar en tus prompts. Resultados garantizados.</p>
                             </AnimatedSection>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {PRESETS.map((preset) => (
+                                {PRESETS.slice(0, 6).map((preset) => (
                                     <AnimatedSection key={preset.id} className="relative rounded-2xl p-6 bg-white/5 border border-white/10 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50">
                                         {!preset.free && (
                                             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-10 p-4 text-center">
@@ -394,6 +757,7 @@ export default function App() {
                         </div>
                     </section>
 
+                    {/* PLANES */}
                     <section id="planes" className="py-24 px-4 bg-black/20">
                         <div className="max-w-7xl mx-auto">
                             <AnimatedSection className="text-center mb-16">
@@ -425,35 +789,39 @@ export default function App() {
                 </main>
             )}
 
-            {(view === 'gallery' || view === 'assistant') && (
+            {/* VISTA: GALERÍA COMPLETA */}
+            {view === 'gallery' && (
                 <main className="pt-32 px-4">
-                    {view === 'gallery' && (
-                        <section id="full-gallery" className="py-12">
-                            <div className="max-w-7xl mx-auto">
-                                <AnimatedSection className="text-center mb-16">
-                                    <h2 className="text-4xl md:text-5xl font-bold mb-4">Galería de <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">Prompts Públicos</span></h2>
-                                    <p className="text-gray-400 text-lg">Navega, inspírate y haz clic en una imagen para copiar el prompt.</p>
-                                </AnimatedSection>
-                                <CategoryTabs selected={galleryFilter} onSelect={setGalleryFilter} />
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                                    {filteredPrompts.map(item => (
-                                        <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transform hover:-translate-y-2 transition-transform duration-300 aspect-[3/4]">
-                                            <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x400.png?text=Imagen+no+encontrada"; }} />
-                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
-                                                <Copy className="w-12 h-12 text-white/80" />
-                                            </div>
+                    <section id="full-gallery" className="py-12">
+                        <div className="max-w-7xl mx-auto">
+                            <AnimatedSection className="text-center mb-16">
+                                <h2 className="text-4xl md:text-5xl font-bold mb-4">Galería de <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">Prompts Públicos</span></h2>
+                                <p className="text-gray-400 text-lg">Navega, inspírate y haz clic en una imagen para copiar el prompt.</p>
+                            </AnimatedSection>
+                            <CategoryTabs selected={galleryFilter} onSelect={setGalleryFilter} />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                                {filteredPrompts.map(item => (
+                                    <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transform hover:-translate-y-2 transition-transform duration-300 aspect-[3/4]">
+                                        <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x400.png?text=Imagen+no+encontrada"; }} />
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
+                                            <Copy className="w-12 h-12 text-white/80" />
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
+                                ))}
                             </div>
-                        </section>
-                    )}
-                    {view === 'assistant' && (
-                        <GeminiAssistantView onCopy={handleCopy} />
-                    )}
+                        </div>
+                    </section>
+                </main>
+            )}
+
+            {/* VISTA: GENERADOR IA */}
+            {view === 'assistant' && (
+                <main className="pt-32 px-4">
+                    <GeminiAssistantView onCopy={handleCopy} isPro={isPro} />
                 </main>
             )}
             
+            {/* FOOTER */}
             <footer className="bg-black/20 border-t border-white/10 py-12 px-4 mt-20">
                 <div className="max-w-7xl mx-auto text-center">
                     <div className="flex items-center justify-center space-x-3 mb-6">
