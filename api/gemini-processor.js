@@ -13,10 +13,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, referenceImage, mimeType } = req.body;
+    const { prompt } = req.body;
 
-    if (!prompt && !referenceImage) {
-      return res.status(400).json({ error: 'Debes proporcionar un prompt o una imagen' });
+    if (!prompt) {
+      return res.status(400).json({ error: 'Debes proporcionar un prompt' });
     }
 
     const API_KEY = process.env.GEMINI_API_KEY;
@@ -26,13 +26,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API key no configurada' });
     }
 
-    console.log('✅ Procesando con Gemini 2.5 Flash...');
+    console.log('✅ Generando prompt...');
 
-    const fullPrompt = `Eres un director de fotografía profesional especializado en crear prompts ultra-técnicos para IA generativa de retratos fotográficos hiperrealistas.
+    const systemPrompt = `Eres un experto en fotografía cinematográfica profesional.
 
-PETICIÓN DEL USUARIO: ${prompt}
+Usuario solicita: ${prompt}
 
-INSTRUCCIONES CRÍTICAS:
 Genera un prompt cinematográfico profesional siguiendo EXACTAMENTE esta estructura técnica:
 
 **1. ESCENA Y SUJETO (Obligatorio)**
@@ -115,4 +114,42 @@ REGLAS DE ESCRITURA:
 - Siempre incluir "using the exact face from the provided selfie — no editing, no retouching, no smoothing"
 - Siempre terminar con "no beauty retouching"
 - Keywords técnicos al final separados por comas (10-20 keywords)
-- Tono: Profesional, cinematográfico, técnico, detallado
+- Tono: Profesional, cinematográfico, técnico, detallado`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: systemPrompt }]
+          }]
+        })
+      }
+    );
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('❌ Error de Gemini:', data);
+      return res.status(response.status).json({ 
+        error: 'Error al procesar con Gemini',
+        details: data.error?.message || 'Error desconocido'
+      });
+    }
+
+    const text = data.candidates[0].content.parts[0].text;
+    
+    console.log('✅ Prompt generado');
+    return res.status(200).send(text);
+
+  } catch (error) {
+    console.error('❌ Error:', error.message);
+    
+    return res.status(500).json({ 
+      error: 'Error al procesar la solicitud',
+      details: error.message 
+    });
+  }
+}
