@@ -128,10 +128,7 @@ CRITICAL RULES:
   if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
   if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
   if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
-}${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
 }
-${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
-    }
 
     // Añadir solicitud del usuario
     if (prompt && !referenceImage) {
