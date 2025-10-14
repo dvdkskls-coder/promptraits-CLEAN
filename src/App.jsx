@@ -3,6 +3,8 @@ import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, L
 import { useAuth } from './contexts/AuthContext'
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
+import UserMenu from './components/UserMenu' 
+import Profile from './components/Profile'
 
 // ===================================================================================
 // 🔴 AQUÍ VA TU RAW_PROMPTS COMPLETO (NO LO TOQUES)
@@ -810,8 +812,25 @@ export default function App() {
         setMobileMenuOpen(false);
         window.scrollTo(0, 0);
     };
+
+// Función global para que UserMenu pueda navegar al perfil
+React.useEffect(() => {
+    window.App_navigateToProfile = (tab = 'profile') => {
+        setView('profile')
+        setMobileMenuOpen(false)
+        window.scrollTo(0, 0)
+        
+        // Guardar la pestaña seleccionada para que Profile la use
+        window.App_profileTab = tab
+    }
     
-    return (
+    return () => {
+        delete window.App_navigateToProfile
+        delete window.App_profileTab
+    }
+}, [])    
+
+return (
         <div className="min-h-screen bg-[#0D0D0D] text-gray-200 font-sans">
             {/* NAVEGACIÓN */}
             <nav className="fixed top-0 w-full z-50 bg-[#0D0D0D]/80 backdrop-blur-lg border-b border-white/10">
@@ -821,6 +840,7 @@ export default function App() {
                             <Camera className="w-8 h-8 text-cyan-400" />
                             <span className="text-xl font-bold tracking-wider">PROMPTRAITS</span>
                         </button>
+                        
                         <div className="hidden md:flex items-center space-x-8">
                             <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">Galería</button>
                             <button onClick={() => navigateToPage('assistant')} className="text-gray-300 hover:text-white transition duration-300">Generador IA</button>
@@ -837,6 +857,7 @@ export default function App() {
                                 {isPro ? '👑 Modo PRO' : '🆓 Modo FREE'}
                             </button>
                         </div>
+
                         <div className="hidden md:flex items-center">
                             {!user ? (
                                 <button 
@@ -846,37 +867,17 @@ export default function App() {
                                     Login
                                 </button>
                             ) : (
-                                <div className="flex items-center space-x-4">
-                                    <div className="text-sm">
-                                        <span className="text-gray-400">Créditos: </span>
-                                        <span className="font-bold text-cyan-400">{profile?.credits || 0}</span>
-                                    </div>
-                                    <button 
-                                        onClick={signOut}
-                                        className="bg-red-500/10 text-red-400 px-4 py-2 rounded-full font-semibold hover:bg-red-500/20 transition duration-300"
-                                    >
-                                        Cerrar Sesión
-                                    </button>
-                                </div>
+                                <UserMenu />
                             )}
                         </div>
+                        
                         <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                             {mobileMenuOpen ? <X /> : <Menu />}
                         </button>
                     </div>
                 </div>
+                
                 {mobileMenuOpen && (
-                    <div className="md:hidden bg-[#111111] border-t border-white/10">
-                        <div className="px-4 py-4 space-y-4">
-                            <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">Galería</button>
-                            <button onClick={() => navigateToPage('assistant')} className="block w-full text-left text-gray-300 hover:text-white">Generador IA</button>
-                            <button 
-                                onClick={() => setIsPro(!isPro)}
-                                className="block w-full text-left text-gray-300 hover:text-white"
-                            >
-                                {isPro ? '👑 Modo PRO' : '🆓 Modo FREE'}
-                            </button>
-                            {mobileMenuOpen && (
                     <div className="md:hidden bg-[#111111] border-t border-white/10">
                         <div className="px-4 py-4 space-y-4">
                             <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">Galería</button>
@@ -908,9 +909,6 @@ export default function App() {
                                     </button>
                                 </>
                             )}
-                        </div>
-                    </div>
-                )}
                         </div>
                     </div>
                 )}
@@ -1081,6 +1079,11 @@ export default function App() {
                     <GeminiAssistantView onCopy={handleCopy} isPro={isPro} />
                 </main>
             )}
+
+{/* VISTA: PERFIL */}
+{view === 'profile' && (
+    <Profile onBack={() => setView('home')} />
+)}
             
             {/* FOOTER */}
             <footer className="bg-black/20 border-t border-white/10 py-12 px-4 mt-20">
