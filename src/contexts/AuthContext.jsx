@@ -79,28 +79,33 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
-    setUser(null)
     setProfile(null)
   }
 
   const resetPassword = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     })
     if (error) throw error
+    return data
   }
 
   const updateProfile = async (updates) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single()
 
-    if (error) throw error
-    setProfile(data)
-    return data
+      if (error) throw error
+      setProfile(data)
+      return data
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      throw error
+    }
   }
 
   const value = {

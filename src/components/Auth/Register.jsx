@@ -9,7 +9,7 @@ export default function Register({ onClose, onSwitchToLogin }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { signUp } = useAuth()
+  const { signUp, signInWithGoogle } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -34,6 +34,15 @@ export default function Register({ onClose, onSwitchToLogin }) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleSignup = async () => {
+    try {
+      await signInWithGoogle()
+      // El redirect se hace automáticamente
+    } catch (err) {
+      setError(err.message)
     }
   }
 

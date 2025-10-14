@@ -7,7 +7,7 @@ export default function Login({ onClose, onSwitchToRegister }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, signInWithGoogle } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -21,6 +21,15 @@ export default function Login({ onClose, onSwitchToRegister }) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle()
+      // El redirect se hace automáticamente
+    } catch (err) {
+      setError(err.message)
     }
   }
 
