@@ -1,5 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp, Lightbulb, Trash2, Upload, Sparkles } from "lucide-react";
+import { useAuth } from './contexts/AuthContext'
+import Login from './components/Auth/Login'
+import Register from './components/Auth/Register'
 
 // ===================================================================================
 // 🔴 AQUÍ VA TU RAW_PROMPTS COMPLETO (NO LO TOQUES)
@@ -775,6 +778,9 @@ export default function App() {
     
     // 🔥 SIMULADOR DE CUENTA PRO (cambiar a true/false para probar)
     const [isPro, setIsPro] = useState(false);
+   	 const { user, profile, signOut } = useAuth()
+ 	   const [showLogin, setShowLogin] = useState(false)
+ 	   const [showRegister, setShowRegister] = useState(false)
 
     const showToast = (text) => {
         setToastText(text);
@@ -831,28 +837,69 @@ export default function App() {
                             </button>
                         </div>
                         <div className="hidden md:flex items-center">
-                            <a href="#login" className="bg-white/10 text-white px-6 py-2 rounded-full font-semibold hover:bg-white/20 transition duration-300">Login</a>
-                        </div>
+    {!user ? (
+        <button 
+            onClick={() => setShowLogin(true)}
+            className="bg-white/10 text-white px-6 py-2 rounded-full font-semibold hover:bg-white/20 transition duration-300"
+        >
+            Login
+        </button>
+    ) : (
+        <div className="flex items-center space-x-4">
+            <div className="text-sm">
+                <span className="text-gray-400">Créditos: </span>
+                <span className="font-bold text-cyan-400">{profile?.credits || 0}</span>
+            </div>
+            <button 
+                onClick={signOut}
+                className="bg-red-500/10 text-red-400 px-4 py-2 rounded-full font-semibold hover:bg-red-500/20 transition duration-300"
+            >
+                Cerrar Sesión
+            </button>
+        </div>
+    )}
+</div>
                         <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                             {mobileMenuOpen ? <X /> : <Menu />}
                         </button>
                     </div>
                 </div>
                 {mobileMenuOpen && (
-                    <div className="md:hidden bg-[#111111] border-t border-white/10">
-                        <div className="px-4 py-4 space-y-4">
-                            <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">Galería</button>
-                            <button onClick={() => navigateToPage('assistant')} className="block w-full text-left text-gray-300 hover:text-white">Generador IA</button>
-                            <button 
-                                onClick={() => setIsPro(!isPro)}
-                                className="block w-full text-left text-gray-300 hover:text-white"
-                            >
-                                {isPro ? '👑 Modo PRO' : '🆓 Modo FREE'}
-                            </button>
-                            <a href="#login" onClick={() => setMobileMenuOpen(false)} className="block text-gray-300 hover:text-white">Login</a>
-                        </div>
+    <div className="md:hidden bg-[#111111] border-t border-white/10">
+        <div className="px-4 py-4 space-y-4">
+            <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">Galería</button>
+            <button onClick={() => navigateToPage('assistant')} className="block w-full text-left text-gray-300 hover:text-white">Generador IA</button>
+            <button 
+                onClick={() => setIsPro(!isPro)}
+                className="block w-full text-left text-gray-300 hover:text-white"
+            >
+                {isPro ? '👑 Modo PRO' : '🆓 Modo FREE'}
+            </button>
+            
+            {/* 🔥 REEMPLAZAR ESTA PARTE */}
+            {!user ? (
+                <button 
+                    onClick={() => { setShowLogin(true); setMobileMenuOpen(false); }} 
+                    className="block w-full text-left text-gray-300 hover:text-white"
+                >
+                    Login
+                </button>
+            ) : (
+                <>
+                    <div className="text-gray-300">
+                        Créditos: <span className="font-bold text-cyan-400">{profile?.credits || 0}</span>
                     </div>
-                )}
+                    <button 
+                        onClick={() => { signOut(); setMobileMenuOpen(false); }}
+                        className="block w-full text-left text-red-400 hover:text-red-300"
+                    >
+                        Cerrar Sesión
+                    </button>
+                </>
+            )}
+        </div>
+    </div>
+)}
             </nav>
 
             {/* TOAST NOTIFICATIONS */}
@@ -1023,21 +1070,29 @@ export default function App() {
             
             {/* FOOTER */}
             <footer className="bg-black/20 border-t border-white/10 py-12 px-4 mt-20">
-                <div className="max-w-7xl mx-auto text-center">
-                    <div className="flex items-center justify-center space-x-3 mb-6">
-                        <Camera className="w-7 h-7 text-cyan-400" />
-                        <span className="text-lg font-bold tracking-wider">PROMPTRAITS</span>
-                    </div>
-                    <p className="text-gray-500 max-w-lg mx-auto mb-6">
-                        Plataforma profesional de prompts y retratos IA. Transforma tu presencia digital y eleva tu marca personal.
-                    </p>
-                    <div className="flex justify-center space-x-6 mb-8">
-                        <a href="https://www.instagram.com/sr_waly/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition"><Instagram /></a>
-                        <a href="https://t.me/+nyMJxze9il4wZGJk" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition"><Send /></a>
-                    </div>
-                    <p className="text-gray-600 text-sm">© {new Date().getFullYear()} Promptraits by Sr. Waly. Todos los derechos reservados.</p>
-                </div>
+                {/* ... tu código del footer ... */}
             </footer>
+            
+            {/* 🔥 AÑADIR AQUÍ - MODALES DE AUTH */}
+            {showLogin && (
+                <Login 
+                    onClose={() => setShowLogin(false)}
+                    onSwitchToRegister={() => {
+                        setShowLogin(false)
+                        setShowRegister(true)
+                    }}
+                />
+            )}
+
+            {showRegister && (
+                <Register 
+                    onClose={() => setShowRegister(false)}
+                    onSwitchToLogin={() => {
+                        setShowRegister(false)
+                        setShowLogin(true)
+                    }}
+                />
+            )}
         </div>
     );
 }
