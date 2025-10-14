@@ -836,11 +836,9 @@ return (
             <nav className="fixed top-0 w-full z-50 bg-[#0D0D0D]/80 backdrop-blur-lg border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
-                        <button onClick={() => navigateToPage('home')} className="flex items-center space-x-3">
-                            <Camera className="w-8 h-8 text-cyan-400" />
-                            <span className="text-xl font-bold tracking-wider">PROMPTRAITS</span>
-                        </button>
-                        
+			<button onClick={() => w("home")} className="flex items-center">
+    									<img src="/logo promptraits.svg" alt="Promptraits Logo" className="w-[300px] h-auto" />
+			</button>                        
                         <div className="hidden md:flex items-center space-x-8">
                             <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">Galería</button>
                             <button onClick={() => navigateToPage('assistant')} className="text-gray-300 hover:text-white transition duration-300">Generador IA</button>
