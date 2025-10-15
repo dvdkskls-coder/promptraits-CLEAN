@@ -6,6 +6,7 @@ import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
 import UserMenu from './components/UserMenu' 
 import Profile from './components/Profile'
+import Checkout from './components/Checkout'
 
 // ===================================================================================
 // 🔴 AQUÍ VA TU RAW_PROMPTS COMPLETO (NO LO TOQUES)
@@ -868,6 +869,7 @@ export default function App() {
     const { user, profile, signOut } = useAuth()
     const [showLogin, setShowLogin] = useState(false)
     const [showRegister, setShowRegister] = useState(false)
+           const [showCheckout, setShowCheckout] = useState(false);
 
     const showToast = (text) => {
         setToastText(text);
@@ -1119,9 +1121,12 @@ return (
                                         <ul className="space-y-3 mb-8">
                                             {plan.features.map((feature, i) => <li key={i} className="flex items-start space-x-3"><Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" /><span className="text-gray-300">{feature}</span></li>)}
                                         </ul>
-                                        <button className={`w-full py-3 rounded-full font-bold transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-green-400 to-cyan-500 text-black hover:shadow-lg hover:shadow-cyan-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-                                            Suscribirse
-                                        </button>
+                                        <button 
+    onClick={() => setShowCheckout(true)}
+    className={`w-full py-3 rounded-full font-bold transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-green-400 to-cyan-500 text-black hover:shadow-lg hover:shadow-cyan-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+>
+    {user ? 'Suscribirse' : 'Crear Cuenta Gratis'}
+</button>
                                     </AnimatedSection>
                                 ))}
                             </div>
@@ -1205,6 +1210,9 @@ return (
                     }}
                 />
             )}
+
+{/* CHECKOUT MODAL */}
+{showCheckout && <Checkout onClose={() => setShowCheckout(false)} />}
         </div>
     );
 }
