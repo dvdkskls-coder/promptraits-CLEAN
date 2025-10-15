@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp, Lightbulb, Trash2, Upload, Sparkles } from "lucide-react";
 import { useAuth } from './contexts/AuthContext'
+import { supabase } from './lib/supabase'
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
 import UserMenu from './components/UserMenu' 
@@ -266,6 +267,7 @@ const QualityAnalysis = ({ analysis, isPro, onApplySuggestions, isApplying }) =>
 // COMPONENTE: GENERADOR DE PROMPTS CON IA
 // ===================================================================================
 const GeminiAssistantView = ({ onCopy, isPro }) => {
+    const { user, profile, refreshProfile } = useAuth()
     const [prompt, setPrompt] = useState("");
     const [response, setResponse] = useState("Aquí aparecerá el prompt generado...");
     const [isLoading, setIsLoading] = useState(false);
@@ -348,55 +350,107 @@ Puedes editar esta idea o generar el prompt directamente con los ajustes aplicad
         reader.onerror = error => reject(error);
     });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if ((!prompt && !referenceImage) || isLoading) return;
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    if ((!prompt && !referenceImage) || isLoading) return;
 
-        setIsLoading(true);
-        setResponse("Generando prompt con IA... por favor, espera.");
-        setQualityAnalysis(null);
+    // 🔒 VERIFICAR AUTENTICACIÓN
+    if (!user) {
+        alert('Debes iniciar sesión para generar prompts');
+        return;
+    }
 
-        let imageBase64 = null;
-        if (referenceImage) {
-            imageBase64 = await fileToBase64(referenceImage);
+    // 🔒 VERIFICAR CRÉDITOS
+    if (profile?.credits <= 0) {
+        alert('No tienes créditos suficientes. Actualiza tu plan o espera al próximo periodo.');
+        return;
+    }
+
+    setIsLoading(true);
+    setResponse("Generando prompt con IA... por favor, espera.");
+    setQualityAnalysis(null);
+
+    let imageBase64 = null;
+    if (referenceImage) {
+        imageBase64 = await fileToBase64(referenceImage);
+    }
+
+    const functionURL = '/api/gemini-processor';
+
+    try {
+        // 💳 DESCONTAR CRÉDITO ANTES DE GENERAR
+        const { data: creditUsed, error: creditError } = await supabase.rpc('use_credit', {
+            user_id_param: user.id
+        });
+
+        if (creditError) throw new Error('Error al descontar crédito');
+        
+        if (!creditUsed) {
+            throw new Error('No tienes créditos suficientes');
         }
 
-        const functionURL = '/api/gemini-processor';
-
-        try {
-            const res = await fetch(functionURL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    referenceImage: imageBase64,
-                    mimeType: referenceImage ? referenceImage.type : null,
-                    preset: selectedPreset ? PRESETS.find(p => p.id === selectedPreset)?.promptBlock : null,
-                    scenario: selectedScenario ? SCENARIOS.find(s => s.id === selectedScenario)?.prompt : null,
-                    sliders: isPro && showAdvanced ? sliders : null,
-                    analyzeQuality: isPro,
-                    isPro: isPro
-                }),
-            });
-            
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: `Error del servidor: ${res.status}` }));
-                throw new Error(errorData.error);
-            }
-            
-            const data = await res.json();
-            setResponse(data.prompt);
-            if (data.qualityAnalysis) {
-                setQualityAnalysis(data.qualityAnalysis);
-            }
-        } catch (error) {
-            console.error("Error al llamar a la función:", error);
-            setResponse(`Error: ${error.message}. No se pudo contactar al asistente.`);
-        } finally {
-            setIsLoading(false);
+        // Generar el prompt
+        const res = await fetch(functionURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                prompt: prompt,
+                referenceImage: imageBase64,
+                mimeType: referenceImage ? referenceImage.type : null,
+                preset: selectedPreset ? PRESETS.find(p => p.id === selectedPreset)?.promptBlock : null,
+                scenario: selectedScenario ? SCENARIOS.find(s => s.id === selectedScenario)?.prompt : null,
+                sliders: isPro && showAdvanced ? sliders : null,
+                analyzeQuality: isPro,
+                isPro: isPro
+            }),
+        });
+        
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ error: `Error del servidor: ${res.status}` }));
+            throw new Error(errorData.error);
         }
-    };
+        
+        const data = await res.json();
+        setResponse(data.prompt);
+        
+        if (data.qualityAnalysis) {
+            setQualityAnalysis(data.qualityAnalysis);
+        }
 
+        // 📝 GUARDAR EN HISTORIAL
+        const presetName = selectedPreset ? PRESETS.find(p => p.id === selectedPreset)?.name : null;
+        const scenarioName = selectedScenario ? SCENARIOS.find(s => s.id === selectedScenario)?.name : null;
+
+        await supabase.rpc('add_prompt_to_history', {
+            user_id_param: user.id,
+            prompt_text_param: data.prompt,
+            preset_used_param: presetName,
+            scenario_used_param: scenarioName
+        });
+
+        // 🔄 RECARGAR PERFIL PARA MOSTRAR CRÉDITOS ACTUALIZADOS
+        await refreshProfile();
+
+    } catch (error) {
+        console.error("Error al llamar a la función:", error);
+        setResponse(`Error: ${error.message}. No se pudo contactar al asistente.`);
+        
+        // Si hubo error después de descontar, devolver el crédito
+        if (error.message !== 'No tienes créditos suficientes') {
+            try {
+                await supabase
+                    .from('profiles')
+                    .update({ credits: supabase.raw('credits + 1') })
+                    .eq('id', user.id);
+                await refreshProfile();
+            } catch (refundError) {
+                console.error('Error al devolver crédito:', refundError);
+            }
+        }
+    } finally {
+        setIsLoading(false);
+    }
+};
     // ===================================================================================
     // APLICAR SUGERENCIAS
     // ===================================================================================
@@ -437,6 +491,29 @@ Puedes editar esta idea o generar el prompt directamente con los ajustes aplicad
     return (
     <section id="prompt-generator" className="py-24 px-4 bg-black/20">
         <div className="max-w-6xl mx-auto">
+{/* ALERTA DE CRÉDITOS */}
+            {user && profile && profile.credits <= 3 && (
+                <div className={`mb-6 p-4 rounded-lg border ${
+                    profile.credits === 0 
+                        ? 'bg-red-500/10 border-red-500/30' 
+                        : 'bg-yellow-500/10 border-yellow-500/30'
+                }`}>
+                    <p className={`font-bold ${profile.credits === 0 ? 'text-red-400' : 'text-yellow-400'}`}>
+                        {profile.credits === 0 
+                            ? '⚠️ No tienes créditos. Actualiza tu plan para continuar.'
+                            : `⚠️ Te quedan ${profile.credits} crédito${profile.credits === 1 ? '' : 's'}.`
+                        }
+                    </p>
+                    {profile.plan === 'free' && (
+                        <a 
+                            href="#planes" 
+                            className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold mt-2 inline-block"
+                        >
+                            Ver planes →
+                        </a>
+                    )}
+                </div>
+            )}
             <AnimatedSection className="text-center mb-12">
                 <h2 className="text-4xl md:text-5xl font-bold mb-4">
                     Generador de Prompts <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">PROMPTRAITS</span>
@@ -729,13 +806,20 @@ Puedes editar esta idea o generar el prompt directamente con los ajustes aplicad
                     </div>
 
                     {/* BOTÓN GENERAR */}
-                    <button 
-                        type="submit" 
-                        disabled={isLoading || (!prompt && !referenceImage)} 
-                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-purple-500/20 transition-all text-lg"
-                    >
-                        {isLoading ? "Generando..." : "Generar Prompt"}
-                    </button>
+<button 
+    type="submit" 
+    disabled={isLoading || (!prompt && !referenceImage) || !user || profile?.credits <= 0} 
+    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-purple-500/20 transition-all text-lg"
+>
+    {!user 
+        ? "Inicia sesión para generar" 
+        : profile?.credits <= 0 
+            ? "Sin créditos disponibles" 
+            : isLoading 
+                ? "Generando..." 
+                : "Generar Prompt"
+    }
+</button>
                 </form>
 
                 {/* ANÁLISIS DE CALIDAD */}

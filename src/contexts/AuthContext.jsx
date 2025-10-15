@@ -57,7 +57,22 @@ export const AuthProvider = ({ children }) => {
       setLoading(false)
     }
   }
+// Función para recargar el perfil (útil después de usar créditos)
+const refreshProfile = async () => {
+  if (!user) return
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
 
+    if (error) throw error
+    setProfile(data)
+  } catch (error) {
+    console.error('Error refreshing profile:', error)
+  }
+}
   const signUp = async (email, password) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -108,16 +123,17 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const value = {
-    user,
-    profile,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-    resetPassword,
-    updateProfile,
-  }
+const value = {
+  user,
+  profile,
+  loading,
+  signUp,
+  signIn,
+  signOut,
+  resetPassword,
+  updateProfile,
+  refreshProfile,
+}
 
   return (
     <AuthContext.Provider value={value}>
