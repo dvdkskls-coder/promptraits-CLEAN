@@ -3,9 +3,13 @@ import { loadStripe } from '@stripe/stripe-js'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { X, CreditCard, Crown, Sparkles, Check } from 'lucide-react'
+const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+if (!publishableKey) {
+  console.error('❌ VITE_STRIPE_PUBLISHABLE_KEY no está definida')
+}
 
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 export default function Checkout({ onClose }) {
   const { user, profile, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
@@ -58,12 +62,19 @@ export default function Checkout({ onClose }) {
   ]
 
   const handleCheckout = async (priceId, type, planId = null, credits = 0) => {
-    if (!user) {
-      alert('Debes iniciar sesión para continuar')
-      return
-    }
+  if (!user) {
+    alert('Debes iniciar sesión para continuar')
+    return
+  }
 
-    setLoading(true)
+  // VALIDAR QUE STRIPE ESTÉ CONFIGURADO
+  if (!stripePromise) {
+    alert('Error: Stripe no está configurado correctamente. Contacta al administrador.')
+    console.error('❌ Stripe Publishable Key no está definida')
+    return
+  }
+
+  setLoading(true)
 
     try {
       const stripe = await stripePromise
