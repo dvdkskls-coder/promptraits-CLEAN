@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 export default async function handler(req, res) {
-  // ✅ CORS Headers
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
   const { priceId, userId, email, type, planId, credits, successUrl, cancelUrl } = req.body
 
-  // ✅ Validar que tenemos la Secret Key
+  // Validar Secret Key
   if (!process.env.STRIPE_SECRET_KEY) {
     console.error('❌ STRIPE_SECRET_KEY no está definida')
     return res.status(500).json({ error: 'Stripe no está configurado en el servidor' })
@@ -51,7 +51,11 @@ export default async function handler(req, res) {
       allow_promotion_codes: true,
     })
 
-    res.status(200).json({ sessionId: session.id })
+    // Devolver URL directa
+    res.status(200).json({ 
+      sessionId: session.id,
+      url: session.url  // ← IMPORTANTE
+    })
   } catch (error) {
     console.error('❌ Error creating checkout session:', error)
     res.status(500).json({ error: error.message })

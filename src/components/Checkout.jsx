@@ -62,8 +62,9 @@ export default function Checkout({ onClose }) {
     { id: 'pack100', name: '100 Créditos', price: '15.99', credits: 100, priceId: import.meta.env.VITE_STRIPE_PRICE_PACK_100 }
   ]
 
-  // Reemplazo del handleCheckout para soportar { url } o { id/sessionId }
+  // Reemplazo del handleCheckout para soportar { url } o { id/sessionId } y añadir logs
   const handleCheckout = async (priceId, type, planId = null, credits = 0) => {
+    console.log('handleCheckout called', { priceId, type, planId, credits })
     if (!user) {
       alert('Debes iniciar sesión para continuar')
       return
@@ -87,32 +88,40 @@ export default function Checkout({ onClose }) {
         })
       })
 
-      // Mejor manejo de errores del servidor
-      if (!response.ok) {
-        const text = await response.text()
-        throw new Error(`Error en el servidor: ${text}`)
+      console.log('HTTP status:', response.status)
+      const text = await response.text()
+      console.log('Raw response text:', text)
+
+      // intentar parsear JSON seguro
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch (e) {
+        throw new Error('Respuesta no JSON del servidor: ' + text)
       }
+      console.log('create-checkout-session JSON:', data)
 
-      const session = await response.json()
-      console.log('create-checkout-session response:', session)
-
-      // Si el backend devuelve una URL completa (por ejemplo Stripe Checkout v2)
-      if (session.url) {
-        window.location.href = session.url
+      if (data.url) {
+        console.log('Redirecting to url from backend:', data.url)
+        window.location.href = data.url
         return
       }
 
-      // Si el backend devuelve un sessionId / id (redirectToCheckout)
-      const sessionId = session.id || session.sessionId || session.session_id
+      const sessionId = data.sessionId || data.id || data.session_id
+      console.log('Resolved sessionId:', sessionId)
+
       if (sessionId) {
+        console.log('publishableKey (build-time env):', publishableKey)
         const stripe = await (stripePromise || loadStripe(publishableKey))
-        if (!stripe) throw new Error('Stripe no inicializado: falta VITE_STRIPE_PUBLISHABLE_KEY')
+        console.log('stripe object:', stripe)
+        if (!stripe) throw new Error('Stripe no inicializado: falta VITE_STRIPE_PUBLISHABLE_KEY o no se pudo cargar stripe.js')
         const result = await stripe.redirectToCheckout({ sessionId })
+        console.log('redirectToCheckout result:', result)
         if (result?.error) throw result.error
         return
       }
 
-      throw new Error('No se recibió URL de Stripe')
+      throw new Error('No se recibió URL o sessionId de Stripe')
 
     } catch (error) {
       console.error('Error al procesar el pago:', error)
