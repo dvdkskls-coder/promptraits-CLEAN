@@ -3,6 +3,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { X, CreditCard, Crown, Sparkles, Check } from 'lucide-react'
+
 const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 
 if (!publishableKey) {
@@ -10,6 +11,7 @@ if (!publishableKey) {
 }
 
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null
+
 export default function Checkout({ onClose }) {
   const { user, profile, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
@@ -62,24 +64,24 @@ export default function Checkout({ onClose }) {
   ]
 
   const handleCheckout = async (priceId, type, planId = null, credits = 0) => {
-  if (!user) {
-    alert('Debes iniciar sesión para continuar')
-    return
-  }
+    if (!user) {
+      alert('Debes iniciar sesión para continuar')
+      return
+    }
 
-  // VALIDAR QUE STRIPE ESTÉ CONFIGURADO
-  if (!stripePromise) {
-    alert('Error: Stripe no está configurado correctamente. Contacta al administrador.')
-    console.error('❌ Stripe Publishable Key no está definida')
-    return
-  }
+    // VALIDAR QUE STRIPE ESTÉ CONFIGURADO
+    if (!stripePromise) {
+      alert('Error: Stripe no está configurado correctamente. Contacta al administrador.')
+      console.error('❌ Stripe Publishable Key no está definida')
+      return
+    }
 
-  setLoading(true)
+    setLoading(true)
 
     try {
       const stripe = await stripePromise
 
-      // Crear Checkout Session en tu backend
+      // Crear Checkout Session en el backend
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,14 +103,9 @@ export default function Checkout({ onClose }) {
         throw new Error(session.error)
       }
 
-      // Redirigir a Stripe Checkout
-      const result = await stripe.redirectToCheckout({
-        sessionId: session.sessionId
-      })
+      // ✅ REDIRIGIR A STRIPE CHECKOUT (NUEVO MÉTODO)
+      window.location.href = session.url
 
-      if (result.error) {
-        throw new Error(result.error.message)
-      }
     } catch (error) {
       console.error('Error al procesar el pago:', error)
       alert('Error al procesar el pago. Inténtalo de nuevo.')
@@ -226,7 +223,7 @@ export default function Checkout({ onClose }) {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>✅ Pago seguro con Stripe • Cancela cuando quieras • Garantía 7 días</p>
+          <p>✅ Pago seguro con Stripe • Cancela cuando quieras</p>
         </div>
       </div>
     </div>
