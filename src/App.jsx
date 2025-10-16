@@ -919,13 +919,19 @@ React.useEffect(() => {
 return (
         <div className="min-h-screen bg-[#0D0D0D] text-gray-200 font-sans">
             {/* NAVEGACIÓN */}
-            <nav className="fixed top-0 w-full z-50 bg-[#0D0D0D]/80 backdrop-blur-lg border-b border-white/10">
+<nav className="fixed top-0 w-full z-50 bg-[#0D0D0D]/80 backdrop-blur-lg border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
-			<button onClick={() => w("home")} className="flex items-center">
-    									<img src="/logo.svg" alt="Promptraits Logo" className="w-[300px] h-auto" />
-			</button>                        
-                        <div className="hidden md:flex items-center space-x-8">
+-			<button onClick={() => w("home")} className="flex items-center">
+-    									<img src="/logo.svg" alt="Promptraits Logo" className="w-[300px] h-auto" />
+-			</button>                        
++                        {/* Logo: centrado en móvil, alineado a la izquierda en escritorio */}
++                        <div className="absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none md:-ml-2">
++                            <button type="button" onClick={() => navigateToPage('home')} className="flex items-center">
++                                <img src="/logo.svg" alt="Promptraits Logo" className="w-[220px] md:w-[300px] h-auto" />
++                            </button>
++                        </div>
+                         <div className="hidden md:flex items-center space-x-8">
                             <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">Galería</button>
                             <button onClick={() => navigateToPage('assistant')} className="text-gray-300 hover:text-white transition duration-300">Generador IA</button>
                             
@@ -1175,10 +1181,15 @@ return (
             {/* FOOTER */}
             <footer className="bg-black/20 border-t border-white/10 py-12 px-4 mt-20">
                 <div className="max-w-7xl mx-auto text-center">
-                    <div className="flex items-center justify-center space-x-3 mb-6">
-                        <Camera className="w-7 h-7 text-cyan-400" />
-                        <span className="text-lg font-bold tracking-wider">PROMPTRAITS</span>
-                    </div>
+-                    <div className="flex items-center justify-center space-x-3 mb-6">
+-                        <Camera className="w-7 h-7 text-cyan-400" />
+-                        <span className="text-lg font-bold tracking-wider">PROMPTRAITS</span>
+-                    </div>
++                    <div className="flex items-center justify-center mb-6">
++                        <button type="button" onClick={() => navigateToPage('home')} className="inline-flex items-center">
++                            <img src="/logo.svg" alt="Promptraits Logo" className="w-40 h-auto" />
++                        </button>
++                    </div>
                     <p className="text-gray-500 max-w-lg mx-auto mb-6">
                         Plataforma profesional de prompts y retratos IA. Transforma tu presencia digital y eleva tu marca personal.
                     </p>
