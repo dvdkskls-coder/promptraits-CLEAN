@@ -21,15 +21,8 @@ body {
 /* Títulos con Bebas Neue más “espaciados” */
 h1, h2, .heading {
   font-family: "Bebas Neue", system-ui, sans-serif;
-<<<<<<< HEAD
   letter-spacing: 0.04em; /* empieza con 0.04em; sube a 0.06em si sigue apretado */
   /* Opcional:
      text-transform: uppercase;
      line-height: 1.05; */
-=======
-  letter-spacing: 0.06em; /* empieza con 0.04em; sube a 0.06em si sigue apretado */
-  /* Opcional:
-     text-transform: uppercase;
-     line-height: 0.65; */
->>>>>>> 5ebff17c60b9588c3aee45822b1179de9869df55
 }
