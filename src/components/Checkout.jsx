@@ -6,6 +6,7 @@ import { X, CreditCard, Crown, Sparkles, Check } from 'lucide-react'
 
 const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 
+
 if (!publishableKey) {
   console.error('❌ VITE_STRIPE_PUBLISHABLE_KEY no está definida')
 }
@@ -64,55 +65,52 @@ export default function Checkout({ onClose }) {
   ]
 
   const handleCheckout = async (priceId, type, planId = null, credits = 0) => {
-    if (!user) {
-      alert('Debes iniciar sesión para continuar')
-      return
-    }
+  if (!user) {
+    alert('Debes iniciar sesión para continuar')
+    return
+  }
 
-    // VALIDAR QUE STRIPE ESTÉ CONFIGURADO
-    if (!stripePromise) {
-      alert('Error: Stripe no está configurado correctamente. Contacta al administrador.')
-      console.error('❌ Stripe Publishable Key no está definida')
-      return
-    }
+  setLoading(true)
 
-    setLoading(true)
+  
 
-    try {
-      const stripe = await stripePromise
-
-      // Crear Checkout Session en el backend
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          priceId,
-          userId: user.id,
-          email: user.email,
-          type, // 'subscription' o 'pack'
-          planId,
-          credits,
-          successUrl: `${window.location.origin}/success`,
-          cancelUrl: `${window.location.origin}/cancel`
-        })
+  try {
+    // Crear Checkout Session
+    const response = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        priceId,
+        userId: user.id,
+        email: user.email,
+        type,
+        planId,
+        credits,
+        successUrl: `${window.location.origin}/success`,
+        cancelUrl: `${window.location.origin}/cancel`
       })
 
-      const session = await response.json()
+    })
 
-      if (session.error) {
-        throw new Error(session.error)
-      }
+    const session = await response.json()
 
-      // ✅ REDIRIGIR A STRIPE CHECKOUT (NUEVO MÉTODO)
-      window.location.href = session.url
-
-    } catch (error) {
-      console.error('Error al procesar el pago:', error)
-      alert('Error al procesar el pago. Inténtalo de nuevo.')
-    } finally {
-      setLoading(false)
+    if (session.error) {
+      throw new Error(session.error)
     }
+
+    if (!session.url) {
+      throw new Error('No se recibió URL de Stripe')
+    }
+
+    // Redirigir directamente con la URL
+    window.location.href = session.url
+
+  } catch (error) {
+    console.error('Error al procesar el pago:', error)
+    alert('Error al procesar el pago. Inténtalo de nuevo.')
+    setLoading(false)
   }
+}
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 overflow-y-auto">
