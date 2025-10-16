@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { priceId, userId, email, type, planId, credits, successUrl, cancelUrl } = req.body
+  const { priceId, userId, email, type, planId, credits, successUrl, cancelUrl } = req.body || {}
 
   // Validar Secret Key
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -30,31 +30,50 @@ export default async function handler(req, res) {
   }
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const creditsStr = String(credits ?? 0)
+    const clientRef = userId || undefined
+    const PUBLIC_ORIGIN = process.env.NEXT_PUBLIC_ORIGIN || 'https://www.promptraits.com'
+    const baseSuccess = successUrl || `${PUBLIC_ORIGIN}/success`
+    const baseCancel = cancelUrl || `${PUBLIC_ORIGIN}/cancel`
+
+    const sessionParams = {
       payment_method_types: ['card'],
       mode: type === 'subscription' ? 'subscription' : 'payment',
       line_items: [
         {
           price: priceId,
-          quantity: 1,
-        },
+          quantity: 1
+        }
       ],
-      customer_email: email,
+      customer_email: email || undefined,
+      client_reference_id: clientRef,
       metadata: {
-        userId,
-        type,
+        userId: userId || '',
+        type: type || '',
         planId: planId || '',
-        credits: credits.toString(),
+        credits: creditsStr
       },
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      allow_promotion_codes: true,
-    })
+      success_url: `${baseSuccess}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: baseCancel,
+      allow_promotion_codes: true
+    }
 
-    // Devolver URL directa
-    res.status(200).json({ 
+    // PATCH: si es suscripción añadir metadata dentro de subscription_data
+    if (type === 'subscription') {
+      sessionParams.subscription_data = {
+        metadata: {
+          userId: userId || '',
+          planId: planId || ''
+        }
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams)
+
+    // Devolver URL directa y sessionId
+    res.status(200).json({
       sessionId: session.id,
-      url: session.url  // ← IMPORTANTE
+      url: session.url || null
     })
   } catch (error) {
     console.error('❌ Error creating checkout session:', error)
