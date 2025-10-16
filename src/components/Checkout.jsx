@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { X, CreditCard, Crown, Sparkles, Check } from 'lucide-react'
 
 const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-
 
 if (!publishableKey) {
   console.error('❌ VITE_STRIPE_PUBLISHABLE_KEY no está definida')
@@ -64,53 +62,65 @@ export default function Checkout({ onClose }) {
     { id: 'pack100', name: '100 Créditos', price: '15.99', credits: 100, priceId: import.meta.env.VITE_STRIPE_PRICE_PACK_100 }
   ]
 
+  // Reemplazo del handleCheckout para soportar { url } o { id/sessionId }
   const handleCheckout = async (priceId, type, planId = null, credits = 0) => {
-  if (!user) {
-    alert('Debes iniciar sesión para continuar')
-    return
-  }
+    if (!user) {
+      alert('Debes iniciar sesión para continuar')
+      return
+    }
 
-  setLoading(true)
+    setLoading(true)
 
-  
-
-  try {
-    // Crear Checkout Session
-    const response = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        priceId,
-        userId: user.id,
-        email: user.email,
-        type,
-        planId,
-        credits,
-        successUrl: `${window.location.origin}/success`,
-        cancelUrl: `${window.location.origin}/cancel`
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId,
+          userId: user.id,
+          email: user.email,
+          type,
+          planId,
+          credits,
+          successUrl: `${window.location.origin}/success`,
+          cancelUrl: `${window.location.origin}/cancel`
+        })
       })
 
-    })
+      // Mejor manejo de errores del servidor
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(`Error en el servidor: ${text}`)
+      }
 
-    const session = await response.json()
+      const session = await response.json()
+      console.log('create-checkout-session response:', session)
 
-    if (session.error) {
-      throw new Error(session.error)
-    }
+      // Si el backend devuelve una URL completa (por ejemplo Stripe Checkout v2)
+      if (session.url) {
+        window.location.href = session.url
+        return
+      }
 
-    if (!session.url) {
+      // Si el backend devuelve un sessionId / id (redirectToCheckout)
+      const sessionId = session.id || session.sessionId || session.session_id
+      if (sessionId) {
+        const stripe = await (stripePromise || loadStripe(publishableKey))
+        if (!stripe) throw new Error('Stripe no inicializado: falta VITE_STRIPE_PUBLISHABLE_KEY')
+        const result = await stripe.redirectToCheckout({ sessionId })
+        if (result?.error) throw result.error
+        return
+      }
+
       throw new Error('No se recibió URL de Stripe')
+
+    } catch (error) {
+      console.error('Error al procesar el pago:', error)
+      alert('Error al procesar el pago. Revisa la consola y la respuesta de /api/create-checkout-session.')
+    } finally {
+      setLoading(false)
     }
-
-    // Redirigir directamente con la URL
-    window.location.href = session.url
-
-  } catch (error) {
-    console.error('Error al procesar el pago:', error)
-    alert('Error al procesar el pago. Inténtalo de nuevo.')
-    setLoading(false)
   }
-}
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 overflow-y-auto">
@@ -119,6 +129,7 @@ export default function Checkout({ onClose }) {
         {/* Botón cerrar */}
         <button
           type="button"
+          aria-label="Cerrar"
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
         >
@@ -174,10 +185,7 @@ export default function Checkout({ onClose }) {
 
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    handleCheckout(plan.priceId, 'subscription', plan.id, plan.credits)
-                  }}
+                  onClick={() => handleCheckout(plan.priceId, 'subscription', plan.id, plan.credits)}
                   disabled={loading || profile?.plan === plan.id}
                   className={`w-full py-3 rounded-lg font-bold transition-all ${
                     profile?.plan === plan.id
@@ -214,10 +222,7 @@ export default function Checkout({ onClose }) {
                 </div>
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    handleCheckout(pack.priceId, 'pack', null, pack.credits)
-                  }}
+                  onClick={() => handleCheckout(pack.priceId, 'pack', null, pack.credits)}
                   disabled={loading}
                   className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg font-semibold transition-all"
                 >
