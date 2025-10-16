@@ -18,7 +18,11 @@ body {
   min-height: 100vh;
 }
 
-/* Títulos globales con Bebas Neue */
+/* Títulos con Bebas Neue más “espaciados” */
 h1, h2, .heading {
   font-family: "Bebas Neue", system-ui, sans-serif;
+  letter-spacing: 0.06em; /* empieza con 0.04em; sube a 0.06em si sigue apretado */
+  /* Opcional:
+     text-transform: uppercase;
+     line-height: 0.65; */
 }
