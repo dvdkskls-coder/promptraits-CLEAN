@@ -11,8 +11,14 @@
 body {
   margin: 0;
   background-color: #0D0D0D;
+  font-family: "Montserrat", system-ui, sans-serif;
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Títulos globales con Bebas Neue */
+h1, h2, .heading {
+  font-family: "Bebas Neue", system-ui, sans-serif;
 }

@@ -2,15 +2,15 @@
   "rewrites": [
     {
       "source": "/success",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/cancel",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/"
     }
   ]
 }
