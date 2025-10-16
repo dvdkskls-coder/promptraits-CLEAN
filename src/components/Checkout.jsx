@@ -118,6 +118,7 @@ export default function Checkout({ onClose }) {
         
         {/* Botón cerrar */}
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
         >
@@ -172,7 +173,11 @@ export default function Checkout({ onClose }) {
                 </ul>
 
                 <button
-                  onClick={() => handleCheckout(plan.priceId, 'subscription', plan.id, plan.credits)}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleCheckout(plan.priceId, 'subscription', plan.id, plan.credits)
+                  }}
                   disabled={loading || profile?.plan === plan.id}
                   className={`w-full py-3 rounded-lg font-bold transition-all ${
                     profile?.plan === plan.id
@@ -208,7 +213,11 @@ export default function Checkout({ onClose }) {
                   €{(parseFloat(pack.price) / pack.credits).toFixed(3)}/crédito
                 </div>
                 <button
-                  onClick={() => handleCheckout(pack.priceId, 'pack', null, pack.credits)}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleCheckout(pack.priceId, 'pack', null, pack.credits)
+                  }}
                   disabled={loading}
                   className="w-full bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg font-semibold transition-all"
                 >
