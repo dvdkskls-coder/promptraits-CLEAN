@@ -1,0 +1,19 @@
+// --- PATCH: ensure subscription metadata persists to renewals ---
+// Replace your 'stripe.checkout.sessions.create({...})' call with the following:
+// (Only the extra subscription_data was added for mode === 'subscription')
+
+const session = await stripe.checkout.sessions.create({
+  payment_method_types: ['card'],
+  mode: type === 'subscription' ? 'subscription' : 'payment',
+  line_items: [{ price: priceId, quantity: 1 }],
+  customer_email: email,
+  metadata: { userId, type, planId: planId || '', credits: String(credits || 0) },
+  ...(type === 'subscription' ? {
+    subscription_data: {
+      metadata: { userId, planId: planId || '' }
+    }
+  } : {}),
+  success_url: successUrl,
+  cancel_url: cancelUrl,
+  allow_promotion_codes: true,
+})
