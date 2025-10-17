@@ -1,15 +1,17 @@
 ﻿import React, { useState, useMemo } from "react";
 import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp, Lightbulb, Trash2, Upload, Sparkles } from "lucide-react";
-import { useAuth } from './contexts/AuthContext';
-import { supabase } from './lib/supabase'
-import Login from './components/Auth/Login'
-import Register from './components/Auth/Register'
-import UserMenu from './components/UserMenu'
-import Profile from './components/Profile'
-import Checkout from './components/Checkout'
-import AnimatedSection from './components/AnimatedSection'
+import { useAuth } from './contexts/AuthContext.jsx';
+import { supabase } from './lib/supabase';
+
+import Login from './components/Auth/Login.jsx';
+import Register from './components/Auth/Register.jsx';
+import UserMenu from './components/UserMenu.jsx';
+import Profile from './components/Profile.jsx';
+import Checkout from './components/Checkout.jsx';
+import AnimatedSection from './components/AnimatedSection.jsx';
+import CategoryTabs from './components/CategoryTabs.jsx';
+
 import { ALL_PROMPTS } from './data/prompts';
-import CategoryTabs from './components/CategoryTabs';
 
 
 const CATEGORIES = [
