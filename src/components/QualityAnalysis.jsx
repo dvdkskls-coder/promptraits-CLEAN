@@ -3,6 +3,7 @@ import Profile from './components/Auth/Profile.jsx';
 
 export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, isApplying }) {
   if (!analysis) return null;
+  
   return (
     <div className="mt-6 p-4 rounded-lg border border-white/10 bg-white/5">
       <div className="font-semibold mb-2">Análisis de calidad</div>
