@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { User, CreditCard, History, Settings, Trash2, Lock, ArrowLeft, Calendar, FileText } from 'lucide-react'
 
-export default function Profile({ onBack }) {
+export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpenPortal }) {
   const { user, profile, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState(window.App_profileTab || 'profile');
   
@@ -240,6 +240,41 @@ export default function Profile({ onBack }) {
                   <div className={`inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r ${getPlanColor()} text-white font-bold`}>
                     Plan {getPlanName()}
                   </div>
+
+                  {/* Acciones relacionadas al plan */}
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {profile?.plan === 'free' ? (
+                      <>
+                        <button
+                          onClick={() => { if (onOpenRegister) onOpenRegister(); }}
+                          className="px-4 py-2 rounded-full bg-[color:var(--primary)] text-black font-semibold"
+                        >
+                          Crear cuenta gratis
+                        </button>
+                        <button
+                          onClick={() => { if (onOpenCheckout) onOpenCheckout(); }}
+                          className="px-4 py-2 rounded-full bg-[color:var(--primary)] text-black font-semibold"
+                        >
+                          Actualizar a PRO
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { if (onOpenPortal) onOpenPortal(); }}
+                          className="px-4 py-2 rounded-full bg-[color:var(--primary)] text-black font-semibold"
+                        >
+                          Gestionar suscripción
+                        </button>
+                        <button
+                          onClick={() => { if (onOpenCheckout) onOpenCheckout(); }}
+                          className="px-4 py-2 rounded-full bg-[color:var(--primary)] text-black font-semibold"
+                        >
+                          Cambiar plan
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -278,17 +313,31 @@ export default function Profile({ onBack }) {
                 </p>
                 
                 {profile?.plan === 'free' && (
-                  <button
-                    onClick={() => {
-                      onBack()
-                      setTimeout(() => {
-                        document.getElementById('planes')?.scrollIntoView({ behavior: 'smooth' })
-                      }, 100)
-                    }}
-                    className="inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-full font-bold hover:shadow-xl hover:shadow-cyan-500/20 transition-all"
-                  >
-                    Actualizar a PRO
-                  </button>
+                  <div className="flex items-center justify-center gap-4">
+                    <button
+                      onClick={() => { if (onOpenCheckout) onOpenCheckout(); }}
+                      className="inline-block bg-[color:var(--primary)] text-black px-8 py-3 rounded-full font-bold hover:shadow-xl transition-all"
+                    >
+                      Actualizar a PRO
+                    </button>
+                    <button
+                      onClick={() => { if (onOpenCheckout) onOpenCheckout(); }}
+                      className="inline-block bg-[color:var(--primary)] text-black px-6 py-3 rounded-full font-semibold hover:shadow transition"
+                    >
+                      Comprar créditos
+                    </button>
+                  </div>
+                )}
+
+                {profile?.plan && profile.plan !== 'free' && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => { if (onOpenCheckout) onOpenCheckout(); }}
+                      className="inline-block bg-[color:var(--primary)] text-black px-8 py-3 rounded-full font-bold hover:shadow-xl transition-all"
+                    >
+                      Comprar créditos
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

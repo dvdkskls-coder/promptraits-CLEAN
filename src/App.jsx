@@ -500,13 +500,26 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
               <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">{response || "Aquí aparecerá el prompt generado..."}</pre>
               {response && (
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button onClick={() => { navigator.clipboard.writeText(response); if (window.App_showToast) window.App_showToast("Prompt copiado."); }} className="w-full flex items-center justify-center space-x-2 bg-[color:var(--surface)] text-[color:var(--fg)] px-4 py-3 rounded-lg font-bold hover:bg-[color:var(--surface)]/80 transition">
+                  {/* Copiar */}
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(response); if (window.App_showToast) window.App_showToast("Prompt copiado."); }}
+                    className="w-full flex items-center justify-center space-x-2 bg-[color:var(--surface)] text-[color:var(--fg)] px-4 py-3 rounded-lg font-bold hover:bg-[color:var(--surface)]/80 transition"
+                  >
                     <Copy size={18} />
                     <span>Copiar Prompt</span>
                   </button>
-                  <button onClick={() => onCopy(response)} className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition">
+
+                  {/* Usar en Gemini: copia + abre pestaña */}
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(response);
+                      window.open("https://gemini.google.com/app", "_blank", "noopener,noreferrer");
+                      if (window.App_showToast) window.App_showToast("Prompt copiado. Abriendo Gemini…");
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition"
+                  >
                     <Send size={18} />
-                    <span>Usar Prompt</span>
+                    <span>Usar en Gemini</span>
                   </button>
                 </div>
               )}
@@ -569,6 +582,29 @@ export default function App() {
   const isPaid = profile?.plan && profile.plan !== 'free';
   const presetsToShow = isPaid ? PRESETS : PRESETS.filter(p => p.free).slice(0, 6);
 
+    // Abrir Stripe Customer Portal
+  const openStripePortal = async () => {
+    try {
+      const res = await fetch('/api/stripe/create-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: profile?.stripe_customer_id,
+          returnUrl: window.location.origin
+        })
+      });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        alert('No se pudo abrir el portal de facturación.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al abrir el portal de facturación.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--fg)] font-body">
       {/* NAV */}
@@ -580,6 +616,15 @@ export default function App() {
                 <img src="/logo.svg" alt="Promptraits Logo" className="w-[220px] md:w-[300px] h-auto" />
               </button>
             </div>
+      {/* PERFIL */}
+      {view === 'profile' && (
+        <Profile
+          onBack={() => setView('home')}
+          onOpenCheckout={() => setShowCheckout(true)}
+          onOpenRegister={() => setShowRegister(true)}
+          onOpenPortal={openStripePortal}
+        />
+      )}      
 
             <div className="hidden md:flex items-center space-x-8">
               <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">Galería</button>
