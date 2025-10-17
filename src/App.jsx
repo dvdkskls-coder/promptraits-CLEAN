@@ -324,7 +324,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                 type="button"
                 onClick={() => setShowProTools(!showProTools)}
                 disabled={!isPro}
-                className="w-full flex items-center justify-between p-3 bg-[color:var(--surface)]/30 border border-[color:var(--border)] rounded-lg hover:border-[color:var(--primary)] transition-all"
+                className="w-full flex items-center justify-between p-3 bg-[color:var(--surface)]/30 border border-[color:var,--border] rounded-lg hover:border-[color:var(--primary)] transition-all"
               >
                 <span className="font-semibold flex items-center space-x-2">
                   <Crown className="w-5 h-5 text-[color:var(--primary)]" />
@@ -334,7 +334,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
               </button>
 
               {showProTools && isPro && (
-                <div className="mt-3 p-4 bg-black/30 border border-[color:var(--border)] rounded-lg space-y-4">
+                <div className="mt-3 p-4 bg-black/30 border border-[color:var,--border] rounded-lg space-y-4">
                   <div>
                     <button type="button" onClick={generateRandomIdea} className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition-all">
                       <Lightbulb size={18} />
@@ -343,7 +343,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                     <p className="text-xs text-muted mt-2 text-center">Genera ideas completas con estilo, escenario y vestuario</p>
                   </div>
 
-                  <div className="border-t border-[color:var(--border)] my-2"></div>
+                  <div className="border-t border-[color:var,--border] my-2"></div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">✨ Presets PRO (12 adicionales):</label>
@@ -382,7 +382,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
           {/* PROMPT GENERADO */}
           <div className="mt-6">
             <h3 className="font-semibold text-lg mb-3">Prompt Generado:</h3>
-            <div className="bg-black/40 border border-[color:var(--border)] rounded-lg p-4">
+            <div className="bg-black/40 border border-[color:var,--border] rounded-lg p-4">
               <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">{response || "Aquí aparecerá el prompt generado..."}</pre>
               {response && (
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -713,7 +713,9 @@ export default function App() {
               <Send />
             </a>
           </div>
-          <p className="text-gray-600 text-sm">© {new Date().getFullYear()} Promptraits by Sr. Waly. Todos los derechos reservados.</p>
+          <p className="text-gray-600 text-sm">
+            ✅ Deploy OK — © {new Date().getFullYear()} Promptraits by Sr. Waly. Todos los derechos reservados.
+          </p>
         </div>
       </footer>
 
