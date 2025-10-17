@@ -7,6 +7,7 @@ import Register from './components/Auth/Register'
 import UserMenu from './components/UserMenu' 
 import Profile from './components/Profile'
 import Checkout from './components/Checkout'
+import AnimatedSection from './components/AnimatedSection'
 
 // ===================================================================================
 // 🔴 AQUÍ VA TU RAW_PROMPTS COMPLETO (NO LO TOQUES)
@@ -198,22 +199,25 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
     }
   };
 
-  const removeImage = () => {
+    const removeImage = () => {
     setReferenceImage(null);
     setImagePreview("");
   };
 
-  // Generar idea aleatoria (usa PRESETS y SCENARIOS para evitar refs indefinidas)
-  const generateRandomIdea = () => {
-    const randPreset = PRESETS[Math.floor(Math.random() * PRESETS.length)];
-    const randScenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
-    const idea = `${randPreset?.name || 'Estilo'} - ${randPreset?.subtitle || ''}. Escenario: ${randScenario?.name || ''}.`;
-    setPrompt(idea);
-    setResponse("");
-    window.App_showToast?.("Idea generada.");
-  };
+  // helper: convertir File -> base64 (solo la parte base64)
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      try {
+        const parts = String(reader.result).split(',');
+        resolve(parts[1] || null); // solo base64
+      } catch (err) { resolve(null); }
+    };
+    reader.onerror = (err) => reject(err);
+  });
 
-  // Generación real: llama a /api/generate-prompt
+  // Generación real: llamada al endpoint /api/gemini-processor
   const handleGenerate = async (e) => {
     e && e.preventDefault();
 
@@ -229,35 +233,39 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
     }
 
     setIsLoading(true);
-    setResponse("");
+    setResponse("Generando prompt con IA... por favor, espera.");
+    setQualityAnalysis(null);
 
     try {
-      const presetText = selectedPreset ? (PRESETS.find(p => p.id === selectedPreset)?.promptBlock || "") : "";
-      const scenarioText = selectedScenario ? (SCENARIOS.find(s => s.id === selectedScenario)?.prompt || "") : "";
+      let imageBase64 = null;
+      if (referenceImage) {
+        imageBase64 = await fileToBase64(referenceImage);
+      }
 
-      const payload = {
-        prompt,
-        presetText,
-        scenarioText,
-        sliders,
-        referenceImageBase64: imagePreview || null,
-        userId: user?.id
-      };
-
-      const res = await fetch('/api/generate-prompt', {
+      const res = await fetch('/api/gemini-processor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          prompt,
+          referenceImage: imageBase64,              // base64 puro
+          mimeType: referenceImage ? referenceImage.type : null,
+          preset: selectedPreset ? PRESETS.find(p => p.id === selectedPreset)?.promptBlock : null,
+          scenario: selectedScenario ? SCENARIOS.find(s => s.id === selectedScenario)?.prompt : null,
+          sliders: isPro && showAdvanced ? sliders : null,
+          analyzeQuality: isPro,
+          isPro
+        })
       });
 
-      if (!res.ok) throw new Error(`Error ${res.status}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `Error del servidor: ${res.status}` }));
+        throw new Error(err.error || 'Fallo en el generador');
+      }
+
       const data = await res.json();
-
       setResponse(data.prompt || "No se recibió respuesta del generador.");
+      if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
       window.App_showToast?.("Prompt generado.");
-
-      // intentar refrescar perfil si existe la utilidad global
-      try { await window.App_refreshProfile?.(); } catch (err) { /* noop */ }
     } catch (err) {
       console.error(err);
       setResponse("Hubo un error generando el prompt. Intenta de nuevo.");
@@ -267,6 +275,37 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
     }
   };
 
+  // Aplicar sugerencias (llama al mismo endpoint pidiendo aplicar sugerencias)
+  const handleApplySuggestions = async () => {
+    if (!qualityAnalysis || !qualityAnalysis.suggestions?.length) return;
+
+    setIsApplyingSuggestions(true);
+    try {
+      const res = await fetch('/api/gemini-processor', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          applySuggestions: true,
+          currentPrompt: response,
+          suggestions: qualityAnalysis.suggestions,
+          isPro
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `Error del servidor: ${res.status}` }));
+        throw new Error(err.error || 'Fallo aplicando sugerencias');
+      }
+      const data = await res.json();
+      setResponse(data.prompt || response);
+      setQualityAnalysis(null);
+      window.App_showToast?.("Sugerencias aplicadas.");
+    } catch (e) {
+      console.error(e);
+      alert(`Error: ${e.message || 'Fallo aplicando sugerencias'}`);
+    } finally {
+      setIsApplyingSuggestions(false);
+    }
+  };
   return (
     <section id="prompt-generator" className="py-24 px-4 bg-black/20">
       <div className="max-w-6xl mx-auto">
@@ -413,8 +452,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
           </form>
 
           {/* ANÁLISIS DE CALIDAD */}
-          <QualityAnalysis analysis={qualityAnalysis} isPro={isPro} onApplySuggestions={() => {}} isApplying={isApplyingSuggestions} />
-
+<QualityAnalysis analysis={qualityAnalysis} isPro={isPro} onApplySuggestions={handleApplySuggestions} isApplying={isApplyingSuggestions} />
           {/* PROMPT GENERADO */}
           <div className="mt-6">
             <h3 className="font-semibold text-lg mb-3">Prompt Generado:</h3>
