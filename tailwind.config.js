@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ['"Bebas Neue"', 'system-ui', 'sans-serif'],
+        heading: ['"Oswald"', 'system-ui', 'sans-serif'],
         body: ['"Montserrat"', 'system-ui', 'sans-serif'],
       },
     },
