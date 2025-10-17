@@ -3,13 +3,13 @@ import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, L
 import { useAuth } from './contexts/AuthContext.jsx';
 import { supabase } from './lib/supabase';
 
-import Login from './components/Auth/Login.jsx';
-import Register from './components/Auth/Register.jsx';
-import UserMenu from './components/UserMenu.jsx';
-import Profile from './components/Profile.jsx';
-import Checkout from './components/Checkout.jsx';
 import AnimatedSection from './components/AnimatedSection.jsx';
 import CategoryTabs from './components/CategoryTabs.jsx';
+import Login from './components/Auth/Login.jsx';
+import Register from './components/Auth/Register.jsx';
+import UserMenu from './components/Auth/UserMenu.jsx';
+import Profile from './components/Auth/Profile.jsx';
+import Checkout from './components/Auth/Checkout.jsx';
 
 import { ALL_PROMPTS } from './data/prompts';
 
