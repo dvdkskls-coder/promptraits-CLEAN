@@ -7,7 +7,7 @@ import Register from './components/Auth/Register'
 import UserMenu from './components/UserMenu' 
 import Profile from './components/Profile'
 import Checkout from './components/Checkout'
-import AnimatedSection from './components/AnimatedSection'
+import AnimatedSection from './components/AnimatedSection',
 
 // ===================================================================================
 // 🔴 AQUÍ VA TU RAW_PROMPTS COMPLETO (NO LO TOQUES)
