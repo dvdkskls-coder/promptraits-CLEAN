@@ -741,3 +741,7 @@ export default function App() {
     </div>
   );
 }
+
+export function AnimatedSection({ className = "", children }) {
+  return <div className={className}>{children}</div>;
+}
