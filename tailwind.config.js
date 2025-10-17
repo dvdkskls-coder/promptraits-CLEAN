@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ['"Oswald"', 'system-ui', 'sans-serif'],
+        heading: ['"Saira Extra Condensed"', 'system-ui', 'sans-serif'],
         body: ['"Montserrat"', 'system-ui', 'sans-serif'],
       },
     },
