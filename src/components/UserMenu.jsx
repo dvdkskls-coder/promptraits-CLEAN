@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { User, CreditCard, History, Settings, LogOut, ChevronDown } from 'lucide-react'
 
-export default function UserMenu() {
+export default function UserMenu({ credits = 0, plan = 'free', onNavigate }) {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, profile, signOut } = useAuth()
+  const { user, signOut } = useAuth()
   const menuRef = useRef(null)
 
   // Cerrar el menú si se hace clic fuera
@@ -19,7 +19,12 @@ export default function UserMenu() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
+    setIsOpen(false)
+    if (onNavigate) {
+      onNavigate('logout')
+      return
+    }
     try {
       await signOut()
       window.location.href = '/'
@@ -29,7 +34,7 @@ export default function UserMenu() {
   }
 
   const getPlanBadgeColor = () => {
-    switch (profile?.plan) {
+    switch (plan) {
       case 'pro':
         return 'bg-gradient-to-r from-blue-500 to-cyan-500'
       case 'premium':
@@ -40,7 +45,7 @@ export default function UserMenu() {
   }
 
   const getPlanName = () => {
-    switch (profile?.plan) {
+    switch (plan) {
       case 'pro':
         return 'Pro'
       case 'premium':
@@ -50,12 +55,19 @@ export default function UserMenu() {
     }
   }
 
+  const navigate = (dest) => {
+    setIsOpen(false)
+    if (onNavigate) onNavigate(dest)
+  }
+
   return (
     <div className="relative" ref={menuRef}>
       {/* Botón del menú */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-3 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10"
+        type="button"
+        aria-expanded={isOpen}
       >
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center">
@@ -68,7 +80,7 @@ export default function UserMenu() {
             {user?.email?.split('@')[0]}
           </span>
           <span className="text-xs text-gray-400">
-            {profile?.credits || 0} créditos
+            {credits} créditos
           </span>
         </div>
 
@@ -97,7 +109,7 @@ export default function UserMenu() {
                     {getPlanName()}
                   </span>
                   <span className="text-xs text-gray-400">
-                    {profile?.credits || 0} créditos
+                    {credits} créditos
                   </span>
                 </div>
               </div>
@@ -107,68 +119,54 @@ export default function UserMenu() {
           {/* Opciones del menú */}
           <div className="py-2">
             <button
-              onClick={() => {
-                setIsOpen(false)
-                if (window.App_navigateToProfile) {
-                  window.App_navigateToProfile()
-                }
-              }}
-              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors"
+              onClick={() => navigate('profile')}
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
             >
               <User size={18} className="text-cyan-400" />
               <span className="text-gray-300">Mi Perfil</span>
             </button>
 
             <button
-              onClick={() => {
-                setIsOpen(false)
-                if (window.App_navigateToProfile) {
-                  window.App_navigateToProfile('credits')
-                }
-              }}
-              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors"
+              onClick={() => navigate('credits')}
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
             >
               <CreditCard size={18} className="text-green-400" />
               <div className="flex-1 flex items-center justify-between">
                 <span className="text-gray-300">Créditos</span>
-                <span className="text-sm font-bold text-cyan-400">
-                  {profile?.credits || 0}
-                </span>
+                <span className="text-sm font-bold text-cyan-400">{credits}</span>
               </div>
             </button>
 
             <button
-              onClick={() => {
-                setIsOpen(false)
-                if (window.App_navigateToProfile) {
-                  window.App_navigateToProfile('history')
-                }
-              }}
-              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors"
+              onClick={() => navigate('history')}
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
             >
               <History size={18} className="text-blue-400" />
               <span className="text-gray-300">Historial</span>
             </button>
 
             <button
-              onClick={() => {
-                setIsOpen(false)
-                if (window.App_navigateToProfile) {
-                  window.App_navigateToProfile('settings')
-                }
-              }}
-              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors"
+              onClick={() => navigate('assistant')}
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
             >
               <Settings size={18} className="text-gray-400" />
-              <span className="text-gray-300">Configuración</span>
+              <span className="text-gray-300">Generador IA</span>
+            </button>
+
+            <button
+              onClick={() => navigate('gallery')}
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
+            >
+              <Settings size={18} className="text-gray-400" />
+              <span className="text-gray-300">Galería</span>
             </button>
           </div>
 
           {/* Cerrar sesión */}
           <div className="border-t border-white/10 py-2">
             <button
-              onClick={handleSignOut}
-              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-500/10 transition-colors"
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-500/10 transition-colors text-left"
             >
               <LogOut size={18} className="text-red-400" />
               <span className="text-red-400">Cerrar Sesión</span>
