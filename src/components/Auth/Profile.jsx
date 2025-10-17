@@ -1,71 +1,31 @@
-export default function Login({ onClose, onSwitchToRegister }) {
+﻿export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpenPortal }) {
   return (
     <main className="pt-32 px-4 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Iniciar sesión</h1>
-      <div className="flex gap-3 mb-8">
-        <button onClick={onClose} className="px-4 py-2 rounded bg-white/10">Volver</button>
-        <button onClick={onSwitchToRegister} className="px-4 py-2 rounded bg-white/10">Crear cuenta</button>
+      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+        <h2 className="text-2xl font-bold mb-4">Mi Perfil</h2>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={onBack} className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
+             Volver
+          </button>
+          {onOpenCheckout && (
+            <button onClick={onOpenCheckout} className="px-4 py-2 bg-[color:var(--primary)] text-black rounded-lg font-semibold hover:opacity-90 transition">
+              Comprar créditos
+            </button>
+          )}
+          {onOpenRegister && (
+            <button onClick={onOpenRegister} className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
+              Crear cuenta
+            </button>
+          )}
+          {onOpenPortal && (
+            <button onClick={onOpenPortal} className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
+              Portal de facturación
+            </button>
+          )}
+        </div>
       </div>
-      <p className="text-gray-400">Aquí irá el perfil real (historial, etc.).</p>
     </main>
   );
 }
 
-export { Login }; // ← opcional pero válido
-
-export default function Register({ onClose, onSwitchToLogin }) {
-  return (
-    <main className="pt-32 px-4 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Crear cuenta</h1>
-      <div className="flex gap-3 mb-8">
-        <button onClick={onClose} className="px-4 py-2 rounded bg-white/10">Volver</button>
-        <button onClick={onSwitchToLogin} className="px-4 py-2 rounded bg-white/10">Iniciar sesión</button>
-      </div>
-      <p className="text-gray-400">Aquí irá el perfil real (historial, etc.).</p>
-    </main>
-  );
-}
-
-export { Register }; // ← opcional pero válido
-
-export default function UserMenu({ credits = 0, plan = 'free', onNavigate }) {
-  return (
-    <main className="pt-32 px-4 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Perfil de usuario</h1>
-      <div className="flex gap-3 mb-8">
-        <button onClick={onNavigate} className="px-4 py-2 rounded bg-white/10">Volver</button>
-      </div>
-      <p className="text-gray-400">Aquí irá el perfil real (historial, etc.).</p>
-    </main>
-  );
-}
-
-export { UserMenu }; // ← opcional pero válido
-
-export default function Checkout({ onClose }) {
-  return (
-    <main className="pt-32 px-4 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Checkout</h1>
-      <div className="flex gap-3 mb-8">
-        <button onClick={onClose} className="px-4 py-2 rounded bg-white/10">Volver</button>
-      </div>
-      <p className="text-gray-400">Aquí irá el perfil real (historial, etc.).</p>
-    </main>
-  );
-}
-
-export { Checkout }; // ← opcional pero válido
-
-export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, isApplying }) {
-  return (
-    <main className="pt-32 px-4 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Análisis de calidad</h1>
-      <div className="flex gap-3 mb-8">
-        <button onClick={onApplySuggestions} className="px-4 py-2 rounded bg-white/10">Aplicar sugerencias</button>
-      </div>
-      <p className="text-gray-400">Aquí irá el perfil real (historial, etc.).</p>
-    </main>
-  );
-}
-
-export { QualityAnalysis }; // ← opcional pero válido
+export { Profile };
