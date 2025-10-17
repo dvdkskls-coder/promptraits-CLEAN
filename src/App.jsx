@@ -5,10 +5,10 @@ import { supabase } from './lib/supabase';
 
 import AnimatedSection from './components/AnimatedSection.jsx';
 import CategoryTabs from './components/CategoryTabs.jsx';
-import Login from './components/Auth/Login.jsx';
-import Register from './components/Auth/Register.jsx';
-import UserMenu from './components/Auth/UserMenu.jsx';
-import Profile from './components/Auth/Profile.jsx';
+import { Login } from './components/Auth/Login.jsx';
+import { Register } from './components/Auth/Register.jsx';
+import { UserMenu } from './components/Auth/UserMenu.jsx';
+import { Profile } from './components/Auth/Profile.jsx';
 import Checkout from './components/Auth/Checkout.jsx';
 
 import { ALL_PROMPTS } from './data/prompts';
