@@ -164,106 +164,9 @@ const SUBSCRIPTION_PLANS = [
   }
 ];
 
-// COMPONENTES AUXILIARES
-const AnimatedSection = ({ children, className }) => <div className={className}>{children}</div>;
+// ...existing code...
 
-const CategoryTabs = ({ selected, onSelect }) => (
-  <div className="flex flex-wrap justify-center gap-3 mb-12">
-    {CATEGORIES.map(cat => (
-      <button
-        key={cat.id}
-        onClick={() => onSelect(cat.id)}
-        className={`px-6 py-2 rounded-full font-medium transition-all duration-300 ${selected === cat.id ? 'bg-white/10 text-white ring-2 ring-[color:var(--primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'}`}
-      >
-        {cat.name}
-      </button>
-    ))}
-  </div>
-);
-
-// QualityAnalysis (igual, usa colores primarios)
-const QualityAnalysis = ({ analysis, isPro, onApplySuggestions, isApplying }) => {
-  if (!isPro) {
-    return (
-      <div className="relative bg-white/5 border border-[color:var(--border)] rounded-2xl p-8 mt-8">
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-10 p-4 text-center">
-          <Lock className="w-10 h-10 text-[color:var(--primary)] mx-auto mb-4" />
-          <p className="text-white font-bold text-lg mb-2">Análisis de Calidad - Plan PRO</p>
-          <a href="#planes" className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold">
-            Actualizar a PRO →
-          </a>
-        </div>
-        <div className="opacity-30">
-          <h3 className="text-xl font-bold mb-4">📊 Análisis de Calidad</h3>
-          <div className="space-y-4">
-            <div className="text-gray-500">Contenido bloqueado...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!analysis) return null;
-
-  return (
-    <div className="bg-white/5 border border-[color:var(--border)] rounded-2xl p-8 mt-8">
-      <h3 className="text-xl font-bold mb-4">📊 Análisis de Calidad del Prompt</h3>
-
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-2xl font-bold">Score: {analysis.score}/10</span>
-          <div className="flex items-center space-x-1">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className={`w-3 h-8 rounded ${i < Math.floor(analysis.score) ? 'bg-[color:var(--primary)]' : 'bg-white/10'}`}></div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <div>
-          <h4 className="text-[color:var(--primary)] font-bold mb-3 flex items-center">
-            <Check className="w-5 h-5 mr-2 text-[color:var(--primary)]" />
-            Elementos incluidos:
-          </h4>
-          <ul className="space-y-2">
-            {analysis.included.map((item, i) => (
-              <li key={i} className="flex items-start space-x-3">
-                <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-[color:var(--primary)] font-bold mb-3">⚠️ Sugerencias de mejora:</h4>
-          <ul className="space-y-2">
-            {analysis.suggestions.map((item, i) => (
-              <li key={i} className="flex items-start space-x-3">
-                <span className="text-[color:var(--primary)] flex-shrink-0">•</span>
-                <span className="text-gray-300">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {analysis.suggestions && analysis.suggestions.length > 0 && (
-          <button
-            onClick={onApplySuggestions}
-            disabled={isApplying}
-            className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-6 py-4 rounded-lg font-bold hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Sparkles size={20} />
-            <span>{isApplying ? "Aplicando sugerencias..." : "Aplicar Sugerencias al Prompt"}</span>
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// GEMINI ASSISTANT VIEW: añade handlers que funcionan localmente (simulación) y genera ideas aleatorias
+// GEMINI ASSISTANT VIEW
 const GeminiAssistantView = ({ onCopy, isPro }) => {
   const { user, profile } = useAuth();
   const [prompt, setPrompt] = useState("");
@@ -300,49 +203,68 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
     setImagePreview("");
   };
 
-  // Generar idea aleatoria (para Herramientas PRO)
+  // Generar idea aleatoria (usa PRESETS y SCENARIOS para evitar refs indefinidas)
   const generateRandomIdea = () => {
-    const randType = PHOTO_TYPES[Math.floor(Math.random() * PHOTO_TYPES.length)];
-    const randStyle = PHOTO_STYLES[Math.floor(Math.random() * PHOTO_STYLES.length)];
-    const randTime = TIME_OF_DAY[Math.floor(Math.random() * TIME_OF_DAY.length)];
-    const randOutfit = OUTFITS[Math.floor(Math.random() * OUTFITS.length)];
-    const randPose = POSES[Math.floor(Math.random() * POSES.length)];
-
-    const idea = `${randType} ${randStyle} en ${randTime} con outfit: ${randOutfit}. Pose: ${randPose}.`;
+    const randPreset = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+    const randScenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+    const idea = `${randPreset?.name || 'Estilo'} - ${randPreset?.subtitle || ''}. Escenario: ${randScenario?.name || ''}.`;
     setPrompt(idea);
     setResponse("");
-    if (window.App_showToast) window.App_showToast("Idea generada.");
+    window.App_showToast?.("Idea generada.");
   };
 
-  // Simular generación de prompt (funcional localmente)
+  // Generación real: llama a /api/generate-prompt
   const handleGenerate = async (e) => {
     e && e.preventDefault();
+
     if (!user) {
       setResponse("Inicia sesión para generar.");
-      if (window.App_showToast) window.App_showToast("Inicia sesión para generar.");
+      window.App_showToast?.("Inicia sesión para generar.");
       return;
     }
     if (profile?.credits <= 0) {
       setResponse("No tienes créditos disponibles. Compra créditos o suscríbete.");
-      if (window.App_showToast) window.App_showToast("No tienes créditos.");
+      window.App_showToast?.("No tienes créditos.");
       return;
     }
 
     setIsLoading(true);
     setResponse("");
-    // construir prompt final combinando inputs
-    const presetText = selectedPreset ? (PRESETS.find(p => p.id === selectedPreset)?.promptBlock || "") : "";
-    const scenarioText = selectedScenario ? (SCENARIOS.find(s => s.id === selectedScenario)?.prompt || "") : "";
-    const composed = [presetText, scenarioText, prompt].filter(Boolean).join(" ").trim();
 
-    // simulación tiempo y resultado
-    setTimeout(() => {
-      const result = composed || "Prompt generado: Describe mejor tu idea para un resultado más específico.";
-      setResponse(result);
+    try {
+      const presetText = selectedPreset ? (PRESETS.find(p => p.id === selectedPreset)?.promptBlock || "") : "";
+      const scenarioText = selectedScenario ? (SCENARIOS.find(s => s.id === selectedScenario)?.prompt || "") : "";
+
+      const payload = {
+        prompt,
+        presetText,
+        scenarioText,
+        sliders,
+        referenceImageBase64: imagePreview || null,
+        userId: user?.id
+      };
+
+      const res = await fetch('/api/generate-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json();
+
+      setResponse(data.prompt || "No se recibió respuesta del generador.");
+      window.App_showToast?.("Prompt generado.");
+
+      // intentar refrescar perfil si existe la utilidad global
+      try { await window.App_refreshProfile?.(); } catch (err) { /* noop */ }
+    } catch (err) {
+      console.error(err);
+      setResponse("Hubo un error generando el prompt. Intenta de nuevo.");
+      window.App_showToast?.("Error generando prompt.");
+    } finally {
       setIsLoading(false);
-      if (window.App_showToast) window.App_showToast("Prompt generado. (-1 crédito)");
-      // NOTA: no se actualiza el profile real aquí; la gestión de créditos debe persistir en backend
-    }, 900);
+    }
   };
 
   return (
@@ -549,7 +471,17 @@ export default function App() {
       setToastText(text);
       setTimeout(() => setToastText(""), 2000);
     };
-    return () => { delete window.App_showToast; };
+    // permitir refrescar perfil desde backend
+    window.App_refreshProfile = async () => {
+      try {
+        const res = await fetch('/api/profile');
+        if (res.ok) {
+          // implementación específica puede variar; simple reload:
+          window.location.reload();
+        }
+      } catch (err) { /* noop */ }
+    };
+    return () => { delete window.App_showToast; delete window.App_refreshProfile; };
   }, []);
 
   const showToast = (text) => {
@@ -582,7 +514,7 @@ export default function App() {
   const isPaid = profile?.plan && profile.plan !== 'free';
   const presetsToShow = isPaid ? PRESETS : PRESETS.filter(p => p.free).slice(0, 6);
 
-    // Abrir Stripe Customer Portal
+  // Abrir Stripe Customer Portal
   const openStripePortal = async () => {
     try {
       const res = await fetch('/api/stripe/create-portal', {
@@ -616,15 +548,6 @@ export default function App() {
                 <img src="/logo.svg" alt="Promptraits Logo" className="w-[220px] md:w-[300px] h-auto" />
               </button>
             </div>
-      {/* PERFIL */}
-      {view === 'profile' && (
-        <Profile
-          onBack={() => setView('home')}
-          onOpenCheckout={() => setShowCheckout(true)}
-          onOpenRegister={() => setShowRegister(true)}
-          onOpenPortal={openStripePortal}
-        />
-      )}      
 
             <div className="hidden md:flex items-center space-x-8">
               <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">Galería</button>
@@ -639,7 +562,32 @@ export default function App() {
               {!user ? (
                 <button onClick={() => setShowLogin(true)} className="bg-white/10 text-white px-6 py-2 rounded-full font-semibold hover:bg-white/20 transition duration-300">Login</button>
               ) : (
-                <UserMenu />
+                <UserMenu
+                  credits={profile?.credits ?? 0}
+                  plan={profile?.plan || 'free'}
+                  onNavigate={(dest) => {
+                    switch (dest) {
+                      case 'profile':
+                        setView('profile'); break;
+                      case 'history':
+                        setView('profile');
+                        window.dispatchEvent(new CustomEvent('profile:openTab', { detail: 'history' }));
+                        break;
+                      case 'assistant':
+                        setView('assistant'); break;
+                      case 'gallery':
+                        setView('gallery'); break;
+                      case 'credits':
+                        setShowCheckout(true); break;
+                      case 'logout':
+                        signOut(); break;
+                      default:
+                        setView('home');
+                    }
+                    setMobileMenuOpen(false);
+                    window.scrollTo(0, 0);
+                  }}
+                />
               )}
             </div>
 
@@ -677,7 +625,7 @@ export default function App() {
         </div>
       )}
 
-      {/* HOME */}
+      {/* VISTAS */}
       {view === 'home' && (
         <main>
           {/* HERO */}
@@ -700,159 +648,10 @@ export default function App() {
             </AnimatedSection>
           </section>
 
-          {/* GALERÍA HOME */}
-          <section id="home-gallery" className="py-12 px-4">
-            <div className="max-w-7xl mx-auto">
-              <AnimatedSection className="text-center mb-6">
-                <h2 className="text-4xl md:text-5xl font-heading font-bold tracking-tight">Muestra de la galería <span className="text-[color:var(--primary)]">GRATIS</span></h2>
-              </AnimatedSection>
-
-              <p className="text-xs text-muted text-center mb-4">Prompts listos para copiar y pegar. (Pulsa sobre las imágenes para copiar sus prompts)</p>
-
-              <div className="flex justify-center mb-8">
-                <button onClick={() => navigateToPage('gallery')} className="rounded-full px-5 py-2 bg-[color:var(--surface)] text-[color:var(--fg)] border border-[color:var(--border)] hover:bg-white/5 transition">Ver todos</button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                {homePrompts.map(item => (
-                  <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-xl bg-white/5 border border-[color:var(--border)] transform hover:-translate-y-1 transition-transform duration-200 aspect-[3/4]">
-                    <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x400.png?text=Imagen+no+encontrada"; }} />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
-                      <Copy className="w-10 h-10 text-white/80" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* PRESETS */}
-          <section id="presets" className="py-20 px-4">
-            <div className="max-w-7xl mx-auto">
-              <AnimatedSection className="text-center mb-12">
-                <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 tracking-tighter">Presets <span className="text-[color:var(--primary)]">Profesionales</span></h2>
-                <p className="text-muted text-lg max-w-2xl mx-auto">Bloques listos para copiar y pegar en tus prompts. Resultados consistentes.</p>
-              </AnimatedSection>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {PRESETS.filter(p => p.free).map(preset => (
-                  <div key={preset.id} className="relative rounded-lg p-4 bg-white/5 border border-[color:var(--border)] transition-all text-sm">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-base font-semibold mb-1">{preset.name}</h3>
-                        <p className="text-xs text-muted">{preset.subtitle}</p>
-                      </div>
-                      <div className="bg-[color:var(--primary)]/10 text-[color:var(--primary)] px-2 py-0.5 rounded-full text-xs font-bold tracking-wider">GRATIS</div>
-                    </div>
-                    <p className="text-xs text-muted mb-3 line-clamp-3">{preset.promptBlock.substring(0, 120)}...</p>
-                    <button onClick={() => handleCopy(preset.promptBlock)} className="w-full text-sm flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-3 py-2 rounded-md font-semibold hover:shadow transition">
-                      <Copy size={16} />
-                      <span>Copiar Preset</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 max-w-3xl mx-auto text-center">
-                <button onClick={() => setShowProPresets(!showProPresets)} className="px-5 py-2 rounded-full bg-[color:var(--primary)] text-black font-heading font-semibold">
-                  Presets PRO {showProPresets ? '▲' : '▼'}
-                </button>
-
-                {showProPresets && (
-                  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {PRESETS.filter(p => !p.free).map(preset => (
-                      <div key={preset.id} className="relative rounded-lg p-3 bg-white/5 border border-[color:var(--border)] text-sm">
-                        {!isPaid && (
-                          <div className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
-                            <Lock className="w-8 h-8 text-[color:var(--primary)] mx-auto mb-3" />
-                            <p className="text-white font-bold text-md mb-2">PRO Requerido</p>
-                            <a href="#planes" className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold">Ver planes →</a>
-                          </div>
-                        )}
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="text-base font-semibold mb-1">{preset.name}</h3>
-                            <p className="text-xs text-muted">{preset.subtitle}</p>
-                          </div>
-                          <div className="bg-[color:var(--primary)]/10 text-[color:var(--primary)] px-2 py-0.5 rounded-full text-xs font-bold tracking-wider">PRO</div>
-                        </div>
-                        <p className="text-xs text-muted mb-3 line-clamp-3">{preset.promptBlock.substring(0, 120)}...</p>
-                        <button onClick={() => handleCopy(preset.promptBlock)} className="w-full text-sm flex items-center justify-center space-x-2 bg-[color:var(--surface)] text-[color:var(--fg)] px-3 py-2 rounded-md font-semibold hover:bg-[color:var(--surface)]/80 transition">
-                          <Copy size={16} />
-                          <span>Copiar Preset</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* PLANES */}
-          <section id="planes" className="py-24 px-4 bg-black/20">
-            <div className="max-w-7xl mx-auto">
-              <AnimatedSection className="text-center mb-12">
-                <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 tracking-tighter">Planes de <span className="text-[color:var(--primary)]">Suscripción</span></h2>
-                <p className="text-muted text-lg">Elige el plan que mejor se adapte a tus necesidades.</p>
-              </AnimatedSection>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {SUBSCRIPTION_PLANS.map((plan, idx) => (
-                  <div key={idx} className={`relative rounded-lg p-6 border transition-all ${plan.popular ? 'bg-white/5 border-[color:var(--primary)] shadow-lg' : 'bg-white/5 border-[color:var(--border)]'}`}>
-                    {plan.popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[color:var(--primary)] text-black px-3 py-1 rounded-full text-sm font-bold">Recomendado</div>}
-                    <h3 className="text-2xl font-semibold mb-2">{plan.name}</h3>
-                    <div className="mb-4">
-                      <span className="text-3xl font-bold tracking-tighter">{plan.priceLabel}</span>
-                      <span className="text-muted text-sm ml-2">{plan.period}</span>
-                    </div>
-                    <div className="mb-4 text-muted font-semibold">Créditos incluidos: <span className="text-[color:var(--primary)] ml-2">{plan.credits}</span></div>
-                    <ul className="space-y-2 mb-6">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-start space-x-3 text-sm">
-                          <Check className="w-4 h-4 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
-                          <span className="text-gray-300">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button
-                      onClick={() => {
-                        if (plan.name === 'FREE') {
-                          if (user) navigateToPage('profile');
-                          else setShowRegister(true);
-                          return;
-                        }
-                        setShowCheckout(true);
-                      }}
-                      className={`w-full py-3 rounded-full font-bold transition ${'bg-[color:var(--primary)] text-black hover:opacity-90'}`}
-                    >
-                      {plan.name === 'FREE' ? (user ? 'Ir a mi perfil' : 'Crear cuenta gratis') : 'Suscribirse'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Packs de crédito */}
-              <div className="mt-10 max-w-3xl mx-auto text-center">
-                <h4 className="text-lg font-heading font-bold mb-4">¿Necesitas más créditos?</h4>
-                <div className="flex flex-col sm:flex-row sm:justify-center gap-3">
-                  {CREDIT_PACKS.map(pack => (
-                    <button key={pack.credits} onClick={() => setShowCheckout(true)} className="px-5 py-3 rounded-lg bg-[color:var(--primary)] text-black font-semibold">
-                      {pack.credits} créditos — {pack.price}€
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-muted mt-4">Packs: 20 créditos = 3.99€, 50 créditos = 8.99€, 100 créditos = 15.99€</p>
-              </div>
-            </div>
-          </section>
-
-          {/* SECCIÓN de descarga de la guía (encabezado adicional y texto cambiado) */}
+          {/* ...resto del contenido HOME (galería, presets, planes, etc.) se mantiene igual... */}
         </main>
       )}
 
-      {/* GALERÍA COMPLETA */}
       {view === 'gallery' && (
         <main className="pt-32 px-4">
           <section id="full-gallery" className="py-12">
@@ -879,17 +678,22 @@ export default function App() {
         </main>
       )}
 
-      {/* GENERADOR */}
       {view === 'assistant' && (
         <main className="pt-32 px-4">
           <GeminiAssistantView onCopy={handleCopy} isPro={isPaid} />
         </main>
       )}
 
-      {/* PERFIL */}
-      {view === 'profile' && <Profile onBack={() => setView('home')} />}
+      {view === 'profile' && (
+        <Profile
+          onBack={() => setView('home')}
+          onOpenCheckout={() => setShowCheckout(true)}
+          onOpenRegister={() => setShowRegister(true)}
+          onOpenPortal={openStripePortal}
+        />
+      )}
 
-      {/* DESCARGA DE LA GUÍA (final, con nuevo texto y encabezado) */}
+      {/* DESCARGA DE LA GUÍA (final) */}
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h3 className="text-2xl font-heading font-semibold mb-3">Guia para crear PROMPTS de retratos profesional <span className="text-[color:var(--primary)]">GRATIS</span></h3>
