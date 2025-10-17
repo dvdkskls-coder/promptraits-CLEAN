@@ -18,16 +18,10 @@ body {
   min-height: 100vh;
 }
 
-/* Títulos con Saira Extra Condensed más “espaciados” */
-h1, h2, .heading { font-family: "Saira Extra Condensed", system-ui, sans-serif; }
-  letter-spacing: 0.06em; /* empieza con 0.04em; sube a 0.06em si sigue apretado */
-  /* Opcional:
-     text-transform: uppercase;
-     line-height: 0.65; */
-=======
-  letter-spacing: 0.06em; /* empieza con 0.04em; sube a 0.06em si sigue apretado */
-  /* Opcional:
-     text-transform: uppercase;
-     line-height: 0.65; */
->>>>>>> 5ebff17c60b9588c3aee45822b1179de9869df55
+/* Cabeceras con Saira + espaciado entre letras */
+h1, h2, .heading {
+  font-family: "Saira Extra Condensed", system-ui, sans-serif;
+  letter-spacing: 0.04em;  /* 0.03–0.06em según gusto */
+  line-height: 1.05;       /* o usa leading-tight en Tailwind */
+  /* text-transform: uppercase;  opcional */
 }
