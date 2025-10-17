@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp, Lightbulb, Trash2, Upload, Sparkles } from "lucide-react";
-import { useAuth } from './contexts/AuthContext'
+import { useAuth } from './contexts/AuthContext';
 import { supabase } from './lib/supabase'
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
