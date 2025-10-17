@@ -10,7 +10,8 @@
 
 body {
   margin: 0;
-  background-color: #0D0D0D;
+  background: var(--bg);
+  color: var(--fg);
   font-family: "Montserrat", system-ui, sans-serif;
 }
 
@@ -24,4 +25,14 @@ h1, h2, .heading {
   letter-spacing: 0.04em;  /* 0.03–0.06em según gusto */
   line-height: 1.05;       /* o usa leading-tight en Tailwind */
   /* text-transform: uppercase;  opcional */
+}
+
+/* Paleta: negro + grises + dorado */
+:root {
+  --bg: #06060C;          /* fondo */
+  --surface: #2D2D2D;     /* tarjetas/modales */
+  --fg: #FFFFFF;          /* texto principal */
+  --muted: #C1C1C1;       /* texto secundario */
+  --primary: #D8C780;     /* dorado */
+  --border: #2D2D2D;      /* bordes */
 }

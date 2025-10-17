@@ -867,11 +867,11 @@ export default function App() {
     
     // 🔥 SIMULADOR DE CUENTA PRO (cambiar a true/false para probar)
     const [isPro, setIsPro] = useState(false);
-// 🔐 AUTH STATE
+    // 🔐 AUTH STATE
     const { user, profile, signOut } = useAuth()
     const [showLogin, setShowLogin] = useState(false)
     const [showRegister, setShowRegister] = useState(false)
-           const [showCheckout, setShowCheckout] = useState(false);
+    const [showCheckout, setShowCheckout] = useState(false);
 
     const showToast = (text) => {
         setToastText(text);
@@ -901,24 +901,28 @@ export default function App() {
         window.scrollTo(0, 0);
     };
 
-// Función global para que UserMenu pueda navegar al perfil
-React.useEffect(() => {
-    window.App_navigateToProfile = (tab = 'profile') => {
-        setView('profile')
-        setMobileMenuOpen(false)
-        window.scrollTo(0, 0)
-        
-        // Guardar la pestaña seleccionada para que Profile la use
-        window.App_profileTab = tab
-    }
-    
-    return () => {
-        delete window.App_navigateToProfile
-        delete window.App_profileTab
-    }
-}, [])    
+    // --- Ajuste: mostrar presets según plan (FREE vs PRO/PREMIUM) ---
+    const isPaid = profile?.plan && profile.plan !== 'free';
+    const presetsToShow = isPaid ? PRESETS : PRESETS.filter(p => p.free).slice(0, 6);
 
-return (
+    // Función global para que UserMenu pueda navegar al perfil
+    React.useEffect(() => {
+        window.App_navigateToProfile = (tab = 'profile') => {
+            setView('profile')
+            setMobileMenuOpen(false)
+            window.scrollTo(0, 0)
+            
+            // Guardar la pestaña seleccionada para que Profile la use
+            window.App_profileTab = tab
+        }
+        
+        return () => {
+            delete window.App_navigateToProfile
+            delete window.App_profileTab
+        }
+    }, [])    
+    
+    return (
         <div className="min-h-screen bg-[#0D0D0D] text-gray-200 font-sans">
             {/* NAVEGACIÓN */}
 <nav className="fixed top-0 w-full z-50 bg-[#0D0D0D]/80 backdrop-blur-lg border-b border-white/10">
@@ -1016,32 +1020,61 @@ return (
                 <main>
                     {/* HERO */}
                     <section className="relative pt-40 pb-24 px-4 overflow-hidden text-center">
-                        <AnimatedSection className="max-w-5xl mx-auto relative z-10">
-                            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight tracking-tighter">
-                                Convierte tus Selfies en
-                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mt-2">
-                                    Retratos Profesionales
-                                </span>
-                            </h1>
-                            <p className="text-lg text-gray-400 mb-10 max-w-3xl mx-auto">
-                                Descarga nuestra guía gratuita o utiliza nuestro generador de IA para crear prompts de retrato únicos y de alta calidad.
-                            </p>
-                            <div className="flex justify-center">
-                                <a href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf" download className="inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-purple-500/20 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto">
-                                    <Download className="w-5 h-5" />
-                                    <span>Guía para crear prompts de retrato profesional</span>
-                                </a>
-                            </div>
-                        </AnimatedSection>
+                        
+                            <AnimatedSection className="max-w-5xl mx-auto relative z-10">
+                                <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight tracking-tighter">
+        Convierte tus Selfies en
+        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mt-2">
+            Retratos Profesionales
+        </span>
+    </h1>
+
+    {/* CTA: Ir al Generador + texto pequeño */}
+    <div className="flex flex-col items-center gap-2 mb-10">
+      <button
+        onClick={() => navigateToPage('assistant')}
+        className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-primary text-black font-semibold hover:opacity-90 transition"
+      >
+        Ir al Generador de Prompts
+      </button>
+      <p className="text-xs text-muted">
+        Crea prompts ultra detallados para conseguir la mayor consistencia en tus retratos y fotos
+      </p>
+    </div>
+
+    <p className="text-lg text-gray-400 mb-10 max-w-3xl mx-auto">
+        Descarga nuestra guía gratuita o utiliza nuestro generador de IA para crear prompts de retrato únicos y de alta calidad.
+    </p>
+    <div className="flex justify-center">
+        <a href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf" download className="inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-purple-500/20 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto">
+            <Download className="w-5 h-5" />
+            <span>Guía para crear prompts de retrato profesional</span>
+        </a>
+    </div>
+</AnimatedSection>
                     </section>
 
                     {/* GALERÍA HOME (4 MUESTRAS) */}
                     <section id="home-gallery" className="py-12 px-4">
                         <div className="max-w-7xl mx-auto">
-                            <AnimatedSection className="text-center mb-16">
-                                <h2 className="text-4xl md:text-5xl font-bold mb-4">Muestra de la Galería <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GRATIS</span></h2>
-                                <p className="text-gray-400 text-lg max-w-3xl mx-auto">Una selección por categoría. Pulsa en "Galería" para ver todos los prompts.</p>
+                            <AnimatedSection className="text-center mb-6">
+                                <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+                                    Muestra de la galería <span className="text-primary">GRATIS</span>
+                                </h2>
                             </AnimatedSection>
+
+                            <div className="flex flex-col items-center gap-2 mb-8">
+                              <button
+                                onClick={() => navigateToPage('gallery')}
+                                className="rounded-full px-5 py-2 bg-surface text-foreground border border-[color:var(--border)] hover:bg-white/10 transition"
+                              >
+                                Ver todos
+                              </button>
+                              <p className="text-xs text-muted">
+                                Prompts listos para copiar y pegar. (Pulsa sobre las imágenes para copiar sus prompts)
+                              </p>
+                            </div>
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                                 {homePrompts.map(item => (
                                     <div key={item.id} onClick={() => handleCopy(item.prompt)} className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 transform hover:-translate-y-2 transition-transform duration-300 aspect-[3/4]">
@@ -1052,16 +1085,8 @@ return (
                                     </div>
                                 ))}
                             </div>
-                            
-                            {/* BOTÓN VER TODOS */}
-                            <div className="flex justify-center mt-12">
-                                <button 
-                                    onClick={() => navigateToPage('gallery')} 
-                                    className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-400 to-cyan-500 text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-cyan-500/20 transform hover:scale-105 transition-all duration-300"
-                                >
-                                    <span>Ver todos</span>
-                                </button>
-                            </div>
+
+                            {/* botón "Ver todos" removido aquí porque ahora está arriba */}
                         </div>
                     </section>
 
@@ -1075,9 +1100,10 @@ return (
                                 <p className="text-gray-400 text-lg max-w-2xl mx-auto">Bloques de código listos para copiar y pegar en tus prompts. Resultados garantizados.</p>
                             </AnimatedSection>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {PRESETS.slice(0, 6).map((preset) => (
+                                {presetsToShow.map((preset) => (
                                     <AnimatedSection key={preset.id} className="relative rounded-2xl p-6 bg-white/5 border border-white/10 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/50">
-                                        {!preset.free && (
+                                        {/* overlay: solo mostrar candado si el usuario NO es paid y el preset NO es free */}
+                                        {!isPaid && !preset.free && (
                                             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-10 p-4 text-center">
                                                 <Lock className="w-10 h-10 text-purple-400 mx-auto mb-4" />
                                                 <p className="text-white font-bold text-lg mb-2">Plan PRO Requerido</p>
@@ -1128,10 +1154,26 @@ return (
                                             {plan.features.map((feature, i) => <li key={i} className="flex items-start space-x-3"><Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" /><span className="text-gray-300">{feature}</span></li>)}
                                         </ul>
                                         <button 
-    onClick={() => setShowCheckout(true)}
-    className={`w-full py-3 rounded-full font-bold transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-green-400 to-cyan-500 text-black hover:shadow-lg hover:shadow-cyan-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+    onClick={() => {
+      if (plan.name === 'FREE') {
+        if (user) {
+          navigateToPage('profile');
+        } else {
+          setShowRegister(true);
+        }
+        return;
+      }
+      setShowCheckout(true);
+    }}
+    className={`w-full py-3 rounded-full font-bold transition ${
+      plan.name === 'FREE'
+        ? 'bg-primary text-black hover:opacity-90'
+        : plan.popular
+          ? 'bg-gradient-to-r from-primary to-primary/80 text-black hover:opacity-95'
+          : 'bg-white/10 text-white hover:bg-white/20'
+    }`}
 >
-    {user ? 'Suscribirse' : 'Crear Cuenta Gratis'}
+    {plan.name === 'FREE' ? (user ? 'Ir a mi perfil' : 'Crear cuenta gratis') : 'Suscribirse'}
 </button>
                                     </AnimatedSection>
                                 ))}
