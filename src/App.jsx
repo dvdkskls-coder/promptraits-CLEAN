@@ -640,7 +640,7 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {ALL_PROMPTS.slice(0, 4).map((prompt) => (
                   <div key={prompt.id} className="bg-[color:var(--surface)] rounded-xl overflow-hidden border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all">
-                    <div className="aspect-square bg-gradient-to-br from-[color:var(--primary)]/20 to-[color:var(--surface)]"></div>
+                    <img src={prompt.src} alt={prompt.title} className="aspect-square w-full object-cover" />
                     <div className="p-4">
                       <h3 className="font-semibold mb-2">{prompt.name}</h3>
                       <p className="text-sm text-muted mb-3">{prompt.category}</p>
