@@ -31,32 +31,32 @@ const CATEGORIES = [
 
 // PRESETS (3 free + 12 pro)
 const PRESETS = [
-  { id: 1, name: "CinematogrÃ¡fico Editorial", subtitle: "Low-Key Rembrandt", free: true, promptBlock: "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting..." },
-  { id: 2, name: "Golden Hour Lifestyle", subtitle: "CÃ¡lido atardecer", free: true, promptBlock: "Warm golden hour portrait, 50mm f/1.8..." },
+  { id: 1, name: "Cinematográfico Editorial", subtitle: "Low-Key Rembrandt", free: true, promptBlock: "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting..." },
+  { id: 2, name: "Golden Hour Lifestyle", subtitle: "Cálido atardecer", free: true, promptBlock: "Warm golden hour portrait, 50mm f/1.8..." },
   { id: 3, name: "Corporate Clean", subtitle: "High-Key profesional", free: true, promptBlock: "High-key professional headshot..." },
   { id: 4, name: "Environmental Portrait", subtitle: "Sujeto en su entorno", free: false, promptBlock: "Environmental portrait..." },
-  { id: 5, name: "Beauty Soft Front", subtitle: "Beauty homogÃ©neo", free: false, promptBlock: "Beauty portrait..." },
-  { id: 6, name: "B/N ClÃ¡sico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait..." },
-  { id: 7, name: "FotografÃ­a Urbana Street", subtitle: "EnergÃ­a callejera", free: false, promptBlock: "Urban street photography..." },
-  { id: 8, name: "EnsueÃ±o Vintage 70s", subtitle: "NostÃ¡lgico y cÃ¡lido", free: false, promptBlock: "Vintage 70s dreamy portrait..." },
-  { id: 9, name: "Film Noir ClÃ¡sico", subtitle: "Drama B/N aÃ±os 40-50", free: false, promptBlock: "Classic film noir portrait..." },
-  { id: 10, name: "NeÃ³n Cyberpunk", subtitle: "Futurista urbano nocturno", free: false, promptBlock: "Cyberpunk neon portrait..." },
+  { id: 5, name: "Beauty Soft Front", subtitle: "Beauty homogéneo", free: false, promptBlock: "Beauty portrait..." },
+  { id: 6, name: "B/N Clásico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait..." },
+  { id: 7, name: "Fotografía Urbana Street", subtitle: "Energía callejera", free: false, promptBlock: "Urban street photography..." },
+  { id: 8, name: "Ensueño Vintage 70s", subtitle: "Nostálgico y cálido", free: false, promptBlock: "Vintage 70s dreamy portrait..." },
+  { id: 9, name: "Film Noir Clásico", subtitle: "Drama B/N años 40-50", free: false, promptBlock: "Classic film noir portrait..." },
+  { id: 10, name: "Neón Cyberpunk", subtitle: "Futurista urbano nocturno", free: false, promptBlock: "Cyberpunk neon portrait..." },
   { id: 11, name: "Retrato Ãntimo Ventana", subtitle: "Luz natural pensativa", free: false, promptBlock: "Intimate window light portrait..." },
-  { id: 12, name: "AcciÃ³n Deportiva Congelado", subtitle: "Movimiento nÃ­tido", free: false, promptBlock: "Frozen sports action..." },
+  { id: 12, name: "Acción Deportiva Congelado", subtitle: "Movimiento nítido", free: false, promptBlock: "Frozen sports action..." },
   { id: 13, name: "Producto Minimalista Lujo", subtitle: "Elegante y limpio", free: false, promptBlock: "Luxury minimalist product..." },
-  { id: 14, name: "FantasÃ­a Surrealista EtÃ©reo", subtitle: "OnÃ­rico y de otro mundo", free: false, promptBlock: "Surreal ethereal fantasy..." },
-  { id: 15, name: "Editorial Fashion", subtitle: "Alta moda dramÃ¡tica", free: false, promptBlock: "Editorial fashion portrait..." }
+  { id: 14, name: "Fantasía Surrealista Etéreo", subtitle: "Onírico y de otro mundo", free: false, promptBlock: "Surreal ethereal fantasy..." },
+  { id: 15, name: "Editorial Fashion", subtitle: "Alta moda dramática", free: false, promptBlock: "Editorial fashion portrait..." }
 ];
 
 const SCENARIOS = [
-  { id: 1, name: "Estudio Fondo Negro", description: "Minimalista, dramÃ¡tico, fondo oscuro", prompt: "Professional studio with seamless black backdrop..." },
-  { id: 2, name: "Calle Europea Atardecer", description: "Arquitectura clÃ¡sica, luz dorada", prompt: "Narrow European street at golden hour..." },
+  { id: 1, name: "Estudio Fondo Negro", description: "Minimalista, dramático, fondo oscuro", prompt: "Professional studio with seamless black backdrop..." },
+  { id: 2, name: "Calle Europea Atardecer", description: "Arquitectura clásica, luz dorada", prompt: "Narrow European street at golden hour..." },
   { id: 3, name: "Playa Amanecer Contraluz", description: "Costa, luz suave, horizonte marino", prompt: "Sandy beach at sunrise..." },
   { id: 4, name: "Urbano Nocturno Neones", description: "Ciudad de noche, luces vibrantes", prompt: "Night city street with neon signs..." },
   { id: 5, name: "Interior Ventana Natural", description: "Luz de ventana lateral suave", prompt: "Indoor setting with large window as single light source..." },
-  { id: 6, name: "Bosque Niebla AtmosfÃ©rico", description: "Naturaleza, bruma, luz filtrada", prompt: "Misty forest setting..." },
+  { id: 6, name: "Bosque Niebla Atmosférico", description: "Naturaleza, bruma, luz filtrada", prompt: "Misty forest setting..." },
   { id: 7, name: "Azotea Ciudad Atardecer", description: "Skyline urbano, golden hour", prompt: "Rooftop location at sunset..." },
-  { id: 8, name: "Industrial Warehouse Oscuro", description: "Grungy, luces prÃ¡cticas, textura", prompt: "Dark industrial warehouse..." }
+  { id: 8, name: "Industrial Warehouse Oscuro", description: "Grungy, luces prácticas, textura", prompt: "Dark industrial warehouse..." }
 ];
 
 // Packs de recarga
@@ -66,7 +66,7 @@ const CREDIT_PACKS = [
   { credits: 100, price: "15.99" }
 ];
 
-// Planes y crÃ©ditos (segÃºn tu especificaciÃ³n)
+// Planes y créditos (según tu especificación)
 const SUBSCRIPTION_PLANS = [
   {
     name: "FREE",
@@ -75,7 +75,7 @@ const SUBSCRIPTION_PLANS = [
     period: "por registrarte",
     popular: false,
     credits: 5,
-    features: ["5 crÃ©ditos al registrarte", "Newsletter con consejos y trucos", "4 prompts exclusivos al mes"]
+    features: ["5 créditos al registrarte", "Newsletter con consejos y trucos", "4 prompts exclusivos al mes"]
   },
   {
     name: "PRO",
@@ -84,7 +84,7 @@ const SUBSCRIPTION_PLANS = [
     period: "/mes",
     popular: true,
     credits: 60,
-    features: ["60 crÃ©ditos/mes", "3 prompts personalizados (24â€“48h)", "Revisiones incluidas", "8 prompts exclusivos al mes"]
+    features: ["60 créditos/mes", "3 prompts personalizados (24â€“48h)", "Revisiones incluidas", "8 prompts exclusivos al mes"]
   },
   {
     name: "PREMIUM",
@@ -93,7 +93,7 @@ const SUBSCRIPTION_PLANS = [
     period: "/mes",
     popular: false,
     credits: 300,
-    features: ["300 crÃ©ditos/mes", "Acceso al agente personalizado", "AsesorÃ­a 1 a 1", "5 prompts personalizados"]
+    features: ["300 créditos/mes", "Acceso al agente personalizado", "Asesoría 1 a 1", "5 prompts personalizados"]
   }
 ];
 
@@ -147,18 +147,18 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
     reader.onerror = (err) => reject(err);
   });
 
-  // GeneraciÃ³n real: llamada al endpoint /api/gemini-processor
+  // Generación real: llamada al endpoint /api/gemini-processor
   const handleGenerate = async (e) => {
     e && e.preventDefault();
 
     if (!user) {
-      setResponse("Inicia sesiÃ³n para generar.");
-      window.App_showToast?.("Inicia sesiÃ³n para generar.");
+      setResponse("Inicia sesión para generar.");
+      window.App_showToast?.("Inicia sesión para generar.");
       return;
     }
     if (profile?.credits <= 0) {
-      setResponse("No tienes crÃ©ditos disponibles. Compra crÃ©ditos o suscrÃ­bete.");
-      window.App_showToast?.("No tienes crÃ©ditos.");
+      setResponse("No tienes créditos disponibles. Compra créditos o suscríbete.");
+      window.App_showToast?.("No tienes créditos.");
       return;
     }
 
@@ -193,7 +193,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
       }
 
       const data = await res.json();
-      setResponse(data.prompt || "No se recibiÃ³ respuesta del generador.");
+      setResponse(data.prompt || "No se recibió respuesta del generador.");
       if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
       window.App_showToast?.("Prompt generado.");
     } catch (err) {
@@ -244,8 +244,8 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
           <div className={`mb-6 p-4 rounded-lg border ${profile.credits === 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-[color:var(--primary)]/10 border-[color:var(--primary)]/30'}`}>
             <p className={`font-bold ${profile.credits === 0 ? 'text-red-400' : 'text-[color:var(--primary)]'}`}>
               {profile.credits === 0
-                ? 'âš ï¸ No tienes crÃ©ditos. Actualiza tu plan para continuar.'
-                : `âš ï¸ Te quedan ${profile.credits} crÃ©dito${profile.credits === 1 ? '' : 's'}.`
+                ? 'âš ï¸ No tienes créditos. Actualiza tu plan para continuar.'
+                : `âš ï¸ Te quedan ${profile.credits} crédito${profile.credits === 1 ? '' : 's'}.`
               }
             </p>
             {profile.plan === 'free' && (
@@ -270,7 +270,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                   id="inputText"
                   rows="8"
                   className="w-full h-full bg-black/50 border border-[color:var(--border)] rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-[color:var(--primary)] resize-none"
-                  placeholder="Ej: un retrato cinematogrÃ¡fico en una calle europea al atardecer..."
+                  placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                 ></textarea>
@@ -304,7 +304,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
 
             {/* PRESETS FREE (compactos) */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">ðŸŽ¨ Estilos BÃ¡sicos (GRATIS):</label>
+              <label className="block text-sm font-medium text-gray-300 mb-3">ðŸŽ¨ Estilos Básicos (GRATIS):</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {PRESETS.filter(p => p.free).map(preset => (
                   <button
@@ -393,7 +393,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
           <div className="mt-6">
             <h3 className="font-semibold text-lg mb-3">Prompt Generado:</h3>
             <div className="bg-black/40 border border-[color:var(--border)] rounded-lg p-4">
-              <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">{response || "AquÃ­ aparecerÃ¡ el prompt generado..."}</pre>
+              <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">{response || "Aquí aparecerá el prompt generado..."}</pre>
               {response && (
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Copiar */}
@@ -405,7 +405,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                     <span>Copiar Prompt</span>
                   </button>
 
-                  {/* Usar en Gemini: copia + abre pestaÃ±a */}
+                  {/* Usar en Gemini: copia + abre pestaña */}
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(response);
@@ -439,7 +439,7 @@ export default function App() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showProPresets, setShowProPresets] = useState(false);
 
-  // Exponer funciÃ³n global para que componentes hijos puedan mostrar toasts
+  // Exponer función global para que componentes hijos puedan mostrar toasts
   React.useEffect(() => {
     window.App_showToast = (text) => {
       setToastText(text);
@@ -450,7 +450,7 @@ export default function App() {
       try {
         const res = await fetch('/api/profile');
         if (res.ok) {
-          // implementaciÃ³n especÃ­fica puede variar; simple reload:
+          // implementación específica puede variar; simple reload:
           window.location.reload();
         }
       } catch (err) { /* noop */ }
@@ -503,11 +503,11 @@ export default function App() {
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        alert('No se pudo abrir el portal de facturaciÃ³n.');
+        alert('No se pudo abrir el portal de facturación.');
       }
     } catch (err) {
       console.error(err);
-      alert('Error al abrir el portal de facturaciÃ³n.');
+      alert('Error al abrir el portal de facturación.');
     }
   };
 
@@ -524,7 +524,7 @@ export default function App() {
             </div>
 
             <div className="hidden md:flex items-center space-x-8">
-              <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">GalerÃ­a</button>
+              <button onClick={() => navigateToPage('gallery')} className="text-gray-300 hover:text-white transition duration-300">Galería</button>
               <button onClick={() => navigateToPage('assistant')} className="text-gray-300 hover:text-white transition duration-300">Generador IA</button>
 
               <button onClick={() => setShowRegister(true)} className="px-4 py-2 rounded-full font-bold bg-[color:var(--primary)] text-black hover:opacity-90 transition">
@@ -572,7 +572,7 @@ export default function App() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu"
-              aria-label={mobileMenuOpen ? "Cerrar menÃº" : "Abrir menÃº"}
+              aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
             >
               {mobileMenuOpen ? <X /> : <Menu />}
             </button>
@@ -582,7 +582,7 @@ export default function App() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-[color:var(--surface)] border-t border-[color:var(--border)]" id="mobile-menu">
             <div className="px-4 py-4 space-y-4">
-              <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">GalerÃ­a</button>
+              <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">Galería</button>
               <button onClick={() => navigateToPage('assistant')} className="block w-full text-left text-gray-300 hover:text-white">Generador IA</button>
 
               <button onClick={() => { setShowRegister(true); setMobileMenuOpen(false); }} className="block w-full text-left text-gray-300 hover:text-white">Crear cuenta gratis</button>
@@ -591,8 +591,8 @@ export default function App() {
                 <button onClick={() => { setShowLogin(true); setMobileMenuOpen(false); }} className="block w-full text-left text-gray-300 hover:text-white">Login</button>
               ) : (
                 <>
-                  <div className="text-gray-300">CrÃ©ditos: <span className="font-bold text-[color:var(--primary)]">{profile?.credits || 0}</span></div>
-                  <button onClick={() => { signOut(); setMobileMenuOpen(false); }} className="block w-full text-left text-red-400 hover:text-red-300">Cerrar SesiÃ³n</button>
+                  <div className="text-gray-300">Créditos: <span className="font-bold text-[color:var(--primary)]">{profile?.credits || 0}</span></div>
+                  <button onClick={() => { signOut(); setMobileMenuOpen(false); }} className="block w-full text-left text-red-400 hover:text-red-300">Cerrar Sesión</button>
                 </>
               )}
             </div>
@@ -762,8 +762,8 @@ export default function App() {
           <section id="full-gallery" className="py-12">
             <div className="max-w-7xl mx-auto">
               <AnimatedSection className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">GalerÃ­a de <span className="text-[color:var(--primary)]">Prompts PÃºblicos</span></h2>
-                <p className="text-muted text-lg">Navega, inspÃ­rate y haz clic en una imagen para copiar el prompt.</p>
+                <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">Galería de <span className="text-[color:var(--primary)]">Prompts Públicos</span></h2>
+                <p className="text-muted text-lg">Navega, inspírate y haz clic en una imagen para copiar el prompt.</p>
               </AnimatedSection>
 
               <CategoryTabs
@@ -806,11 +806,11 @@ export default function App() {
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h3 className="text-2xl font-heading font-semibold mb-3">Guia para crear PROMPTS de retratos profesional <span className="text-[color:var(--primary)]">GRATIS</span></h3>
-          <p className="text-lg text-muted mb-6">Descarga nuestra guÃ­a en pdf para convertir fotos normales en fotografÃ­as de estudio profesionales</p>
+          <p className="text-lg text-muted mb-6">Descarga nuestra guía en pdf para convertir fotos normales en fotografías de estudio profesionales</p>
           <div className="flex justify-center">
             <a href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf" download className="inline-flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg transition-all duration-300">
               <Download className="w-5 h-5" />
-              <span>Descargar guÃ­a GRATIS</span>
+              <span>Descargar guía GRATIS</span>
             </a>
           </div>
         </div>
