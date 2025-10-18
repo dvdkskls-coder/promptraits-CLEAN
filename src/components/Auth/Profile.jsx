@@ -1,4 +1,5 @@
-﻿export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpenPortal }) {
+﻿// filepath: c:\Users\David\Desktop\Promptraits-Clean\src\components\Auth\Profile.jsx
+export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpenPortal }) {
   return (
     <main className="pt-32 px-4 max-w-3xl mx-auto">
       <div className="bg-white/5 border border-white/10 rounded-xl p-6">
