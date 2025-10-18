@@ -41,7 +41,7 @@ const PRESETS = [
   { id: 8, name: "Ensueño Vintage 70s", subtitle: "Nostálgico y cálido", free: false, promptBlock: "Vintage 70s dreamy portrait..." },
   { id: 9, name: "Film Noir Clásico", subtitle: "Drama B/N años 40-50", free: false, promptBlock: "Classic film noir portrait..." },
   { id: 10, name: "Neón Cyberpunk", subtitle: "Futurista urbano nocturno", free: false, promptBlock: "Cyberpunk neon portrait..." },
-  { id: 11, name: "Retrato Ãntimo Ventana", subtitle: "Luz natural pensativa", free: false, promptBlock: "Intimate window light portrait..." },
+  { id: 11, name: "Retrato íntimo Ventana", subtitle: "Luz natural pensativa", free: false, promptBlock: "Intimate window light portrait..." },
   { id: 12, name: "Acción Deportiva Congelado", subtitle: "Movimiento nítido", free: false, promptBlock: "Frozen sports action..." },
   { id: 13, name: "Producto Minimalista Lujo", subtitle: "Elegante y limpio", free: false, promptBlock: "Luxury minimalist product..." },
   { id: 14, name: "Fantasía Surrealista Etéreo", subtitle: "Onírico y de otro mundo", free: false, promptBlock: "Surreal ethereal fantasy..." },
@@ -239,7 +239,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
   return (
     <section id="prompt-generator" className="py-24 px-4 bg-black/20">
       <div className="max-w-6xl mx-auto">
-        {/* ALERTA DE CRÃ‰DITOS */}
+        {/* ALERTA DE CRí‰DITOS */}
         {user && profile && profile.credits <= 3 && (
           <div className={`mb-6 p-4 rounded-lg border ${profile.credits === 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-[color:var(--primary)]/10 border-[color:var(--primary)]/30'}`}>
             <p className={`font-bold ${profile.credits === 0 ? 'text-red-400' : 'text-[color:var(--primary)]'}`}>
@@ -375,7 +375,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
               )}
             </div>
 
-            {/* BOTÃ“N GENERAR */}
+            {/* BOTí“N GENERAR */}
             <div className="pt-2">
               <button
                 type="submit"
@@ -387,7 +387,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
             </div>
           </form>
 
-          {/* ANÃLISIS DE CALIDAD */}
+          {/* ANíLISIS DE CALIDAD */}
 <QualityAnalysis analysis={qualityAnalysis} isPro={isPro} onApplySuggestions={handleApplySuggestions} isApplying={isApplyingSuggestions} />
           {/* PROMPT GENERADO */}
           <div className="mt-6">
@@ -802,7 +802,7 @@ export default function App() {
         />
       )}
 
-      {/* DESCARGA DE LA GUÃA (final) */}
+      {/* DESCARGA DE LA GUíA (final) */}
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h3 className="text-2xl font-heading font-semibold mb-3">Guia para crear PROMPTS de retratos profesional <span className="text-[color:var(--primary)]">GRATIS</span></h3>
