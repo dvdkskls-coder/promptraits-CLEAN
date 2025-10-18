@@ -1,7 +1,4 @@
-import UserMenu from './components/Auth/UserMenu.jsx';
-import Profile from './components/Auth/Profile.jsx';
-
-export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, isApplying }) {
+﻿export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, isApplying }) {
   if (!analysis) return null;
   
   return (
@@ -14,7 +11,7 @@ export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, i
           disabled={isApplying}
           className="mt-3 px-4 py-2 rounded bg-[color:var(--primary)] text-black font-bold disabled:opacity-50"
         >
-          {isApplying ? 'Aplicando…' : 'Aplicar sugerencias'}
+          {isApplying ? 'Aplicando' : 'Aplicar sugerencias'}
         </button>
       )}
     </div>
