@@ -36,3 +36,51 @@ h1, h2, .heading {
   letter-spacing: 0.04em;
   line-height: 1.05;
 }
+
+/* Variables CSS globales */
+:root {
+  --bg: #06060C;
+  --surface: #2D2D2D;
+  --fg: #FFFFFF;
+  --muted: #C1C1C1;
+  --primary: #D8C780;
+  --border: #2D2D2D;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Montserrat", system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, .heading {
+  font-family: "Saira Extra Condensed", system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
+
+/* Variables CSS globales */
+:root {
+  --bg: #06060C;
+  --surface: #2D2D2D;
+  --fg: #FFFFFF;
+  --muted: #C1C1C1;
+  --primary: #D8C780;
+  --border: #2D2D2D;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Montserrat", system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, .heading {
+  font-family: "Saira Extra Condensed", system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
