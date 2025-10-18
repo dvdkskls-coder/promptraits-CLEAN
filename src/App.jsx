@@ -630,7 +630,130 @@ export default function App() {
             </AnimatedSection>
           </section>
 
-          {/* ...resto del contenido HOME (galerÃ­a, presets, planes, etc.) se mantiene igual... */}
+          {/* MUESTRA DE GALERÍA */}
+          <AnimatedSection className="py-20 px-4">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold mb-4">Galería de Prompts Profesionales</h2>
+                <p className="text-muted text-lg">Explora nuestra colección de prompts optimizados</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {ALL_PROMPTS.slice(0, 4).map((prompt) => (
+                  <div key={prompt.id} className="bg-[color:var(--surface)] rounded-xl overflow-hidden border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all">
+                    <div className="aspect-square bg-gradient-to-br from-[color:var(--primary)]/20 to-[color:var(--surface)]"></div>
+                    <div className="p-4">
+                      <h3 className="font-semibold mb-2">{prompt.name}</h3>
+                      <p className="text-sm text-muted mb-3">{prompt.category}</p>
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-[color:var(--primary)]/20 text-[color:var(--primary)]">
+                        {prompt.isPro ? <Crown className="w-3 h-3" /> : null}
+                        {prompt.isPro ? 'PRO' : 'FREE'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center">
+                <button
+                  onClick={() => navigateToPage('gallery')}
+                  className="px-8 py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition"
+                >
+                  Ver Galería Completa
+                </button>
+              </div>
+            </div>
+          </AnimatedSection>
+
+          {/* PLANES */}
+          <AnimatedSection className="py-20 px-4 bg-black/20">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold mb-4">Elige tu Plan</h2>
+                <p className="text-muted text-lg">Accede a herramientas profesionales y contenido exclusivo</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-[color:var(--surface)] rounded-xl p-8 border border-[color:var(--border)]">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Gift className="w-6 h-6 text-[color:var(--primary)]" />
+                    <h3 className="text-2xl font-bold">Plan FREE</h3>
+                  </div>
+                  <div className="text-4xl font-bold mb-6">0€<span className="text-lg text-muted">/mes</span></div>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Acceso a prompts básicos</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Galería pública</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Comunidad y soporte</span>
+                    </li>
+                  </ul>
+                  <button className="w-full py-3 bg-white/10 rounded-lg font-semibold hover:bg-white/20 transition">
+                    Comenzar Gratis
+                  </button>
+                </div>
+                <div className="bg-gradient-to-br from-[color:var(--primary)]/20 to-[color:var(--surface)] rounded-xl p-8 border-2 border-[color:var(--primary)] relative">
+                  <div className="absolute top-4 right-4 px-3 py-1 bg-[color:var(--primary)] text-black text-xs font-bold rounded-full">
+                    RECOMENDADO
+                  </div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Crown className="w-6 h-6 text-[color:var(--primary)]" />
+                    <h3 className="text-2xl font-bold">Plan PRO</h3>
+                  </div>
+                  <div className="text-4xl font-bold mb-6">29€<span className="text-lg text-muted">/mes</span></div>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                      <span className="font-semibold">Todo lo del plan FREE</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                      <span>Prompts PRO exclusivos</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                      <span>Generador de prompts IA</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                      <span>Análisis de calidad</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                      <span>Soporte prioritario</span>
+                    </li>
+                  </ul>
+                  <button className="w-full py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition">
+                    Activar PRO
+                  </button>
+                </div>
+              </div>
+            </div>
+          </AnimatedSection>
+
+          {/* PRESETS */}
+          <AnimatedSection className="py-20 px-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold mb-4">Presets Profesionales</h2>
+                <p className="text-muted text-lg">Configuraciones optimizadas para diferentes estilos</p>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {['Corporativo', 'Creativo', 'Natural', 'Editorial', 'Lifestyle', 'Minimalista'].map((preset) => (
+                  <div key={preset} className="bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all cursor-pointer">
+                    <div className="w-12 h-12 rounded-lg bg-[color:var(--primary)]/20 flex items-center justify-center mb-4">
+                      <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">{preset}</h3>
+                    <p className="text-sm text-muted">Preset optimizado para fotografía {preset.toLowerCase()}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AnimatedSection>
         </main>
       )}
 
