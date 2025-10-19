@@ -604,22 +604,24 @@ function AppContent() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-black/50 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div 
-              onClick={() => setView('home')}
-              className="cursor-pointer"
-            >
-              <img 
-                src="/logo.svg" 
-                alt="PROMPTRAITS" 
-                className="h-12 w-auto"
-                onError={(e) => {
-                  // Fallback si no carga el logo
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = '<span class="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">PROMPTRAITS</span>';
-                }}
-              />
+          <div className="flex justify-between items-center h-16 md:justify-between">
+            {/* Logo - Centrado en móvil, izquierda en desktop */}
+            <div className="flex-1 md:flex-initial flex justify-center md:justify-start">
+              <div 
+                onClick={() => setView('home')}
+                className="cursor-pointer"
+              >
+                <img 
+                  src="/logo.svg" 
+                  alt="PROMPTRAITS" 
+                  className="h-12 w-auto"
+                  onError={(e) => {
+                    // Fallback si no carga el logo
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<span class="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">PROMPTRAITS</span>';
+                  }}
+                />
+              </div>
             </div>
 
             {/* Navigation */}
@@ -645,23 +647,25 @@ function AppContent() {
             </nav>
 
             {/* User Menu / Auth Button */}
-            {user ? (
-              <UserMenu 
-                credits={profile?.credits || 0}
-                plan={profile?.plan || 'free'}
-                onNavigate={handleNavigation}
-              />
-            ) : (
-              <button
-                onClick={() => {
-                  setShowAuth(true)
-                  setAuthMode('login')
-                }}
-                className="px-6 py-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-semibold hover:opacity-90 transition duration-300"
-              >
-                Iniciar sesión
-              </button>
-            )}
+            <div className="hidden md:block">
+              {user ? (
+                <UserMenu 
+                  credits={profile?.credits || 0}
+                  plan={profile?.plan || 'free'}
+                  onNavigate={handleNavigation}
+                />
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowAuth(true)
+                    setAuthMode('login')
+                  }}
+                  className="px-6 py-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-semibold hover:opacity-90 transition duration-300"
+                >
+                  Iniciar sesión
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
