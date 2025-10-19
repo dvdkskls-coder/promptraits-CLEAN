@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, Crown, Zap } from 'lucide-react';
 import AnimatedSection from './AnimatedSection';
+import { useAuth } from '../contexts/AuthContext'; // ← AÑADIR
 
 const SUBSCRIPTION_PLANS = [
   {
@@ -53,7 +54,32 @@ const CREDIT_PACKS = [
 ];
 
 export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
+  const { user } = useAuth(); // ← AÑADIR
   const [showCreditPacks, setShowCreditPacks] = useState(false);
+
+  // Función para determinar el texto del botón
+  const getButtonText = (planId) => {
+    // Si no está logueado
+    if (!user) {
+      return planId === 'free' ? 'Regístrate' : 'Regístrate para Seleccionar';
+    }
+
+    // Si está logueado
+    if (currentPlan === planId) {
+      return 'Plan Actual';
+    }
+
+    if (planId === 'free') {
+      return 'Cambiar a FREE';
+    }
+
+    return 'Actualizar Plan';
+  };
+
+  // Función para determinar si el botón está deshabilitado
+  const isButtonDisabled = (planId) => {
+    return user && currentPlan === planId;
+  };
 
   return (
     <section className="py-20 px-4">
@@ -145,16 +171,16 @@ export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
 
                 <button
                   onClick={() => onSelectPlan(plan.id)}
-                  disabled={currentPlan === plan.id}
+                  disabled={isButtonDisabled(plan.id)}
                   className={`w-full py-3 rounded-lg font-bold transition-all ${
-                    currentPlan === plan.id
+                    isButtonDisabled(plan.id)
                       ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                      : plan.popular
+                      : plan.popular || plan.id === 'free'
                       ? 'bg-[color:var(--primary)] text-black hover:opacity-90'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
-                  {currentPlan === plan.id ? 'Plan Actual' : 'Seleccionar Plan'}
+                  {getButtonText(plan.id)}
                 </button>
               </AnimatedSection>
             ))}
@@ -167,7 +193,7 @@ export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
             {CREDIT_PACKS.map((pack, idx) => (
               <AnimatedSection
                 key={idx}
-                className={`bg-[color:var(--surface)] rounded-2xl p-8 border-2 transition-all hover:scale-105 ${
+                className={`relative bg-[color:var(--surface)] rounded-2xl p-8 border-2 transition-all hover:scale-105 ${
                   pack.popular
                     ? 'border-[color:var(--primary)] shadow-lg'
                     : 'border-[color:var(--border)]'
@@ -196,7 +222,7 @@ export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
                   onClick={() => onSelectPlan(`credits-${pack.credits}`)}
                   className="w-full py-3 rounded-lg font-bold bg-[color:var(--primary)] text-black hover:opacity-90 transition-all"
                 >
-                  Comprar Ahora
+                  {user ? 'Comprar Ahora' : 'Regístrate para Comprar'}
                 </button>
               </AnimatedSection>
             ))}
