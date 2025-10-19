@@ -17,8 +17,11 @@ export function AuthProvider({ children }) {
         .single();
       if (error) throw error;
       setProfile(data || { credits: 0, plan: 'free' });
-    } catch {
-      setProfile((p) => p || { credits: 0, plan: 'free' });
+      return data;
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setProfile({ credits: 0, plan: 'free' });
+      return null;
     }
   };
 
@@ -48,8 +51,15 @@ export function AuthProvider({ children }) {
         password,
       });
       if (error) throw error;
+
+      // ✅ ESPERAR a que se cargue el perfil antes de retornar
+      if (data.user) {
+        await fetchProfile(data.user.id);
+      }
+
       return { success: true, data };
     } catch (error) {
+      console.error('Login error:', error);
       return { success: false, error: error.message };
     }
   };
@@ -63,6 +73,7 @@ export function AuthProvider({ children }) {
       if (error) throw error;
       return { success: true, data };
     } catch (error) {
+      console.error('Signup error:', error);
       return { success: false, error: error.message };
     }
   };
@@ -74,7 +85,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthCtx.Provider value={{ user, profile, loading, signIn, signUp, signOut }}>
+    <AuthCtx.Provider value={{ user, profile, loading, signIn, signUp, signOut, fetchProfile }}>
       {children}
     </AuthCtx.Provider>
   );
