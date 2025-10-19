@@ -587,17 +587,60 @@ export default function App() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-[color:var(--surface)] border-t border-[color:var(--border)]" id="mobile-menu">
             <div className="px-4 py-4 space-y-4">
-              <button onClick={() => navigateToPage('gallery')} className="block w-full text-left text-gray-300 hover:text-white">Galería</button>
-              <button onClick={() => navigateToPage('assistant')} className="block w-full text-left text-gray-300 hover:text-white">Generador IA</button>
+              <button 
+                onClick={() => { navigateToPage('gallery'); setMobileMenuOpen(false); }} 
+                className="block w-full text-left text-gray-300 hover:text-white"
+              >
+                Galería
+              </button>
 
-              <button onClick={() => { setShowRegister(true); setMobileMenuOpen(false); }} className="block w-full text-left text-gray-300 hover:text-white">Crear cuenta gratis</button>
+              <button 
+                onClick={() => { navigateToPage('assistant'); setMobileMenuOpen(false); }} 
+                className="block w-full text-left text-gray-300 hover:text-white"
+              >
+                Generador IA
+              </button>
 
-              {!user ? (
-                <button onClick={() => { setShowLogin(true); setMobileMenuOpen(false); }} className="block w-full text-left text-gray-300 hover:text-white">Login</button>
+              {user ? (
+                <>
+                  <div className="border-t border-white/10 pt-4">
+                    <button 
+                      onClick={() => { setView('profile'); setMobileMenuOpen(false); }} 
+                      className="block w-full text-left text-gray-300 hover:text-white mb-3"
+                    >
+                      Mi perfil ({profile?.credits || 0} créditos)
+                    </button>
+
+                    <button 
+                      onClick={() => { setShowCheckout(true); setMobileMenuOpen(false); }} 
+                      className="block w-full text-left text-[color:var(--primary)] hover:opacity-80 mb-3"
+                    >
+                      Comprar créditos
+                    </button>
+
+                    <button 
+                      onClick={() => { signOut(); setMobileMenuOpen(false); }} 
+                      className="block w-full text-left text-red-400 hover:text-red-300"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </>
               ) : (
                 <>
-                  <div className="text-gray-300">Créditos: <span className="font-bold text-[color:var(--primary)]">{profile?.credits || 0}</span></div>
-                  <button onClick={() => { signOut(); setMobileMenuOpen(false); }} className="block w-full text-left text-red-400 hover:text-red-300">Cerrar Sesión</button>
+                  <button 
+                    onClick={() => { setShowLogin(true); setMobileMenuOpen(false); }} 
+                    className="block w-full text-left text-gray-300 hover:text-white"
+                  >
+                    Iniciar sesión
+                  </button>
+
+                  <button 
+                    onClick={() => { setShowRegister(true); setMobileMenuOpen(false); }} 
+                    className="block w-full text-left text-[color:var(--primary)] hover:opacity-80"
+                  >
+                    Crear cuenta gratis
+                  </button>
                 </>
               )}
             </div>
