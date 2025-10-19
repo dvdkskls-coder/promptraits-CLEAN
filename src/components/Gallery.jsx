@@ -19,9 +19,9 @@ export default function Gallery() {
     ? ALL_PROMPTS 
     : ALL_PROMPTS.filter(p => p.category === selectedCategory);
 
-  const handleCopyPrompt = (prompt) => {
-    navigator.clipboard.writeText(prompt.prompt);
-    setCopiedId(prompt.id);
+  const handleCopyPrompt = (promptObj) => {
+    navigator.clipboard.writeText(promptObj.prompt);
+    setCopiedId(promptObj.id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -67,7 +67,6 @@ export default function Gallery() {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               
-              {/* Overlay con mensaje de copiado */}
               {copiedId === prompt.id && (
                 <div className="absolute inset-0 bg-black/80 flex items-center justify-center animate-fade-in">
                   <div className="flex items-center gap-2 text-[var(--primary)] text-xl font-bold">
