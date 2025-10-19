@@ -19,8 +19,8 @@ export default function UserMenu({ credits = 0, plan = 'free', onNavigate }) {
 
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute right-0 mt-2 w-64 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl shadow-xl z-50 overflow-hidden">
@@ -45,9 +45,9 @@ export default function UserMenu({ credits = 0, plan = 'free', onNavigate }) {
 
             <button
               onClick={() => {
+                console.log('🔴 UserMenu: Logout clicked');
                 setIsOpen(false);
-                // Aquí iría la lógica de logout
-                console.log('Logout clicked');
+                onNavigate?.('logout'); // ✅ CAMBIO: Llamar a onNavigate en vez de solo hacer log
               }}
               className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition text-left border-t border-white/10"
             >

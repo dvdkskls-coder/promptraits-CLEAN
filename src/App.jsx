@@ -674,27 +674,30 @@ export default function App() {
                   credits={profile?.credits ?? 0}
                   plan={profile?.plan || 'free'}
                   onNavigate={(dest) => {
+                    console.log('🔴 onNavigate recibió:', dest); // AÑADE ESTA LÍNEA
                     switch (dest) {
                       case 'profile':
-                        setView('profile'); 
+                        setView('profile');
                         break;
                       case 'history':
                         setView('profile');
                         window.dispatchEvent(new CustomEvent('profile:openTab', { detail: 'history' }));
                         break;
                       case 'assistant':
-                        setView('assistant'); 
+                        setView('assistant');
                         break;
                       case 'gallery':
-                        setView('gallery'); 
+                        setView('gallery');
                         break;
                       case 'credits':
-                        setShowCheckout(true); 
+                        setShowCheckout(true);
                         break;
                       case 'logout':
+                        console.log('🔴 CASE LOGOUT EJECUTADO'); // AÑADE ESTA LÍNEA
                         handleSignOut();
                         break;
                       default:
+                        console.log('⚠️ Caso no manejado:', dest); // AÑADE ESTA LÍNEA
                         break;
                     }
                   }}
