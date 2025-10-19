@@ -564,7 +564,7 @@ export default function App() {
 
 function AppContent() {
   const { user, profile, signOut } = useAuth()
-  const [view, setView] = useState('gallery')
+  const [view, setView] = useState('home')
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState('login')
   const [selectedPlan, setSelectedPlan] = useState(null) // ← AÑADIR
