@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, Crown, Zap } from 'lucide-react';
 import AnimatedSection from './AnimatedSection';
-import { useAuth } from '../contexts/AuthContext'; // ← AÑADIR
+import { useAuth } from '../contexts/AuthContext';
 
 const SUBSCRIPTION_PLANS = [
   {
@@ -54,26 +54,27 @@ const CREDIT_PACKS = [
 ];
 
 export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
-  const { user } = useAuth(); // ← AÑADIR
+  const { user } = useAuth();
   const [showCreditPacks, setShowCreditPacks] = useState(false);
 
   // Función para determinar el texto del botón
-  const getButtonText = (planId) => {
+  const getButtonText = (plan) => {
     // Si no está logueado
     if (!user) {
-      return planId === 'free' ? 'Regístrate' : 'Regístrate para Seleccionar';
+      if (plan.id === 'free') return 'Regístrate';
+      return `Obtener ${plan.name}`;
     }
 
     // Si está logueado
-    if (currentPlan === planId) {
+    if (currentPlan === plan.id) {
       return 'Plan Actual';
     }
 
-    if (planId === 'free') {
+    if (plan.id === 'free') {
       return 'Cambiar a FREE';
     }
 
-    return 'Actualizar Plan';
+    return `Obtener ${plan.name}`;
   };
 
   // Función para determinar si el botón está deshabilitado
@@ -84,7 +85,7 @@ export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
   return (
     <section className="py-20 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* NUEVO ENCABEZADO */}
+        {/* ENCABEZADO */}
         <AnimatedSection className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">
             Elige tu <span className="text-[color:var(--primary)]">Plan</span>
@@ -175,12 +176,12 @@ export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
                   className={`w-full py-3 rounded-lg font-bold transition-all ${
                     isButtonDisabled(plan.id)
                       ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                      : plan.popular || plan.id === 'free'
+                      : plan.popular || plan.id !== 'free'
                       ? 'bg-[color:var(--primary)] text-black hover:opacity-90'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
-                  {getButtonText(plan.id)}
+                  {getButtonText(plan)}
                 </button>
               </AnimatedSection>
             ))}
