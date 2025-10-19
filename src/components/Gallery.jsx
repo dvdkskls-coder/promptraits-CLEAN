@@ -1,8 +1,10 @@
 ﻿import React, { useState } from 'react';
 import { ALL_PROMPTS } from '../data/prompts.js';
+import { Check } from 'lucide-react';
 
 export default function Gallery() {
   const [selectedCategory, setSelectedCategory] = useState('todos');
+  const [copiedId, setCopiedId] = useState(null);
 
   const categories = [
     { id: 'todos', name: 'Todos' },
@@ -16,6 +18,12 @@ export default function Gallery() {
   const filteredPrompts = selectedCategory === 'todos' 
     ? ALL_PROMPTS 
     : ALL_PROMPTS.filter(p => p.category === selectedCategory);
+
+  const handleCopyPrompt = (prompt) => {
+    navigator.clipboard.writeText(prompt.prompt);
+    setCopiedId(prompt.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   return (
     <section className="py-24 px-4">
@@ -45,33 +53,29 @@ export default function Gallery() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredPrompts.map((prompt) => (
             <div
               key={prompt.id}
-              className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-[var(--primary)]/50 transition-all"
+              onClick={() => handleCopyPrompt(prompt)}
+              className="group relative cursor-pointer overflow-hidden rounded-xl"
+              style={{ aspectRatio: '4/5' }}
             >
-              <div className="relative aspect-square overflow-hidden bg-black/40">
-                <img
-                  src={prompt.image}
-                  alt={prompt.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                {prompt.isPro && (
-                  <div className="absolute top-3 right-3 bg-[var(--primary)] text-black px-3 py-1 rounded-full text-xs font-bold">
-                    PRO
+              <img
+                src={prompt.image}
+                alt={prompt.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              
+              {/* Overlay con mensaje de copiado */}
+              {copiedId === prompt.id && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center animate-fade-in">
+                  <div className="flex items-center gap-2 text-[var(--primary)] text-xl font-bold">
+                    <Check className="w-6 h-6" />
+                    <span>Prompt copiado</span>
                   </div>
-                )}
-              </div>
-
-              <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-white">{prompt.title}</h3>
-                <p className="text-sm text-gray-400 mb-4">{prompt.description}</p>
-                
-                <button className="w-full bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] font-semibold py-2 rounded-lg transition-all">
-                  Ver Prompt
-                </button>
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
