@@ -632,6 +632,19 @@ export default function App() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    setView('gallery');
+    setShowLogin(false);
+    setShowRegister(false);
+    setShowCheckout(false);
+    setMobileMenuOpen(false);
+    // Recargar para limpiar todo el estado
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--fg)] font-body">
       {/* NAV */}
@@ -675,7 +688,7 @@ export default function App() {
                         setShowCheckout(true); 
                         break;
                       case 'logout':
-                        signOut(); 
+                        handleSignOut();
                         break;
                       default:
                         break;
@@ -740,7 +753,7 @@ export default function App() {
                     </button>
 
                     <button 
-                      onClick={() => { signOut(); setMobileMenuOpen(false); }} 
+                      onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} 
                       className="block w-full text-left text-red-400 hover:text-red-300"
                     >
                       Cerrar sesión
