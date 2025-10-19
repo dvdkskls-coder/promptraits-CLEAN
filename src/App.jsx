@@ -572,7 +572,8 @@ export default function App() {
         const res = await fetch('/api/profile');
         if (res.ok) {
           // implementación específica puede variar; simple reload:
-          window.location.reload();
+          console.log(' Recargando página...');
+    window.location.reload();
         }
       } catch (err) { /* noop */ }
     };
@@ -633,7 +634,9 @@ export default function App() {
   };
 
   const handleSignOut = async () => {
+    console.log('🔴 CERRANDO SESIÓN - Inicio');
     await signOut();
+    console.log(' signOut() ejecutado');
     setView('gallery');
     setShowLogin(false);
     setShowRegister(false);
@@ -641,7 +644,8 @@ export default function App() {
     setMobileMenuOpen(false);
     // Recargar para limpiar todo el estado
     setTimeout(() => {
-      window.location.reload();
+      console.log(' Recargando página...');
+    window.location.reload();
     }, 100);
   };
 
