@@ -659,6 +659,173 @@ function AppContent() {
 
       {/* Main Content */}
       <main className="pt-16">
+        {view === 'home' && (
+          <>
+            {/* Hero Section */}
+            <section className="relative pt-40 pb-12 px-4 overflow-hidden text-center">
+              <AnimatedSection className="max-w-5xl mx-auto relative z-10">
+                <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 leading-tight tracking-tighter">
+                  Convierte tus Selfies en
+                  <span className="block text-[color:var(--primary)] mt-2">Retratos Profesionales</span>
+                </h1>
+                <p className="text-lg text-muted mb-8">Crea prompts ultra detallados para conseguir la mayor consistencia en tus retratos y fotos</p>
+                <button onClick={() => setView('generator')} className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-[color:var(--primary)] text-black font-semibold hover:opacity-90 transition">
+                  Ir al Generador de Prompts
+                </button>
+              </AnimatedSection>
+            </section>
+
+            {/* Galería Preview */}
+            <AnimatedSection className="py-20 px-4">
+              <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl font-bold mb-4">Galería de Prompts Profesionales</h2>
+                  <p className="text-muted text-lg">Explora nuestra colección de prompts optimizados</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {ALL_PROMPTS.slice(0, 4).map((prompt) => (
+                    <div key={prompt.id} className="bg-[color:var(--surface)] rounded-xl overflow-hidden border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all">
+                      <img src={prompt.image} alt={prompt.title} className="aspect-square w-full object-cover" />
+                      <div className="p-4">
+                        <h3 className="font-semibold mb-2">{prompt.title}</h3>
+                        <p className="text-sm text-muted mb-3">{prompt.category}</p>
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-[color:var(--primary)]/20 text-[color:var(--primary)]">
+                          {prompt.isPro ? <Crown className="w-3 h-3" /> : null}
+                          {prompt.isPro ? 'PRO' : 'FREE'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center">
+                  <button onClick={() => setView('gallery')} className="px-8 py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition">
+                    Ver Galería Completa
+                  </button>
+                </div>
+              </div>
+            </AnimatedSection>
+
+            {/* Planes */}
+            <AnimatedSection className="py-20 px-4 bg-black/20">
+              <div className="max-w-5xl mx-auto">
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl font-bold mb-4">Elige tu Plan</h2>
+                  <p className="text-muted text-lg">Accede a herramientas profesionales y contenido exclusivo</p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="bg-[color:var(--surface)] rounded-xl p-8 border border-[color:var(--border)]">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Gift className="w-6 h-6 text-[color:var(--primary)]" />
+                      <h3 className="text-2xl font-bold">Plan FREE</h3>
+                    </div>
+                    <div className="text-4xl font-bold mb-6">0€<span className="text-lg text-muted">/mes</span></div>
+                    <ul className="space-y-3 mb-8">
+                      <li className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span>Acceso a prompts básicos</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span>Galería pública</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span>Comunidad y soporte</span>
+                      </li>
+                    </ul>
+                    <button className="w-full py-3 bg-white/10 rounded-lg font-semibold hover:bg-white/20 transition">
+                      Comenzar Gratis
+                    </button>
+                  </div>
+                  <div className="bg-gradient-to-br from-[color:var(--primary)]/20 to-[color:var(--surface)] rounded-xl p-8 border-2 border-[color:var(--primary)] relative">
+                    <div className="absolute top-4 right-4 px-3 py-1 bg-[color:var(--primary)] text-black text-xs font-bold rounded-full">
+                      RECOMENDADO
+                    </div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Crown className="w-6 h-6 text-[color:var(--primary)]" />
+                      <h3 className="text-2xl font-bold">Plan PRO</h3>
+                    </div>
+                    <div className="text-4xl font-bold mb-6">29€<span className="text-lg text-muted">/mes</span></div>
+                    <ul className="space-y-3 mb-8">
+                      <li className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                        <span className="font-semibold">Todo lo del plan FREE</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                        <span>Prompts PRO exclusivos</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                        <span>Generador IA</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-[color:var(--primary)] flex-shrink-0 mt-0.5" />
+                        <span>Análisis de calidad</span>
+                      </li>
+                    </ul>
+                    <button onClick={() => setView('pricing')} className="w-full py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition">
+                      Activar PRO
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </AnimatedSection>
+
+            {/* Presets */}
+            <AnimatedSection className="py-20 px-4">
+              <div className="max-w-6xl mx-auto">
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl font-bold mb-4">Presets Profesionales</h2>
+                  <p className="text-muted text-lg">Configuraciones optimizadas para diferentes estilos</p>
+                </div>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {['Corporativo', 'Creativo', 'Natural', 'Editorial', 'Lifestyle', 'Minimalista'].map((preset) => (
+                    <div key={preset} className="bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all cursor-pointer">
+                      <div className="w-12 h-12 rounded-lg bg-[color:var(--primary)]/20 flex items-center justify-center mb-4">
+                        <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">{preset}</h3>
+                      <p className="text-sm text-muted">Preset optimizado para fotografía {preset.toLowerCase()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </AnimatedSection>
+
+            {/* CTA Guía PDF */}
+            <section className="py-12 px-4">
+              <div className="max-w-7xl mx-auto text-center">
+                <h3 className="text-2xl font-heading font-semibold mb-3">Guía para crear PROMPTS de retratos profesional <span className="text-[color:var(--primary)]">GRATIS</span></h3>
+                <p className="text-lg text-muted mb-6">Descarga nuestra guía en pdf</p>
+                <a href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf" download className="inline-flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg transition-all">
+                  <Download className="w-5 h-5" />
+                  <span>Descargar guía GRATIS</span>
+                </a>
+              </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="bg-black/20 border-t border-[color:var(--border)] py-12 px-4 mt-12">
+              <div className="max-w-7xl mx-auto text-center">
+                <button type="button" onClick={() => setView('home')} className="inline-flex items-center mb-6">
+                  <img src="/logo.svg" alt="Logo" className="w-40 h-auto" />
+                </button>
+                <p className="text-muted max-w-lg mx-auto mb-6">Plataforma profesional de prompts y retratos IA.</p>
+                <div className="flex justify-center space-x-6 mb-8">
+                  <a href="https://www.instagram.com/sr_waly/" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-[color:var(--fg)] transition">
+                    <Instagram />
+                  </a>
+                  <a href="https://t.me/+nyMJxze9il4wZGJk" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-[color:var(--fg)] transition">
+                    <Send />
+                  </a>
+                </div>
+                <p className="text-gray-600 text-sm">© {new Date().getFullYear()} Promptraits by Sr. Waly.</p>
+              </div>
+            </footer>
+          </>
+        )}
+
         {view === 'gallery' && <Gallery />}
         {view === 'generator' && <Generator />}
         {view === 'history' && <History />}
