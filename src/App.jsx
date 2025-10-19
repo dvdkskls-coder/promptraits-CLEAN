@@ -15,6 +15,7 @@ import Checkout from './components/Auth/Checkout.jsx';
 
 // si usas este componente en el JSX:
 import QualityAnalysis from './components/QualityAnalysis.jsx';
+import Pricing from './components/Pricing.jsx'; // AÑADIR ESTA LÍNEA después de las otras importaciones
 
 // prompts externos
 import { ALL_PROMPTS } from './data/prompts.js';
@@ -559,6 +560,7 @@ export default function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showProPresets, setShowProPresets] = useState(false);
+  const [showPricing, setShowPricing] = useState(false); // AÑADIDO ESTADO PARA MOSTRAR PRICING
 
   // Exponer función global para que componentes hijos puedan mostrar toasts
   React.useEffect(() => {
@@ -668,6 +670,12 @@ export default function App() {
               <button onClick={() => navigateToPage('assistant')} className="text-gray-300 hover:text-white transition duration-300">
                 Generador IA
               </button>
+              <button 
+                onClick={() => setView('pricing')} 
+                className="text-gray-300 hover:text-white transition duration-300"
+              >
+                Precios
+              </button>
 
               {user ? (
                 <UserMenu
@@ -740,6 +748,13 @@ export default function App() {
                 className="block w-full text-left text-gray-300 hover:text-white"
               >
                 Generador IA
+              </button>
+
+              <button 
+                onClick={() => setView('pricing')} 
+                className="block w-full text-left text-gray-300 hover:text-white"
+              >
+                Precios
               </button>
 
               {user ? (
@@ -988,6 +1003,20 @@ export default function App() {
           onOpenCheckout={() => setShowCheckout(true)}
           onOpenRegister={() => setShowRegister(true)}
           onOpenPortal={openStripePortal}
+        />
+      )}
+
+      {view === 'pricing' && ( // AÑADIDO CASO PARA RENDERIZAR VISTA DE PRECIOS
+        <Pricing 
+          onSelectPlan={(planId) => {
+            if (planId === 'free') {
+              setView('gallery');
+            } else {
+              setSelectedPlan(planId);
+              setShowCheckout(true);
+            }
+          }}
+          currentPlan={profile?.plan || 'free'}
         />
       )}
 
