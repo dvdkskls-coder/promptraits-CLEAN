@@ -853,7 +853,7 @@ function AppContent() {
             </AnimatedSection>
 
             {/* PLANES - Reutilizar componente Pricing */}
-            <div className="py-20 px-4 bg-black/20">
+            <div className="py-20 px-4">
               <Pricing 
                 onSelectPlan={(planId) => {
                   if (planId === 'free') {
