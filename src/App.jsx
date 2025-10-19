@@ -607,10 +607,19 @@ function AppContent() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div 
-              onClick={() => setView('gallery')}
-              className="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent cursor-pointer"
+              onClick={() => setView('home')}
+              className="cursor-pointer"
             >
-              PROMPTRAITS
+              <img 
+                src="/logo.svg" 
+                alt="PROMPTRAITS" 
+                className="h-8 w-auto"
+                onError={(e) => {
+                  // Fallback si no carga el logo
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = '<span class="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">PROMPTRAITS</span>';
+                }}
+              />
             </div>
 
             {/* Navigation */}
