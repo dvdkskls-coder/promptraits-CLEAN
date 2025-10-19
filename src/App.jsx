@@ -567,8 +567,9 @@ function AppContent() {
   const [view, setView] = useState('home')
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState('login')
-  const [selectedPlan, setSelectedPlan] = useState(null) // ← AÑADIR
-  const [showCheckout, setShowCheckout] = useState(false) // ← AÑADIR
+  const [selectedPlan, setSelectedPlan] = useState(null)
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false) // ← AÑADIR
 
   const handleNavigation = async (action) => {
     console.log('🔴 handleNavigation:', action)
@@ -597,6 +598,7 @@ function AppContent() {
     }
 
     setView(action)
+    setMobileMenuOpen(false) // ← Cerrar menú al navegar
   }
 
   return (
@@ -604,11 +606,27 @@ function AppContent() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-black/50 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 md:justify-between">
+          <div className="flex justify-between items-center h-16">
+            {/* Botón Hamburguesa (solo móvil) */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-white" />
+              ) : (
+                <Menu className="w-6 h-6 text-white" />
+              )}
+            </button>
+
             {/* Logo - Centrado en móvil, izquierda en desktop */}
             <div className="flex-1 md:flex-initial flex justify-center md:justify-start">
               <div 
-                onClick={() => setView('home')}
+                onClick={() => {
+                  setView('home')
+                  setMobileMenuOpen(false)
+                }}
                 className="cursor-pointer"
               >
                 <img 
@@ -616,7 +634,6 @@ function AppContent() {
                   alt="PROMPTRAITS" 
                   className="h-12 w-auto"
                   onError={(e) => {
-                    // Fallback si no carga el logo
                     e.target.style.display = 'none';
                     e.target.parentElement.innerHTML = '<span class="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">PROMPTRAITS</span>';
                   }}
@@ -624,7 +641,10 @@ function AppContent() {
               </div>
             </div>
 
-            {/* Navigation */}
+            {/* Spacer para balance en móvil */}
+            <div className="w-10 md:hidden"></div>
+
+            {/* Navigation Desktop */}
             <nav className="hidden md:flex space-x-8">
               <button 
                 onClick={() => setView('gallery')} 
@@ -646,7 +666,7 @@ function AppContent() {
               </button>
             </nav>
 
-            {/* User Menu / Auth Button */}
+            {/* User Menu / Auth Button Desktop */}
             <div className="hidden md:block">
               {user ? (
                 <UserMenu 
@@ -668,6 +688,113 @@ function AppContent() {
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-black/95 border-t border-white/10">
+            <div className="px-4 py-6 space-y-4">
+              {/* Navigation Links */}
+              <button
+                onClick={() => {
+                  setView('gallery')
+                  setMobileMenuOpen(false)
+                }}
+                className={`block w-full text-left px-4 py-3 rounded-lg transition ${
+                  view === 'gallery' 
+                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]' 
+                    : 'text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                Galería
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleNavigation('generator')
+                }}
+                className={`block w-full text-left px-4 py-3 rounded-lg transition ${
+                  view === 'generator' 
+                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]' 
+                    : 'text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                Generador IA
+              </button>
+              
+              <button
+                onClick={() => {
+                  setView('pricing')
+                  setMobileMenuOpen(false)
+                }}
+                className={`block w-full text-left px-4 py-3 rounded-lg transition ${
+                  view === 'pricing' 
+                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]' 
+                    : 'text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                Precios
+              </button>
+
+              <div className="border-t border-white/10 my-4"></div>
+
+              {/* User Section */}
+              {user ? (
+                <div className="space-y-3">
+                  <div className="px-4 py-3 bg-white/5 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-400">Créditos</span>
+                      <span className="text-lg font-bold text-[var(--primary)]">
+                        {profile?.credits || 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-[var(--primary)]" />
+                      <span className="text-sm font-semibold uppercase text-[var(--primary)]">
+                        {profile?.plan || 'free'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      handleNavigation('profile')
+                    }}
+                    className="block w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-white/10 transition"
+                  >
+                    Mi Perfil
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleNavigation('history')
+                    }}
+                    className="block w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-white/10 transition"
+                  >
+                    Historial
+                  </button>
+
+                  <button
+                    onClick={() => handleNavigation('logout')}
+                    className="block w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowAuth(true)
+                    setAuthMode('login')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full px-6 py-3 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-semibold hover:opacity-90 transition"
+                >
+                  Iniciar sesión
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
