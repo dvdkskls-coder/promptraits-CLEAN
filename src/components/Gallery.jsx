@@ -20,7 +20,6 @@ export default function Gallery() {
   return (
     <section className="py-24 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Hero */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             Galería de <span className="text-[var(--primary)]">Retratos</span>
@@ -30,27 +29,28 @@ export default function Gallery() {
           </p>
         </div>
 
-        {/* Tabs de categorías */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           {categories.map(cat => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ``}
+              className={`px-6 py-2 rounded-full font-semibold transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-[var(--primary)] text-black'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
+              }`}
             >
               {cat.name}
             </button>
           ))}
         </div>
 
-        {/* Grid de prompts */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPrompts.map((prompt) => (
             <div
               key={prompt.id}
               className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-[var(--primary)]/50 transition-all"
             >
-              {/* Imagen */}
               <div className="relative aspect-square overflow-hidden bg-black/40">
                 <img
                   src={prompt.image}
@@ -64,7 +64,6 @@ export default function Gallery() {
                 )}
               </div>
 
-              {/* Contenido */}
               <div className="p-5">
                 <h3 className="font-bold text-lg mb-2 text-white">{prompt.title}</h3>
                 <p className="text-sm text-gray-400 mb-4">{prompt.description}</p>
