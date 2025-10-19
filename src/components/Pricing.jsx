@@ -63,9 +63,17 @@ export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
           <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">
             Elige tu <span className="text-[color:var(--primary)]">Plan</span>
           </h2>
-          <p className="text-lg text-muted max-w-3xl mx-auto">
-            En PROMPTRAITS vas a poder generar prompts exactamente como tú lo quieras, 
-            o deja que la IA te guíe para crear imágenes de revista solo con tu selfie
+          <p className="text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <span className="text-[color:var(--primary)] font-bold">¡De selfie a portada de revista!</span>{' '}
+            PROMPTRAITS te da el poder: deja que la{' '}
+            <span className="text-[color:var(--primary)] font-semibold">IA te guíe</span>{' '}
+            para resultados{' '}
+            <span className="text-[color:var(--primary)] font-semibold">mágicos</span>{' '}
+            o toma tú el{' '}
+            <span className="text-white font-bold">control creativo total</span>.{' '}
+            Crear{' '}
+            <span className="text-[color:var(--primary)] font-semibold">retratos profesionales</span>{' '}
+            nunca fue tan fácil.
           </p>
         </AnimatedSection>
 
