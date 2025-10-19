@@ -613,7 +613,7 @@ function AppContent() {
               <img 
                 src="/logo.svg" 
                 alt="PROMPTRAITS" 
-                className="h-8 w-auto"
+                className="h-12 w-auto"
                 onError={(e) => {
                   // Fallback si no carga el logo
                   e.target.style.display = 'none';
