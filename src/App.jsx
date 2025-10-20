@@ -569,7 +569,8 @@ function AppContent() {
   const [authMode, setAuthMode] = useState('login')
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showCheckout, setShowCheckout] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false) // ← AÑADIR
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false) // ← AÑADIR
 
   const handleNavigation = async (action) => {
     console.log('🔴 handleNavigation:', action)
@@ -598,8 +599,66 @@ function AppContent() {
     }
 
     setView(action)
-    setMobileMenuOpen(false) // ← Cerrar menú al navegar
+    setMobileMenuOpen(false)
   }
+
+  // ← AÑADIR ESTA FUNCIÓN COMPLETA
+  const handlePlanSelection = async (planId) => {
+    console.log('🔵 Plan seleccionado:', planId);
+
+    // Si es plan FREE
+    if (planId === 'free') {
+      if (!user) {
+        setShowAuth(true);
+        setAuthMode('register');
+      } else {
+        console.log('ℹ️ Ya tienes el plan FREE');
+      }
+      return;
+    }
+
+    // Si no está logueado, mostrar modal de auth
+    if (!user) {
+      console.log('⚠️ Usuario no logueado - Mostrando modal de login');
+      setShowAuth(true);
+      setAuthMode('login');
+      return;
+    }
+
+    // Si está logueado, crear sesión de Stripe Checkout
+    console.log('💳 Usuario logueado - Iniciando checkout...');
+    setIsProcessingCheckout(true);
+    
+    try {
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId,
+          userId: user.id,
+          userEmail: user.email,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al crear sesión de checkout');
+      }
+
+      const { url } = await response.json();
+      
+      console.log('✅ Sesión creada - Redirigiendo a Stripe...');
+      
+      // Redirigir a Stripe Checkout
+      window.location.href = url;
+    } catch (error) {
+      console.error('❌ Error en checkout:', error);
+      alert(`Error al procesar el pago: ${error.message}\n\nPor favor, intenta de nuevo.`);
+      setIsProcessingCheckout(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -855,22 +914,7 @@ function AppContent() {
             {/* PLANES - Reutilizar componente Pricing */}
             <div className="py-20 px-4">
               <Pricing 
-                onSelectPlan={(planId) => {
-                  if (planId === 'free') {
-                    if (!user) {
-                      setShowAuth(true)
-                      setAuthMode('register')
-                    }
-                  } else {
-                    if (!user) {
-                      setShowAuth(true)
-                      setAuthMode('register')
-                    } else {
-                      setSelectedPlan(planId)
-                      setShowCheckout(true)
-                    }
-                  }
-                }}
+                onSelectPlan={handlePlanSelection}
                 currentPlan={profile?.plan || 'free'}
               />
             </div>
@@ -934,14 +978,7 @@ function AppContent() {
         {view === 'history' && <History />}
         {view === 'pricing' && (
           <Pricing 
-            onSelectPlan={(planId) => {
-              if (planId === 'free') {
-                setView('gallery')
-              } else {
-                setSelectedPlan(planId)
-                setShowCheckout(true)
-              }
-            }}
+            onSelectPlan={handlePlanSelection}
             currentPlan={profile?.plan || 'free'}
           />
         )}
@@ -978,6 +1015,17 @@ function AppContent() {
             setSelectedPlan(null)
           }}
         />
+      )}
+
+      {/* Loading Overlay - AÑADIR */}
+      {isProcessingCheckout && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[color:var(--primary)] mx-auto mb-4"></div>
+            <p className="text-white text-lg font-semibold">Redirigiendo a checkout...</p>
+            <p className="text-gray-400 text-sm mt-2">No cierres esta ventana</p>
+          </div>
+        </div>
       )}
     </div>
   )
