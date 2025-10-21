@@ -12,7 +12,6 @@ const PRICE_IDS = {
 };
 
 export default async function handler(req, res) {
-  // Solo permitir POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -20,7 +19,6 @@ export default async function handler(req, res) {
   try {
     const { planId, userId, userEmail } = req.body;
 
-    // Validar datos
     if (!planId || !userId || !userEmail) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -30,10 +28,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid plan ID' });
     }
 
-    // Determinar si es suscripción o pago único
     const isSubscription = planId === 'pro' || planId === 'premium';
 
-    // Crear sesión de Stripe Checkout
+    // ← CAMBIAR A TU DOMINIO CUSTOM
+    const baseUrl = 'https://promptraits.com';
+
     const session = await stripe.checkout.sessions.create({
       mode: isSubscription ? 'subscription' : 'payment',
       payment_method_types: ['card'],
@@ -49,8 +48,8 @@ export default async function handler(req, res) {
         userId,
         planId,
       },
-      success_url: `https://promptraits-clean.vercel.app?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://promptraits-clean.vercel.app?payment=cancelled`,
+      success_url: `${baseUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}?payment=cancelled`,
     });
 
     console.log('✅ Sesión de checkout creada:', session.id);
