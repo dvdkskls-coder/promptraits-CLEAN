@@ -49,8 +49,8 @@ export default async function handler(req, res) {
         userId,
         planId,
       },
-      success_url: `https://promptraits-clean.vercel.app/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://promptraits-clean.vercel.app/pricing`,
+      success_url: `https://promptraits-clean.vercel.app/?payment=success&session_id={CHECKOUT_SESSION_ID}`, // ← CAMBIAR
+      cancel_url: `https://promptraits-clean.vercel.app/?payment=cancelled`, // ← CAMBIAR
     });
 
     console.log('✅ Sesión de checkout creada:', session.id);

@@ -570,7 +570,28 @@ function AppContent() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showCheckout, setShowCheckout] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false) // ← AÑADIR
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
+
+  // ← AÑADIR: Detectar parámetros de URL al cargar
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    const sessionId = params.get('session_id');
+    
+    if (payment === 'success' && sessionId) {
+      console.log('✅ Pago exitoso - Session ID:', sessionId);
+      setView('success');
+      // Limpiar URL después de 1 segundo
+      setTimeout(() => {
+        window.history.replaceState({}, '', '/');
+      }, 1000);
+    } else if (payment === 'cancelled') {
+      console.log('⚠️ Pago cancelado');
+      setView('pricing');
+      // Limpiar URL
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
 
   const handleNavigation = async (action) => {
     console.log('🔴 handleNavigation:', action)
@@ -592,7 +613,7 @@ function AppContent() {
       return
     }
 
-    if (!user) {
+    if (!user && action !== 'home' && action !== 'gallery' && action !== 'pricing') {
       setShowAuth(true)
       setAuthMode('login')
       return
@@ -602,11 +623,9 @@ function AppContent() {
     setMobileMenuOpen(false)
   }
 
-  // ← AÑADIR ESTA FUNCIÓN COMPLETA
   const handlePlanSelection = async (planId) => {
     console.log('🔵 Plan seleccionado:', planId);
 
-    // Si es plan FREE
     if (planId === 'free') {
       if (!user) {
         setShowAuth(true);
@@ -617,7 +636,6 @@ function AppContent() {
       return;
     }
 
-    // Si no está logueado, mostrar modal de auth
     if (!user) {
       console.log('⚠️ Usuario no logueado - Mostrando modal de login');
       setShowAuth(true);
@@ -625,7 +643,6 @@ function AppContent() {
       return;
     }
 
-    // Si está logueado, crear sesión de Stripe Checkout
     console.log('💳 Usuario logueado - Iniciando checkout...');
     setIsProcessingCheckout(true);
     
@@ -858,6 +875,7 @@ function AppContent() {
 
       {/* Main Content */}
       <main className="pt-16">
+        {/* HOME */}
         {view === 'home' && (
           <>
             {/* Hero Section */}
@@ -973,14 +991,48 @@ function AppContent() {
           </>
         )}
 
+        {/* GALERÍA */}
         {view === 'gallery' && <Gallery />}
+
+        {/* GENERADOR */}
         {view === 'generator' && <Generator />}
-        {view === 'history' && <History />}
+
+        {/* PRECIOS */}
         {view === 'pricing' && (
           <Pricing 
             onSelectPlan={handlePlanSelection}
             currentPlan={profile?.plan || 'free'}
           />
+        )}
+
+        {/* PERFIL */}
+        {view === 'profile' && <Profile />}
+
+        {/* HISTORIAL */}
+        {view === 'history' && <History />}
+
+        {/* ← AÑADIR: VISTA DE ÉXITO */}
+        {view === 'success' && (
+          <div className="min-h-screen flex items-center justify-center px-4">
+            <div className="max-w-md w-full bg-[color:var(--surface)] rounded-2xl p-8 border border-[color:var(--border)] text-center">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Check className="w-8 h-8 text-green-500" />
+              </div>
+              <h2 className="text-3xl font-bold mb-4">¡Pago Exitoso!</h2>
+              <p className="text-gray-400 mb-6">
+                Tu compra se ha procesado correctamente. Tus créditos o suscripción estarán disponibles en unos momentos.
+              </p>
+              <button
+                onClick={() => {
+                  setView('home');
+                  window.location.reload(); // Recargar para actualizar créditos
+                }}
+                className="w-full py-3 rounded-lg font-bold bg-[color:var(--primary)] text-black hover:opacity-90 transition"
+              >
+                Volver al Inicio
+              </button>
+            </div>
+          </div>
         )}
       </main>
 
@@ -1017,7 +1069,7 @@ function AppContent() {
         />
       )}
 
-      {/* Loading Overlay - AÑADIR */}
+      {/* Loading Overlay */}
       {isProcessingCheckout && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
           <div className="text-center">
