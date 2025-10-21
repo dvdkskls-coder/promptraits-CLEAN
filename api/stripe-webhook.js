@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { buffer } from 'micro';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(
@@ -9,9 +10,10 @@ const supabase = createClient(
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+// ← CRÍTICO: Configuración de Vercel
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // Desactivar para leer raw body
   },
 };
 
@@ -20,22 +22,43 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const buf = await buffer(req);
-  const sig = req.headers['stripe-signature'];
-
   let event;
 
   try {
+    // Leer el body raw usando micro/buffer
+    const buf = await buffer(req);
+    const sig = req.headers['stripe-signature'];
+
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔐 Verificando firma del webhook...');
+    console.log('📦 Body length:', buf.length);
+    console.log('✍️  Signature:', sig ? 'presente' : 'FALTA');
+    console.log('🔑 Webhook secret:', webhookSecret ? 'configurado' : 'FALTA');
+
+    if (!sig) {
+      console.error('❌ Falta header stripe-signature');
+      return res.status(400).json({ error: 'Missing stripe-signature header' });
+    }
+
+    if (!webhookSecret) {
+      console.error('❌ STRIPE_WEBHOOK_SECRET no está configurado');
+      return res.status(500).json({ error: 'Webhook secret not configured' });
+    }
+
+    // Verificar firma
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+    
+    console.log('✅ Firma verificada correctamente');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   } catch (err) {
-    console.error('❌ Error verificando webhook:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error('❌ ERROR VERIFICANDO WEBHOOK:', err.message);
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('📨 Evento recibido:', event.type);
   console.log('🆔 Event ID:', event.id);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   try {
     switch (event.type) {
@@ -47,19 +70,17 @@ export default async function handler(req, res) {
         
         console.log('📦 Session mode:', session.mode);
         console.log('👤 User ID:', session.client_reference_id);
-        console.log('🎯 Plan ID:', session.metadata.planId);
+        console.log('🎯 Plan ID:', session.metadata?.planId);
 
-        // Solo procesar si es pago único (no suscripción)
         if (session.mode === 'payment') {
           const userId = session.client_reference_id;
-          const planId = session.metadata.planId;
+          const planId = session.metadata?.planId;
 
           if (!userId || !planId) {
             console.error('❌ Faltan datos: userId o planId');
             return res.status(400).json({ error: 'Missing userId or planId' });
           }
 
-          // Determinar cantidad de créditos según el pack
           let creditsToAdd = 0;
           if (planId === 'credits-20') creditsToAdd = 20;
           else if (planId === 'credits-50') creditsToAdd = 50;
@@ -68,7 +89,6 @@ export default async function handler(req, res) {
           console.log('💰 Créditos a añadir:', creditsToAdd);
 
           if (creditsToAdd > 0) {
-            // Obtener créditos actuales CON LOG
             const { data: profile, error: fetchError } = await supabase
               .from('profiles')
               .select('credits')
@@ -83,35 +103,26 @@ export default async function handler(req, res) {
             const currentCredits = profile?.credits || 0;
             const newCredits = currentCredits + creditsToAdd;
 
-            console.log('📊 Créditos actuales:', currentCredits);
-            console.log('➕ Sumando:', creditsToAdd);
-            console.log('🎯 Total nuevo:', newCredits);
+            console.log('📊 Créditos: %d → %d', currentCredits, newCredits);
 
-            // Actualizar créditos CON LOG
-            const { data: updateData, error: updateError } = await supabase
+            const { error: updateError } = await supabase
               .from('profiles')
               .update({ credits: newCredits })
-              .eq('id', userId)
-              .select();
+              .eq('id', userId);
 
             if (updateError) {
               console.error('❌ Error actualizando créditos:', updateError);
               return res.status(500).json({ error: updateError.message });
-            } else {
-              console.log('✅ Créditos actualizados correctamente');
-              console.log('📄 Datos actualizados:', updateData);
             }
-          } else {
-            console.warn('⚠️ planId no reconocido:', planId);
+
+            console.log('✅ Créditos actualizados correctamente');
           }
-        } else {
-          console.log('ℹ️ Es suscripción, omitiendo...');
         }
         break;
       }
 
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // SUSCRIPCIÓN CREADA (PRO/PREMIUM)
+      // SUSCRIPCIÓN CREADA/ACTUALIZADA
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
@@ -119,68 +130,56 @@ export default async function handler(req, res) {
         const customerId = subscription.customer;
 
         console.log('📅 Procesando suscripción...');
-        console.log('🆔 Customer ID:', customerId);
 
-        // Obtener email del cliente
         const customer = await stripe.customers.retrieve(customerId);
         const email = customer.email;
 
         console.log('📧 Email:', email);
 
-        // Buscar usuario por email
         const { data: userData, error: userError } = await supabase
           .from('profiles')
           .select('id, credits')
           .eq('email', email)
           .single();
 
-        if (userError) {
-          console.error('❌ Usuario no encontrado:', userError);
+        if (userError || !userData) {
+          console.error('❌ Usuario no encontrado');
           return res.status(404).json({ error: 'User not found' });
         }
 
-        if (userData) {
-          const priceId = subscription.items.data[0].price.id;
-          let newPlan = 'free';
-          let creditsToAdd = 0;
+        const priceId = subscription.items.data[0].price.id;
+        let newPlan = 'free';
+        let creditsToAdd = 0;
 
-          console.log('💳 Price ID:', priceId);
-
-          // Determinar plan y créditos según Price ID
-          if (priceId === 'price_1SIP64IO8cBGyY9CC4BtGdhN') {
-            newPlan = 'pro';
-            creditsToAdd = 60;
-          } else if (priceId === 'price_1SIP6tIO8cBGyY9CyiW8Qwd0') {
-            newPlan = 'premium';
-            creditsToAdd = 300;
-          }
-
-          console.log('📦 Plan:', newPlan);
-          console.log('💰 Créditos a añadir:', creditsToAdd);
-
-          const currentCredits = userData.credits || 0;
-          const newCredits = currentCredits + creditsToAdd;
-
-          console.log('📊 Créditos actuales:', currentCredits);
-          console.log('🎯 Total nuevo:', newCredits);
-
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({
-              plan: newPlan,
-              credits: newCredits,
-              subscription_id: subscription.id,
-              subscription_status: subscription.status,
-            })
-            .eq('id', userData.id);
-
-          if (updateError) {
-            console.error('❌ Error actualizando suscripción:', updateError);
-            return res.status(500).json({ error: updateError.message });
-          } else {
-            console.log(`✅ Plan actualizado a ${newPlan} con ${newCredits} créditos`);
-          }
+        if (priceId === 'price_1SIP64IO8cBGyY9CC4BtGdhN') {
+          newPlan = 'pro';
+          creditsToAdd = 60;
+        } else if (priceId === 'price_1SIP6tIO8cBGyY9CyiW8Qwd0') {
+          newPlan = 'premium';
+          creditsToAdd = 300;
         }
+
+        const currentCredits = userData.credits || 0;
+        const newCredits = currentCredits + creditsToAdd;
+
+        console.log('📊 Plan: %s | Créditos: %d → %d', newPlan, currentCredits, newCredits);
+
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            plan: newPlan,
+            credits: newCredits,
+            subscription_id: subscription.id,
+            subscription_status: subscription.status,
+          })
+          .eq('id', userData.id);
+
+        if (updateError) {
+          console.error('❌ Error actualizando suscripción:', updateError);
+          return res.status(500).json({ error: updateError.message });
+        }
+
+        console.log('✅ Suscripción actualizada correctamente');
         break;
       }
 
@@ -190,38 +189,31 @@ export default async function handler(req, res) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
 
-        console.log('🚫 Suscripción cancelada:', subscription.id);
+        console.log('🚫 Cancelando suscripción:', subscription.id);
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id, credits')
+          .select('id')
           .eq('subscription_id', subscription.id)
           .single();
 
         if (profile) {
-          console.log('📊 Créditos actuales (se mantienen):', profile.credits);
-
-          const { error } = await supabase
+          await supabase
             .from('profiles')
             .update({
               plan: 'free',
               subscription_id: null,
               subscription_status: 'canceled',
-              // NO tocar credits, se mantienen
             })
             .eq('id', profile.id);
 
-          if (error) {
-            console.error('❌ Error cancelando suscripción:', error);
-          } else {
-            console.log('✅ Plan revertido a FREE (créditos conservados)');
-          }
+          console.log('✅ Plan revertido a FREE');
         }
         break;
       }
 
       default:
-        console.log(`ℹ️ Evento no manejado: ${event.type}`);
+        console.log('ℹ️ Evento no manejado:', event.type);
     }
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -233,12 +225,4 @@ export default async function handler(req, res) {
     console.error('❌ Error procesando webhook:', error);
     res.status(500).json({ error: error.message });
   }
-}
-
-async function buffer(req) {
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks);
 }
