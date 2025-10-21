@@ -563,7 +563,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, signOut, refreshProfile } = useAuth()
   const [view, setView] = useState('home')
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState('login')
@@ -572,7 +572,7 @@ function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
 
-  // ← AÑADIR: Detectar parámetros de URL al cargar
+  // Detectar retorno de Stripe
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
@@ -580,18 +580,29 @@ function AppContent() {
     
     if (payment === 'success' && sessionId) {
       console.log('✅ Pago exitoso - Session ID:', sessionId);
-      setView('success');
-      // Limpiar URL después de 1 segundo
-      setTimeout(() => {
+      
+      // Esperar 3 segundos para que el webhook procese
+      setTimeout(async () => {
+        console.log('🔄 Refrescando perfil...');
+        
+        // Recargar datos del perfil
+        if (refreshProfile) {
+          await refreshProfile();
+        }
+        
+        // Mostrar vista de éxito
+        setView('success');
+        
+        // Limpiar URL
         window.history.replaceState({}, '', '/');
-      }, 1000);
+      }, 3000);
+      
     } else if (payment === 'cancelled') {
       console.log('⚠️ Pago cancelado');
       setView('pricing');
-      // Limpiar URL
       window.history.replaceState({}, '', '/');
     }
-  }, []);
+  }, [refreshProfile]);
 
   const handleNavigation = async (action) => {
     console.log('🔴 handleNavigation:', action)
