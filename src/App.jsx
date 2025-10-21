@@ -563,7 +563,7 @@ export default function App() {
 }
 
 function AppContent() {
-  const { user, profile, signOut, refreshProfile } = useAuth()
+  const { user, profile, signOut } = useAuth()
   const [view, setView] = useState('home')
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState('login')
@@ -571,6 +571,7 @@ function AppContent() {
   const [showCheckout, setShowCheckout] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
 
   // Detectar retorno de Stripe
   useEffect(() => {
@@ -579,22 +580,18 @@ function AppContent() {
     const sessionId = params.get('session_id');
     
     if (payment === 'success' && sessionId) {
-      console.log('✅ Pago exitoso - Session ID:', sessionId);
+      console.log('✅ Pago exitoso detectado');
       
-      // Esperar 3 segundos para que el webhook procese
-      setTimeout(async () => {
-        console.log('🔄 Refrescando perfil...');
-        
-        // Recargar datos del perfil
-        if (refreshProfile) {
-          await refreshProfile();
-        }
-        
-        // Mostrar vista de éxito
-        setView('success');
-        
-        // Limpiar URL
-        window.history.replaceState({}, '', '/');
+      // Mostrar mensaje de éxito
+      setShowPaymentSuccess(true);
+      
+      // Limpiar URL inmediatamente
+      window.history.replaceState({}, '', '/');
+      
+      // Esperar 3 segundos y RECARGAR PÁGINA COMPLETA
+      setTimeout(() => {
+        console.log('🔄 Recargando página para actualizar datos...');
+        window.location.reload();
       }, 3000);
       
     } else if (payment === 'cancelled') {
@@ -602,7 +599,7 @@ function AppContent() {
       setView('pricing');
       window.history.replaceState({}, '', '/');
     }
-  }, [refreshProfile]);
+  }, []);
 
   const handleNavigation = async (action) => {
     console.log('🔴 handleNavigation:', action)
@@ -1021,30 +1018,6 @@ function AppContent() {
 
         {/* HISTORIAL */}
         {view === 'history' && <History />}
-
-        {/* ← AÑADIR: VISTA DE ÉXITO */}
-        {view === 'success' && (
-          <div className="min-h-screen flex items-center justify-center px-4">
-            <div className="max-w-md w-full bg-[color:var(--surface)] rounded-2xl p-8 border border-[color:var(--border)] text-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="w-8 h-8 text-green-500" />
-              </div>
-              <h2 className="text-3xl font-bold mb-4">¡Pago Exitoso!</h2>
-              <p className="text-gray-400 mb-6">
-                Tu compra se ha procesado correctamente. Tus créditos o suscripción estarán disponibles en unos momentos.
-              </p>
-              <button
-                onClick={() => {
-                  setView('home');
-                  window.location.reload(); // Recargar para actualizar créditos
-                }}
-                className="w-full py-3 rounded-lg font-bold bg-[color:var(--primary)] text-black hover:opacity-90 transition"
-              >
-                Volver al Inicio
-              </button>
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Auth Modal */}
@@ -1080,13 +1053,32 @@ function AppContent() {
         />
       )}
 
-      {/* Loading Overlay */}
+      {/* Loading Overlay during checkout */}
       {isProcessingCheckout && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[color:var(--primary)] mx-auto mb-4"></div>
             <p className="text-white text-lg font-semibold">Redirigiendo a checkout...</p>
             <p className="text-gray-400 text-sm mt-2">No cierres esta ventana</p>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Success Overlay */}
+      {showPaymentSuccess && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+          <div className="max-w-md w-full bg-[color:var(--surface)] rounded-2xl p-8 border border-[color:var(--border)] text-center mx-4">
+            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold mb-4 text-white">¡Pago Exitoso!</h2>
+            <p className="text-gray-400 mb-6">
+              Tu compra se ha procesado correctamente. Actualizando tus créditos...
+            </p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--primary)] mx-auto"></div>
+            <p className="text-sm text-gray-500 mt-4">Recargando en 3 segundos...</p>
           </div>
         </div>
       )}
