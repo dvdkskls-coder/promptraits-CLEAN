@@ -2,13 +2,13 @@ import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Price IDs de Stripe (estos debes crearlos en tu dashboard de Stripe)
+// Price IDs de Stripe - ACTUALIZADOS CON IDS REALES
 const PRICE_IDS = {
-  'pro': 'price_1QRv3xIO8cBGyY9CXj5JC0gX',           // Suscripción PRO 6.99€/mes
-  'premium': 'price_1QRv4XIO8cBGyY9C9Kk13S84',       // Suscripción PREMIUM 19.99€/mes
-  'credits-20': 'price_1QRv5jIO8cBGyY9CLjjFyU3l',    // Pack 20 créditos 3.99€
-  'credits-50': 'price_1QRv6HIO8cBGyY9CMM1kDc8g',    // Pack 50 créditos 8.99€
-  'credits-100': 'price_1QRv6kIO8cBGyY9CXQmZpH2Y',   // Pack 100 créditos 15.99€
+  'pro': 'price_1SIP64IO8cBGyY9CC4BtGdhN',           // Suscripción PRO 6.99€/mes
+  'premium': 'price_1SIP6tIO8cBGyY9CyiW8Qwd0',       // Suscripción PREMIUM 19.99€/mes
+  'credits-20': 'price_1SIP97IO8cBGyY9CLmnYtOwl',    // Pack 20 créditos 3.99€
+  'credits-50': 'price_1SIP9TIO8cBGyY9CBW1j64eb',    // Pack 50 créditos 8.99€
+  'credits-100': 'price_1SIP9yIO8cBGyY9CrndCyvTO',   // Pack 100 créditos 15.99€
 };
 
 export default async function handler(req, res) {
