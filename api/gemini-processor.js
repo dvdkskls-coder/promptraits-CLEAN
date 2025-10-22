@@ -1,44 +1,52 @@
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader("Access-Control-Allow-Credentials", true);
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
+  );
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
   }
 
   try {
-    const { 
-      prompt, 
-      referenceImage, 
-      mimeType, 
-      preset, 
-      scenario, 
-      sliders, 
-      analyzeQuality, 
+    const {
+      prompt,
+      referenceImage,
+      mimeType,
+      preset,
+      scenario,
+      sliders,
+      analyzeQuality,
       isPro,
       applySuggestions,
       currentPrompt,
-      suggestions
+      suggestions,
     } = req.body;
 
     const API_KEY = process.env.GEMINI_API_KEY;
-    
+
     if (!API_KEY) {
-      console.error('❌ API key no configurada');
-      return res.status(500).json({ error: 'API key no configurada en el servidor' });
+      console.error("❌ API key no configurada");
+      return res
+        .status(500)
+        .json({ error: "API key no configurada en el servidor" });
     }
 
     // ===================================================================================
     // MODO: APLICAR SUGERENCIAS (Solo PRO)
     // ===================================================================================
     if (applySuggestions && currentPrompt && suggestions) {
-      console.log('✅ Aplicando sugerencias al prompt...');
+      console.log("✅ Aplicando sugerencias al prompt...");
 
       const improvementPrompt = `You are Promptraits. Improve this photography prompt by applying these suggestions:
 
@@ -46,7 +54,7 @@ CURRENT PROMPT:
 ${currentPrompt}
 
 SUGGESTIONS TO APPLY (in Spanish, but apply them in English):
-${suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+${suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n")}
 
 OUTPUT: Return ONLY the improved prompt in the same 8-paragraph format (NO headers, NO labels). Apply all suggestions naturally without breaking the structure. Maintain the exact same format as the original.
 
@@ -55,30 +63,30 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: improvementPrompt }] }]
-          })
+            contents: [{ parts: [{ text: improvementPrompt }] }],
+          }),
         }
       );
 
       const data = await response.json();
-      
+
       if (!response.ok) {
-        console.error('❌ Error de Gemini:', data);
-        return res.status(response.status).json({ 
-          error: 'Error al aplicar sugerencias',
-          details: data.error?.message || 'Error desconocido'
+        console.error("❌ Error de Gemini:", data);
+        return res.status(response.status).json({
+          error: "Error al aplicar sugerencias",
+          details: data.error?.message || "Error desconocido",
         });
       }
 
       const improvedPrompt = data.candidates[0].content.parts[0].text;
-      
-      console.log('✅ Prompt mejorado generado');
+
+      console.log("✅ Prompt mejorado generado");
       return res.status(200).json({
         prompt: improvedPrompt,
-        qualityAnalysis: null // No re-analizar, solo devolver el prompt mejorado
+        qualityAnalysis: null, // No re-analizar, solo devolver el prompt mejorado
       });
     }
 
@@ -86,10 +94,14 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
     // MODO: GENERACIÓN NORMAL DE PROMPT
     // ===================================================================================
     if (!prompt && !referenceImage) {
-      return res.status(400).json({ error: 'Debes proporcionar un prompt o una imagen de referencia' });
+      return res
+        .status(400)
+        .json({
+          error: "Debes proporcionar un prompt o una imagen de referencia",
+        });
     }
 
-    console.log('✅ Generando prompt profesional...');
+    console.log("✅ Generando prompt profesional...");
 
     // Construir system prompt base
     let systemPrompt = `You are Promptraits, an expert in ultra-realistic portrait prompts for AI image generation (Nano-Banana, MidJourney, Stable Diffusion, FLUX, SDXL).
@@ -188,9 +200,11 @@ CRITICAL RULES:
 - Professional cinematographic tone
 - Output ONLY the 8 paragraphs, nothing else`;
 
-      if (preset) systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
+      if (preset)
+        systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
       if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
-      if (sliders) systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
+      if (sliders)
+        systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
     }
 
     // Añadir solicitud del usuario
@@ -201,36 +215,38 @@ CRITICAL RULES:
     systemPrompt += `\n\nGenerate the prompt NOW in ENGLISH. NO explanations, ONLY the prompt.`;
 
     // Construir body para Gemini
-    const contents = [{
-      parts: referenceImage 
-        ? [
-            { text: systemPrompt },
-            { 
-              inlineData: {
-                mimeType: mimeType || 'image/jpeg',
-                data: referenceImage
-              }
-            }
-          ]
-        : [{ text: systemPrompt }]
-    }];
+    const contents = [
+      {
+        parts: referenceImage
+          ? [
+              { text: systemPrompt },
+              {
+                inlineData: {
+                  mimeType: mimeType || "image/jpeg",
+                  data: referenceImage,
+                },
+              },
+            ]
+          : [{ text: systemPrompt }],
+      },
+    ];
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents }),
       }
     );
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      console.error('❌ Error de Gemini:', data);
-      return res.status(response.status).json({ 
-        error: 'Error al procesar con Gemini',
-        details: data.error?.message || 'Error desconocido'
+      console.error("❌ Error de Gemini:", data);
+      return res.status(response.status).json({
+        error: "Error al procesar con Gemini",
+        details: data.error?.message || "Error desconocido",
       });
     }
 
@@ -271,11 +287,11 @@ Rules:
       const analysisResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: analysisPrompt }] }]
-          })
+            contents: [{ parts: [{ text: analysisPrompt }] }],
+          }),
         }
       );
 
@@ -288,23 +304,22 @@ Rules:
             qualityAnalysis = JSON.parse(jsonMatch[0]);
           }
         } catch (e) {
-          console.error('Error parsing quality analysis:', e);
+          console.error("Error parsing quality analysis:", e);
         }
       }
     }
-    
-    console.log('✅ Prompt generado');
+
+    console.log("✅ Prompt generado");
     return res.status(200).json({
       prompt: generatedPrompt,
-      qualityAnalysis: qualityAnalysis
+      qualityAnalysis: qualityAnalysis,
     });
-
   } catch (error) {
-    console.error('❌ Error:', error.message);
-    
-    return res.status(500).json({ 
-      error: 'Error al procesar la solicitud',
-      details: error.message 
+    console.error("❌ Error:", error.message);
+
+    return res.status(500).json({
+      error: "Error al procesar la solicitud",
+      details: error.message,
     });
   }
 }

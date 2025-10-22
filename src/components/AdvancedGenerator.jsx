@@ -19,131 +19,15 @@ import { useAuth } from "../contexts/AuthContext";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
-// PRESETS (15 estilos profesionales)
-const PRESETS = [
-  {
-    id: 1,
-    name: "Cinematográfico Editorial",
-    subtitle: "Low-Key Rembrandt",
-    free: true,
-    promptBlock:
-      "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting, dramatic shadows, cinematic depth, professional color grading, magazine quality",
-  },
-  {
-    id: 2,
-    name: "Golden Hour Lifestyle",
-    subtitle: "Cálido atardecer",
-    free: true,
-    promptBlock:
-      "Warm golden hour portrait, 50mm f/1.8, natural backlight, soft warm tones, lifestyle photography, authentic moment, sun-kissed glow",
-  },
-  {
-    id: 3,
-    name: "Corporate Clean",
-    subtitle: "High-Key profesional",
-    free: true,
-    promptBlock:
-      "High-key professional headshot, 85mm f/2.8, even studio lighting, neutral background, business formal, sharp focus, confident expression",
-  },
-  {
-    id: 4,
-    name: "Environmental Portrait",
-    subtitle: "Sujeto en su entorno",
-    free: false,
-    promptBlock:
-      "Environmental portrait, subject in natural setting, storytelling composition, 35mm f/1.8, contextual background, authentic atmosphere",
-  },
-  {
-    id: 5,
-    name: "Beauty Soft Front",
-    subtitle: "Beauty homogéneo",
-    free: false,
-    promptBlock:
-      "Beauty portrait, soft frontal lighting, ring light effect, flawless skin, minimal shadows, high-end cosmetic photography style",
-  },
-  {
-    id: 6,
-    name: "B/N Clásico Film",
-    subtitle: "Monocromo atemporal",
-    free: false,
-    promptBlock:
-      "Classic black and white portrait, film photography aesthetic, rich tonal range, timeless composition, medium format quality",
-  },
-  {
-    id: 7,
-    name: "Fotografía Urbana Street",
-    subtitle: "Energía callejera",
-    free: false,
-    promptBlock:
-      "Urban street photography, candid moment, city backdrop, natural light, documentary style, authentic urban energy",
-  },
-  {
-    id: 8,
-    name: "Ensueño Vintage 70s",
-    subtitle: "Nostálgico y cálido",
-    free: false,
-    promptBlock:
-      "Vintage 70s dreamy portrait, warm film tones, soft focus, retro aesthetic, nostalgic atmosphere, analog feel",
-  },
-  {
-    id: 9,
-    name: "Film Noir Clásico",
-    subtitle: "Drama B/N años 40-50",
-    free: false,
-    promptBlock:
-      "Classic film noir portrait, dramatic chiaroscuro, 1940s Hollywood style, venetian blind shadows, mystery atmosphere",
-  },
-  {
-    id: 10,
-    name: "Neón Cyberpunk",
-    subtitle: "Futurista urbano nocturno",
-    free: false,
-    promptBlock:
-      "Cyberpunk neon portrait, futuristic urban night, neon lights, sci-fi atmosphere, high contrast, technological aesthetic",
-  },
-  {
-    id: 11,
-    name: "Retrato Íntimo Ventana",
-    subtitle: "Luz natural pensativa",
-    free: false,
-    promptBlock:
-      "Intimate window light portrait, soft natural side lighting, contemplative mood, minimal setup, authentic emotion",
-  },
-  {
-    id: 12,
-    name: "Acción Deportiva Congelado",
-    subtitle: "Movimiento nítido",
-    free: false,
-    promptBlock:
-      "Frozen sports action, high shutter speed, dynamic movement, athletic peak moment, professional sports photography",
-  },
-  {
-    id: 13,
-    name: "Producto Minimalista Lujo",
-    subtitle: "Elegante y limpio",
-    free: false,
-    promptBlock:
-      "Luxury minimalist product photography, clean white background, perfect lighting, premium aesthetic, commercial quality",
-  },
-  {
-    id: 14,
-    name: "Fantasía Surrealista Etéreo",
-    subtitle: "Onírico y de otro mundo",
-    free: false,
-    promptBlock:
-      "Surreal ethereal fantasy portrait, dreamlike atmosphere, otherworldly elements, magical realism, artistic composition",
-  },
-  {
-    id: 15,
-    name: "Editorial Fashion",
-    subtitle: "Alta moda dramática",
-    free: false,
-    promptBlock:
-      "Editorial fashion portrait, high-fashion styling, dramatic lighting, avant-garde composition, magazine cover quality",
-  },
-];
+// ✅ IMPORTAR DATOS DE PRESETS ORGANIZADOS
+import {
+  presetsData,
+  getFreePresets,
+  getProPresets,
+  PRESET_PLANS,
+} from "../data/presetsData";
 
-// SCENARIOS (8 escenarios)
+// SCENARIOS (8 escenarios) - Mantener igual por ahora
 const SCENARIOS = [
   {
     id: 1,
@@ -241,11 +125,24 @@ export default function AdvancedGenerator() {
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
+  // ✅ OBTENER PRESETS SEGÚN PLAN DEL USUARIO
+  const freePresets = getFreePresets();
+  const proPresets = getProPresets();
+
+  // ✅ FUNCIÓN AUXILIAR: Convertir preset a formato legacy para API
+  const presetToPromptBlock = (preset) => {
+    if (!preset) return null;
+
+    const { technical } = preset;
+    return `Ultra-realistic portrait, ${technical.lens}, ${technical.lighting}, WB ${technical.wb}, ${technical.post}`;
+  };
+
   // Función para generar idea aleatoria (PRO)
   const generateRandomIdea = () => {
     const randomIdea =
       RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)];
-    const randomPreset = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+    const randomPreset =
+      presetsData[Math.floor(Math.random() * presetsData.length)];
     const randomScenario =
       SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
 
@@ -318,6 +215,11 @@ export default function AdvancedGenerator() {
         imageBase64 = await fileToBase64(referenceImage);
       }
 
+      // ✅ BUSCAR PRESET SELECCIONADO Y CONVERTIRLO
+      const selectedPresetData = selectedPreset
+        ? presetsData.find((p) => p.id === selectedPreset)
+        : null;
+
       const res = await fetch("/api/gemini-processor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -325,8 +227,8 @@ export default function AdvancedGenerator() {
           prompt,
           referenceImage: imageBase64,
           mimeType: referenceImage ? referenceImage.type : null,
-          preset: selectedPreset
-            ? PRESETS.find((p) => p.id === selectedPreset)?.promptBlock
+          preset: selectedPresetData
+            ? presetToPromptBlock(selectedPresetData)
             : null,
           scenario: selectedScenario
             ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
@@ -517,13 +419,13 @@ export default function AdvancedGenerator() {
               </div>
             </div>
 
-            {/* PRESETS FREE */}
+            {/* ✅ PRESETS FREE - BOTONES COMPACTOS */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-3">
-                🎨 Estilos Básicos (GRATIS):
+                🎨 Presets Básicos (GRATIS):
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {PRESETS.filter((p) => p.free).map((preset) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                {freePresets.map((preset) => (
                   <button
                     key={preset.id}
                     type="button"
@@ -532,22 +434,20 @@ export default function AdvancedGenerator() {
                         selectedPreset === preset.id ? null : preset.id
                       )
                     }
-                    className={`p-3 rounded-lg text-left transition-all text-sm ${
+                    className={`px-3 py-2 rounded-lg text-center transition-all text-xs font-semibold ${
                       selectedPreset === preset.id
-                        ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)] shadow-sm"
-                        : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                        ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)] text-white shadow-sm"
+                        : "bg-white/5 border border-[var(--border)] text-gray-300 hover:bg-white/10 hover:border-[var(--primary)]/50"
                     }`}
+                    title={preset.fullName}
                   >
-                    <div className="text-sm font-semibold">{preset.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {preset.subtitle}
-                    </div>
+                    {preset.shortName}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* HERRAMIENTAS PRO */}
+            {/* ✅ HERRAMIENTAS PRO */}
             <div className="relative mt-4">
               {!isPro && (
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
@@ -595,12 +495,13 @@ export default function AdvancedGenerator() {
 
                   <div className="border-t border-[var(--border)] my-2"></div>
 
+                  {/* ✅ PRESETS PRO - BOTONES COMPACTOS */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      ✨ Presets PRO (12 adicionales):
+                      ✨ Presets PRO ({proPresets.length} adicionales):
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {PRESETS.filter((p) => !p.free).map((preset) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                      {proPresets.map((preset) => (
                         <button
                           key={preset.id}
                           type="button"
@@ -609,18 +510,14 @@ export default function AdvancedGenerator() {
                               selectedPreset === preset.id ? null : preset.id
                             )
                           }
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                          className={`px-2 py-2 rounded-lg text-center text-xs font-semibold transition-all ${
                             selectedPreset === preset.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                              ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)] text-white"
+                              : "bg-white/5 border border-[var(--border)] text-gray-300 hover:bg-white/10 hover:border-[var(--primary)]/50"
                           }`}
+                          title={preset.fullName}
                         >
-                          <div className="text-sm font-semibold">
-                            {preset.name}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {preset.subtitle}
-                          </div>
+                          {preset.shortName}
                         </button>
                       ))}
                     </div>
@@ -628,6 +525,7 @@ export default function AdvancedGenerator() {
 
                   <div className="border-t border-[var(--border)] my-2"></div>
 
+                  {/* ESCENARIOS */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       📍 Escenarios:
