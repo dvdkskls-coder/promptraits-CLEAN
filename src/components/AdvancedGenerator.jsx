@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Camera,
   Upload,
@@ -11,8 +11,12 @@ import {
   Lightbulb,
   ChevronDown,
   ChevronUp,
+  Crown,
+  Lock,
+  Send,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
 // PRESETS (15 estilos profesionales)
@@ -23,105 +27,119 @@ const PRESETS = [
     subtitle: "Low-Key Rembrandt",
     free: true,
     promptBlock:
-      "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting...",
+      "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting, dramatic shadows, cinematic depth, professional color grading, magazine quality",
   },
   {
     id: 2,
     name: "Golden Hour Lifestyle",
     subtitle: "Cálido atardecer",
     free: true,
-    promptBlock: "Warm golden hour portrait, 50mm f/1.8...",
+    promptBlock:
+      "Warm golden hour portrait, 50mm f/1.8, natural backlight, soft warm tones, lifestyle photography, authentic moment, sun-kissed glow",
   },
   {
     id: 3,
     name: "Corporate Clean",
     subtitle: "High-Key profesional",
     free: true,
-    promptBlock: "High-key professional headshot...",
+    promptBlock:
+      "High-key professional headshot, 85mm f/2.8, even studio lighting, neutral background, business formal, sharp focus, confident expression",
   },
   {
     id: 4,
     name: "Environmental Portrait",
     subtitle: "Sujeto en su entorno",
     free: false,
-    promptBlock: "Environmental portrait...",
+    promptBlock:
+      "Environmental portrait, subject in natural setting, storytelling composition, 35mm f/1.8, contextual background, authentic atmosphere",
   },
   {
     id: 5,
     name: "Beauty Soft Front",
     subtitle: "Beauty homogéneo",
     free: false,
-    promptBlock: "Beauty portrait...",
+    promptBlock:
+      "Beauty portrait, soft frontal lighting, ring light effect, flawless skin, minimal shadows, high-end cosmetic photography style",
   },
   {
     id: 6,
     name: "B/N Clásico Film",
     subtitle: "Monocromo atemporal",
     free: false,
-    promptBlock: "Classic black and white portrait...",
+    promptBlock:
+      "Classic black and white portrait, film photography aesthetic, rich tonal range, timeless composition, medium format quality",
   },
   {
     id: 7,
     name: "Fotografía Urbana Street",
     subtitle: "Energía callejera",
     free: false,
-    promptBlock: "Urban street photography...",
+    promptBlock:
+      "Urban street photography, candid moment, city backdrop, natural light, documentary style, authentic urban energy",
   },
   {
     id: 8,
     name: "Ensueño Vintage 70s",
     subtitle: "Nostálgico y cálido",
     free: false,
-    promptBlock: "Vintage 70s dreamy portrait...",
+    promptBlock:
+      "Vintage 70s dreamy portrait, warm film tones, soft focus, retro aesthetic, nostalgic atmosphere, analog feel",
   },
   {
     id: 9,
     name: "Film Noir Clásico",
     subtitle: "Drama B/N años 40-50",
     free: false,
-    promptBlock: "Classic film noir portrait...",
+    promptBlock:
+      "Classic film noir portrait, dramatic chiaroscuro, 1940s Hollywood style, venetian blind shadows, mystery atmosphere",
   },
   {
     id: 10,
     name: "Neón Cyberpunk",
     subtitle: "Futurista urbano nocturno",
     free: false,
-    promptBlock: "Cyberpunk neon portrait...",
+    promptBlock:
+      "Cyberpunk neon portrait, futuristic urban night, neon lights, sci-fi atmosphere, high contrast, technological aesthetic",
   },
   {
     id: 11,
     name: "Retrato Íntimo Ventana",
     subtitle: "Luz natural pensativa",
     free: false,
-    promptBlock: "Intimate window light portrait...",
+    promptBlock:
+      "Intimate window light portrait, soft natural side lighting, contemplative mood, minimal setup, authentic emotion",
   },
   {
     id: 12,
     name: "Acción Deportiva Congelado",
     subtitle: "Movimiento nítido",
     free: false,
-    promptBlock: "Frozen sports action...",
+    promptBlock:
+      "Frozen sports action, high shutter speed, dynamic movement, athletic peak moment, professional sports photography",
   },
   {
     id: 13,
     name: "Producto Minimalista Lujo",
     subtitle: "Elegante y limpio",
     free: false,
-    promptBlock: "Luxury minimalist product...",
+    promptBlock:
+      "Luxury minimalist product photography, clean white background, perfect lighting, premium aesthetic, commercial quality",
   },
   {
     id: 14,
     name: "Fantasía Surrealista Etéreo",
     subtitle: "Onírico y de otro mundo",
     free: false,
-    promptBlock: "Surreal ethereal fantasy...",
+    promptBlock:
+      "Surreal ethereal fantasy portrait, dreamlike atmosphere, otherworldly elements, magical realism, artistic composition",
   },
   {
     id: 15,
     name: "Editorial Fashion",
     subtitle: "Alta moda dramática",
     free: false,
-    promptBlock: "Editorial fashion portrait...",
+    promptBlock:
+      "Editorial fashion portrait, high-fashion styling, dramatic lighting, avant-garde composition, magazine cover quality",
   },
 ];
 
@@ -131,50 +149,72 @@ const SCENARIOS = [
     id: 1,
     name: "Estudio Fondo Negro",
     description: "Minimalista, dramático, fondo oscuro",
-    prompt: "Professional studio with seamless black backdrop...",
+    prompt:
+      "Professional studio with seamless black backdrop, controlled studio lighting, minimal distractions, dramatic atmosphere",
   },
   {
     id: 2,
     name: "Calle Europea Atardecer",
     description: "Arquitectura clásica, luz dorada",
-    prompt: "Narrow European street at golden hour...",
+    prompt:
+      "Narrow European street at golden hour, classic architecture, warm natural light, romantic urban setting",
   },
   {
     id: 3,
     name: "Playa Amanecer Contraluz",
     description: "Costa, luz suave, horizonte marino",
-    prompt: "Sandy beach at sunrise...",
+    prompt:
+      "Sandy beach at sunrise, soft backlight, ocean horizon, serene coastal atmosphere, natural elements",
   },
   {
     id: 4,
     name: "Urbano Nocturno Neones",
     description: "Ciudad de noche, luces vibrantes",
-    prompt: "Night city street with neon signs...",
+    prompt:
+      "Night city street with neon signs, urban nightlife, artificial lights, modern metropolitan atmosphere",
   },
   {
     id: 5,
     name: "Interior Ventana Natural",
     description: "Luz de ventana lateral suave",
-    prompt: "Indoor setting with large window as single light source...",
+    prompt:
+      "Indoor setting with large window as single light source, soft natural side lighting, minimal interior",
   },
   {
     id: 6,
     name: "Bosque Niebla Atmosférico",
     description: "Naturaleza, bruma, luz filtrada",
-    prompt: "Misty forest setting...",
+    prompt:
+      "Misty forest setting, atmospheric fog, filtered natural light, mysterious woodland ambiance",
   },
   {
     id: 7,
     name: "Azotea Ciudad Atardecer",
     description: "Skyline urbano, golden hour",
-    prompt: "Rooftop location at sunset...",
+    prompt:
+      "Rooftop location at sunset, city skyline backdrop, elevated perspective, urban golden hour",
   },
   {
     id: 8,
     name: "Industrial Warehouse Oscuro",
     description: "Grungy, luces prácticas, textura",
-    prompt: "Dark industrial warehouse...",
+    prompt:
+      "Dark industrial warehouse, grungy textures, practical lighting, raw urban aesthetic",
   },
+];
+
+// IDEAS ALEATORIAS para generar (PRO feature)
+const RANDOM_IDEAS = [
+  "Retrato elegante en biblioteca antigua con luz de ventana",
+  "Fotografía editorial en mercado callejero colorido al mediodía",
+  "Sesión de moda minimalista en galería de arte contemporáneo",
+  "Retrato íntimo en café parisino con luz natural suave",
+  "Fotografía urbana nocturna con reflejos en charcos de lluvia",
+  "Retrato cinematográfico en estación de tren vintage",
+  "Sesión lifestyle en campo de lavanda al atardecer",
+  "Retrato conceptual en museo de historia natural",
+  "Fotografía de moda en azotea con skyline de fondo",
+  "Retrato dramático en teatro abandonado con luz cenital",
 ];
 
 export default function AdvancedGenerator() {
@@ -186,6 +226,7 @@ export default function AdvancedGenerator() {
   const [imagePreview, setImagePreview] = useState("");
   const [selectedPreset, setSelectedPreset] = useState(null);
   const [selectedScenario, setSelectedScenario] = useState(null);
+  const [showProTools, setShowProTools] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [qualityAnalysis, setQualityAnalysis] = useState(null);
   const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
@@ -197,6 +238,23 @@ export default function AdvancedGenerator() {
     grain: "subtle",
     temperature: 5500,
   });
+
+  const isPro = profile?.plan === "pro" || profile?.plan === "premium";
+
+  // Función para generar idea aleatoria (PRO)
+  const generateRandomIdea = () => {
+    const randomIdea =
+      RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)];
+    const randomPreset = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+    const randomScenario =
+      SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+
+    setPrompt(randomIdea);
+    setSelectedPreset(randomPreset.id);
+    setSelectedScenario(randomScenario.id);
+
+    showToast("💡 Idea generada aleatoriamente");
+  };
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -228,22 +286,30 @@ export default function AdvancedGenerator() {
       reader.onerror = (err) => reject(err);
     });
 
+  const showToast = (message) => {
+    if (window.App_showToast) {
+      window.App_showToast(message);
+    }
+  };
+
   const handleGenerate = async (e) => {
     e && e.preventDefault();
 
     if (!user) {
       setResponse("Inicia sesión para generar.");
+      showToast("Inicia sesión para generar.");
       return;
     }
     if (profile?.credits <= 0) {
       setResponse(
         "No tienes créditos disponibles. Compra créditos o suscríbete."
       );
+      showToast("No tienes créditos.");
       return;
     }
 
     setIsLoading(true);
-    setResponse("");
+    setResponse("Generando prompt con IA... por favor, espera.");
     setQualityAnalysis(null);
 
     try {
@@ -265,376 +331,399 @@ export default function AdvancedGenerator() {
           scenario: selectedScenario
             ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
             : null,
-          sliders,
-          isPro: profile?.plan === "pro",
-          analyzeQuality: false,
+          sliders: isPro && showAdvanced ? sliders : null,
+          analyzeQuality: isPro,
+          isPro,
         }),
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Error al generar prompt");
+        const err = await res
+          .json()
+          .catch(() => ({ error: `Error del servidor: ${res.status}` }));
+        throw new Error(err.error || "Fallo en el generador");
       }
 
       const data = await res.json();
       setResponse(data.prompt || "No se recibió respuesta del generador.");
       if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
+      showToast("Prompt generado correctamente");
 
       await refreshProfile();
-    } catch (error) {
-      console.error("Error al generar:", error);
-      setResponse(`Error: ${error.message}`);
+    } catch (err) {
+      console.error(err);
+      setResponse("Hubo un error generando el prompt. Intenta de nuevo.");
+      showToast("Error generando prompt.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleApplySuggestions = async () => {
-    if (!qualityAnalysis?.suggestions?.length) return;
+    if (!qualityAnalysis || !qualityAnalysis.suggestions?.length) return;
+
     setIsApplyingSuggestions(true);
     try {
       const res = await fetch("/api/gemini-processor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: response,
-          applyFixes: true,
+          applySuggestions: true,
+          currentPrompt: response,
           suggestions: qualityAnalysis.suggestions,
+          isPro,
         }),
       });
+      if (!res.ok) {
+        const err = await res
+          .json()
+          .catch(() => ({ error: `Error del servidor: ${res.status}` }));
+        throw new Error(err.error || "Fallo aplicando sugerencias");
+      }
       const data = await res.json();
-      if (data.prompt) setResponse(data.prompt);
-    } catch (error) {
-      console.error("Error aplicando sugerencias:", error);
+      setResponse(data.prompt || response);
+      setQualityAnalysis(null);
+      showToast("Sugerencias aplicadas.");
+    } catch (e) {
+      console.error(e);
+      alert(`Error: ${e.message || "Fallo aplicando sugerencias"}`);
     } finally {
       setIsApplyingSuggestions(false);
     }
   };
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(response);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Error al copiar:", err);
-    }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(response);
+    setCopied(true);
+    showToast("Prompt copiado");
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const isPro = profile?.plan === "pro" || profile?.plan === "premium";
+  const handleUseInGemini = () => {
+    navigator.clipboard.writeText(response);
+    window.open(
+      "https://gemini.google.com/app",
+      "_blank",
+      "noopener,noreferrer"
+    );
+    showToast("Prompt copiado. Abriendo Gemini...");
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-20 px-4">
+    <section id="prompt-generator" className="py-24 px-4 bg-black/20">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full mb-6">
-            <Sparkles className="w-5 h-5 text-white" />
-            <span className="text-white font-semibold">Generador Avanzado</span>
-          </div>
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            Generador Profesional de Prompts
-          </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Presets, escenarios, imagen de referencia y controles avanzados
-          </p>
-        </div>
-
-        {/* Créditos */}
-        {user && profile && (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-8 text-center">
-            <p className="text-gray-400">
-              Créditos disponibles:{" "}
-              <span className="text-2xl font-bold text-[var(--primary)]">
-                {profile.credits}
-              </span>
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Plan:{" "}
-              <span className="text-[var(--primary)] font-semibold">
-                {profile.plan || "FREE"}
-              </span>
-            </p>
-          </div>
-        )}
-
-        {/* Formulario Principal */}
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 mb-8">
-          <div className="space-y-6">
-            {/* Descripción */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Describe tu idea *
-              </label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--primary)] transition resize-none"
-                rows={3}
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* Upload de Imagen */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                <Upload className="w-4 h-4 inline mr-2" />
-                Imagen de referencia (opcional)
-              </label>
-              {!imagePreview ? (
-                <label className="block w-full border-2 border-dashed border-white/10 rounded-xl p-8 text-center cursor-pointer hover:border-[var(--primary)] transition">
-                  <Camera className="w-12 h-12 mx-auto mb-3 text-gray-500" />
-                  <span className="text-gray-400">Click para subir imagen</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                    disabled={isLoading}
-                  />
-                </label>
-              ) : (
-                <div className="relative rounded-xl overflow-hidden border border-white/10">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-48 object-cover"
-                  />
-                  <button
-                    onClick={removeImage}
-                    className="absolute top-2 right-2 p-2 bg-red-500 rounded-full hover:bg-red-600 transition"
-                  >
-                    <Trash2 className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Presets */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-3">
-                🎨 Presets Profesionales (selecciona uno):
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-                {PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() =>
-                      setSelectedPreset(
-                        preset.id === selectedPreset ? null : preset.id
-                      )
-                    }
-                    disabled={!preset.free && !isPro}
-                    className={`p-3 rounded-lg border text-left transition ${
-                      selectedPreset === preset.id
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                        : "border-white/10 bg-white/5 hover:border-white/20"
-                    } ${
-                      !preset.free && !isPro
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    <div className="font-semibold text-sm text-white">
-                      {preset.name}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {preset.subtitle}
-                    </div>
-                    {!preset.free && !isPro && (
-                      <div className="text-xs text-[var(--primary)] mt-1">
-                        🔒 PRO
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Scenarios */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-3">
-                📍 Escenarios (selecciona uno):
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {SCENARIOS.map((scenario) => (
-                  <button
-                    key={scenario.id}
-                    onClick={() =>
-                      setSelectedScenario(
-                        scenario.id === selectedScenario ? null : scenario.id
-                      )
-                    }
-                    className={`p-3 rounded-lg border text-left transition ${
-                      selectedScenario === scenario.id
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                        : "border-white/10 bg-white/5 hover:border-white/20"
-                    }`}
-                  >
-                    <div className="font-semibold text-sm text-white">
-                      {scenario.name}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {scenario.description}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Controles Avanzados */}
-            <div>
-              <button
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition"
-              >
-                {showAdvanced ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-                Controles Avanzados{" "}
-                {isPro && (
-                  <span className="text-[var(--primary)] text-xs">PRO</span>
-                )}
-              </button>
-
-              {showAdvanced && isPro && (
-                <div className="mt-4 space-y-4 p-4 bg-white/5 rounded-lg border border-white/10">
-                  <div>
-                    <label className="text-xs text-gray-400">
-                      Apertura (f-stop): {sliders.aperture}
-                    </label>
-                    <input
-                      type="range"
-                      min="1.4"
-                      max="16"
-                      step="0.1"
-                      value={sliders.aperture}
-                      onChange={(e) =>
-                        setSliders({
-                          ...sliders,
-                          aperture: parseFloat(e.target.value),
-                        })
-                      }
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">
-                      Distancia Focal (mm): {sliders.focalLength}
-                    </label>
-                    <input
-                      type="range"
-                      min="24"
-                      max="200"
-                      step="1"
-                      value={sliders.focalLength}
-                      onChange={(e) =>
-                        setSliders({
-                          ...sliders,
-                          focalLength: parseInt(e.target.value),
-                        })
-                      }
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400">
-                      Temperatura de Color (K): {sliders.temperature}
-                    </label>
-                    <input
-                      type="range"
-                      min="2500"
-                      max="9000"
-                      step="100"
-                      value={sliders.temperature}
-                      onChange={(e) =>
-                        setSliders({
-                          ...sliders,
-                          temperature: parseInt(e.target.value),
-                        })
-                      }
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Botón Generar */}
-            <button
-              onClick={handleGenerate}
-              disabled={
-                isLoading ||
-                !prompt.trim() ||
-                !user ||
-                (profile && profile.credits < 1)
-              }
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold text-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        {/* ALERTA DE CRÉDITOS */}
+        {user && profile && profile.credits <= 3 && (
+          <div
+            className={`mb-6 p-4 rounded-lg border ${
+              profile.credits === 0
+                ? "bg-red-500/10 border-red-500/30"
+                : "bg-[var(--primary)]/10 border-[var(--primary)]/30"
+            }`}
+          >
+            <p
+              className={`font-bold ${
+                profile.credits === 0 ? "text-red-400" : "text-[var(--primary)]"
+              }`}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Generando con IA...
-                </>
-              ) : (
-                <>
-                  <Wand2 className="w-5 h-5" />
-                  Generar Prompt Profesional
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Resultado */}
-        {response && (
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 animate-fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">
-                Tu Prompt Generado
-              </h3>
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
+              {profile.credits === 0
+                ? "⚠️ No tienes créditos. Actualiza tu plan para continuar."
+                : `⚠️ Te quedan ${profile.credits} crédito${
+                    profile.credits === 1 ? "" : "s"
+                  }.`}
+            </p>
+            {profile.plan === "free" && (
+              <a
+                href="#planes"
+                className="text-[var(--primary)] hover:opacity-90 text-sm font-semibold mt-2 inline-block"
               >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-green-500 text-sm font-semibold">
-                      Copiado
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-400 text-sm font-semibold">
-                      Copiar
-                    </span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
-              <p className="text-white leading-relaxed whitespace-pre-wrap">
-                {response}
-              </p>
-            </div>
-
-            {qualityAnalysis && (
-              <QualityAnalysis
-                analysis={qualityAnalysis}
-                isPro={isPro}
-                onApplySuggestions={handleApplySuggestions}
-                isApplying={isApplyingSuggestions}
-              />
+                Ver planes →
+              </a>
             )}
           </div>
         )}
+
+        <AnimatedSection className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-heading mb-4">
+            Generador de Prompts{" "}
+            <span className="text-[var(--primary)]">PROMPTRAITS</span>
+          </h2>
+          <p className="text-gray-400 text-lg">
+            Describe tu idea o sube una imagen de referencia para generar un
+            prompt profesional.
+          </p>
+        </AnimatedSection>
+
+        <div className="bg-white/5 border border-[var(--border)] rounded-2xl p-6">
+          <form onSubmit={handleGenerate} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="inputText"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Describe tu idea:
+                </label>
+                <textarea
+                  id="inputText"
+                  rows="8"
+                  className="w-full h-full bg-black/50 border border-[var(--border)] rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-[var(--primary)] resize-none"
+                  placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                ></textarea>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Imagen de referencia:
+                </label>
+                {!imagePreview ? (
+                  <label
+                    htmlFor="referenceImagePrompt-Gen"
+                    className="flex-1 flex flex-col items-center justify-center bg-[var(--surface)]/30 border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:bg-[var(--surface)]/40 transition-all p-4"
+                  >
+                    <Upload className="w-8 h-8 text-[var(--primary)] mb-2" />
+                    <span className="text-sm font-semibold text-center">
+                      Subir imagen
+                    </span>
+                    <span className="text-xs text-gray-400 mt-1 text-center">
+                      Opcional
+                    </span>
+                  </label>
+                ) : (
+                  <div className="relative flex-1 rounded-lg overflow-hidden border border-[var(--border)]">
+                    <img
+                      src={imagePreview}
+                      alt="Referencia"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-all shadow-lg"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
+                <input
+                  id="referenceImagePrompt-Gen"
+                  type="file"
+                  className="hidden"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                />
+              </div>
+            </div>
+
+            {/* PRESETS FREE */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                🎨 Estilos Básicos (GRATIS):
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {PRESETS.filter((p) => p.free).map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() =>
+                      setSelectedPreset(
+                        selectedPreset === preset.id ? null : preset.id
+                      )
+                    }
+                    className={`p-3 rounded-lg text-left transition-all text-sm ${
+                      selectedPreset === preset.id
+                        ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)] shadow-sm"
+                        : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                    }`}
+                  >
+                    <div className="text-sm font-semibold">{preset.name}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {preset.subtitle}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* HERRAMIENTAS PRO */}
+            <div className="relative mt-4">
+              {!isPro && (
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
+                  <Lock className="w-10 h-10 text-[var(--primary)] mx-auto mb-4" />
+                  <p className="text-white font-bold text-lg mb-2">
+                    Herramientas PRO
+                  </p>
+                  <a
+                    href="#planes"
+                    className="text-[var(--primary)] hover:opacity-90 text-sm font-semibold"
+                  >
+                    Actualizar a PRO →
+                  </a>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowProTools(!showProTools)}
+                disabled={!isPro}
+                className="w-full flex items-center justify-between p-3 bg-[var(--surface)]/30 border border-[var(--border)] rounded-lg hover:border-[var(--primary)] transition-all"
+              >
+                <span className="font-semibold flex items-center space-x-2">
+                  <Crown className="w-5 h-5 text-[var(--primary)]" />
+                  <span>Herramientas PRO</span>
+                </span>
+                {showProTools ? <ChevronUp /> : <ChevronDown />}
+              </button>
+
+              {showProTools && isPro && (
+                <div className="mt-3 p-4 bg-black/30 border border-[var(--border)] rounded-lg space-y-4">
+                  <div>
+                    <button
+                      type="button"
+                      onClick={generateRandomIdea}
+                      className="w-full flex items-center justify-center space-x-2 bg-[var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition-all"
+                    >
+                      <Lightbulb size={18} />
+                      <span>💡 Generar Idea Aleatoria</span>
+                    </button>
+                    <p className="text-xs text-gray-400 mt-2 text-center">
+                      Genera ideas completas con estilo, escenario y vestuario
+                    </p>
+                  </div>
+
+                  <div className="border-t border-[var(--border)] my-2"></div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      ✨ Presets PRO (12 adicionales):
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {PRESETS.filter((p) => !p.free).map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() =>
+                            setSelectedPreset(
+                              selectedPreset === preset.id ? null : preset.id
+                            )
+                          }
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            selectedPreset === preset.id
+                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
+                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="text-sm font-semibold">
+                            {preset.name}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {preset.subtitle}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[var(--border)] my-2"></div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      📍 Escenarios:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {SCENARIOS.map((scenario) => (
+                        <button
+                          key={scenario.id}
+                          type="button"
+                          onClick={() =>
+                            setSelectedScenario(
+                              selectedScenario === scenario.id
+                                ? null
+                                : scenario.id
+                            )
+                          }
+                          className={`p-2 rounded-lg text-left text-xs transition-all ${
+                            selectedScenario === scenario.id
+                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
+                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="text-xs font-semibold">
+                            {scenario.name}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* BOTÓN GENERAR */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isLoading || (!prompt && !referenceImage)}
+                className="w-full bg-[var(--primary)] text-black px-6 py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+              >
+                {isLoading ? "Generando..." : "Generar Prompt"}
+              </button>
+            </div>
+          </form>
+
+          {/* ANÁLISIS DE CALIDAD */}
+          <QualityAnalysis
+            analysis={qualityAnalysis}
+            isPro={isPro}
+            onApplySuggestions={handleApplySuggestions}
+            isApplying={isApplyingSuggestions}
+          />
+
+          {/* PROMPT GENERADO */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-lg mb-3">Prompt Generado:</h3>
+            <div className="bg-black/40 border border-[var(--border)] rounded-lg p-4">
+              <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">
+                {response || "Aquí aparecerá el prompt generado..."}
+              </pre>
+              {response && (
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Copiar */}
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="w-full flex items-center justify-center space-x-2 bg-[var(--surface)] text-white px-4 py-3 rounded-lg font-bold hover:bg-[var(--surface)]/80 transition"
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={18} />
+                        <span>Copiado</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={18} />
+                        <span>Copiar Prompt</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Usar en Gemini */}
+                  <button
+                    type="button"
+                    onClick={handleUseInGemini}
+                    className="w-full flex items-center justify-center space-x-2 bg-[var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition"
+                  >
+                    <Send size={18} />
+                    <span>Usar en Gemini</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
