@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { supabase } from "../lib/supabase";
 
 export const AuthContext = createContext();
@@ -140,4 +140,15 @@ export function AuthProvider({ children }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// ✅ AGREGAR ESTE HOOK (FALTABA)
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (context === undefined) {
+    throw new Error("useAuth debe ser usado dentro de un AuthProvider");
+  }
+
+  return context;
 }
