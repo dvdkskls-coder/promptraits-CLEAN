@@ -72,7 +72,7 @@ const CREDIT_PACKS = [
   { credits: 100, price: "15.99" }
 ];
 
-// Planes y créditos (seg¡n tu especificación)
+// Planes y créditos (según tu especificación)
 const SUBSCRIPTION_PLANS = [
   {
     name: "FREE",
@@ -99,7 +99,7 @@ const SUBSCRIPTION_PLANS = [
     period: "/mes",
     popular: false,
     credits: 300,
-    features: ["300 créditos/mes", "Acceso al agente personalizado", "Asesor¡a 1 a 1", "5 prompts personalizados"]
+    features: ["300 créditos/mes", "Acceso al agente personalizado", "Asesoría 1 a 1", "5 prompts personalizados"]
   }
 ];
 
@@ -159,12 +159,12 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
 
     if (!user) {
       setResponse("Inicia sesión para generar.");
-      window.App_showToast✓.("Inicia sesión para generar.");
+      window.App_showToast?.("Inicia sesión para generar.");
       return;
     }
-    if (profile✓.credits <= 0) {
+    if (profile?.credits <= 0) {
       setResponse("No tienes créditos disponibles. Compra créditos o suscríbete.");
-      window.App_showToast✓.("No tienes créditos.");
+      window.App_showToast?.("No tienes créditos.");
       return;
     }
 
@@ -201,11 +201,11 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
       const data = await res.json();
       setResponse(data.prompt || "No se recibió respuesta del generador.");
       if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
-      window.App_showToast✓.("Prompt generado.");
+      window.App_showToast?.("Prompt generado.");
     } catch (err) {
       console.error(err);
       setResponse("Hubo un error generando el prompt. Intenta de nuevo.");
-      window.App_showToast✓.("Error generando prompt.");
+      window.App_showToast?.("Error generando prompt.");
     } finally {
       setIsLoading(false);
     }
@@ -234,7 +234,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
       const data = await res.json();
       setResponse(data.prompt || response);
       setQualityAnalysis(null);
-      window.App_showToast✓.("Sugerencias aplicadas.");
+      window.App_showToast?.("Sugerencias aplicadas.");
     } catch (e) {
       console.error(e);
       alert(`Error: ${e.message || 'Fallo aplicando sugerencias'}`);
@@ -755,8 +755,8 @@ function AppContent() {
             <div className="hidden md:block">
               {user ✓ (
                 <UserMenu 
-                  credits={profile✓.credits || 0}
-                  plan={profile✓.plan || 'free'}
+                  credits={profile?.credits || 0}
+                  plan={profile?.plan || 'free'}
                   onNavigate={handleNavigation}
                 />
               ) : (
@@ -829,13 +829,13 @@ function AppContent() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-400">Créditos</span>
                       <span className="text-lg font-bold text-[var(--primary)]">
-                        {profile✓.credits || 0}
+                        {profile?.credits || 0}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Crown className="w-4 h-4 text-[var(--primary)]" />
                       <span className="text-sm font-semibold uppercase text-[var(--primary)]">
-                        {profile✓.plan || 'free'}
+                        {profile?.plan || 'free'}
                       </span>
                     </div>
                   </div>
@@ -942,7 +942,7 @@ function AppContent() {
             <div className="py-20 px-4">
               <Pricing 
                 onSelectPlan={handlePlanSelection}
-                currentPlan={profile✓.plan || 'free'}
+                currentPlan={profile?.plan || 'free'}
               />
             </div>
 
@@ -994,7 +994,7 @@ function AppContent() {
                     <Send />
                   </a>
                 </div>
-                <p className="text-gray-600 text-sm">¡ {new Date().getFullYear()} Promptraits by Sr. Waly.</p>
+                <p className="text-gray-600 text-sm">© {new Date().getFullYear()} Promptraits by Sr. Waly.</p>
               </div>
             </footer>
           </>
@@ -1010,7 +1010,7 @@ function AppContent() {
         {view === 'pricing' && (
           <Pricing 
             onSelectPlan={handlePlanSelection}
-            currentPlan={profile✓.plan || 'free'}
+            currentPlan={profile?.plan || 'free'}
           />
         )}
 
