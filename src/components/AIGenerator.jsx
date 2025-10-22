@@ -53,7 +53,7 @@ export default function AIGenerator() {
         },
         body: JSON.stringify({
           prompt: fullPrompt,
-          isPro: profile✓.plan === "pro",
+          isPro: profile?.plan === "pro",
           analyzeQuality: false, // No analizar calidad en esta versión simple
         }),
       });
@@ -228,7 +228,7 @@ export default function AIGenerator() {
               }
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold text-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ✓ (
+              {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Generando prompt...
@@ -254,7 +254,7 @@ export default function AIGenerator() {
                 onClick={handleCopy}
                 className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
               >
-                {copied ✓ (
+                {copied ? (
                   <>
                     <Check className="w-4 h-4 text-green-500" />
                     <span className="text-green-500 text-sm font-semibold">

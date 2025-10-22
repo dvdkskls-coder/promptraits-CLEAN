@@ -1,0 +1,194 @@
+{
+  "total": 18,
+  "inComment": 1,
+  "inCode": 17,
+  "problems": [
+    {
+      "lineNumber": 216,
+      "line": "if (!qualityAnalysis || !qualityAnalysis.suggestions✓.length) return;",
+      "contexts": [
+        {
+          "before": "uggestions",
+          "after": ".length) r",
+          "pos": 56
+        }
+      ]
+    },
+    {
+      "lineNumber": 584,
+      "line": "console.log('✓ Pago exitoso detectado');",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Pago exit",
+          "pos": 19
+        }
+      ]
+    },
+    {
+      "lineNumber": 594,
+      "line": "console.log('✓ Recargando página para actualizar datos...');",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Recargand",
+          "pos": 21
+        }
+      ]
+    },
+    {
+      "lineNumber": 599,
+      "line": "console.log('✓ Pago cancelado');",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Pago canc",
+          "pos": 19
+        }
+      ]
+    },
+    {
+      "lineNumber": 606,
+      "line": "console.log('✓ handleNavigation:', action)",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " handleNav",
+          "pos": 17
+        }
+      ]
+    },
+    {
+      "lineNumber": 609,
+      "line": "console.log('✓ CERRANDO SESIÓN - Inicio')",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " CERRANDO ",
+          "pos": 19
+        }
+      ]
+    },
+    {
+      "lineNumber": 613,
+      "line": "console.error('✓ Error en signOut:', error)",
+      "contexts": [
+        {
+          "before": "le.error('",
+          "after": " Error en ",
+          "pos": 25
+        }
+      ]
+    },
+    {
+      "lineNumber": 616,
+      "line": "console.log('✓ signOut() ejecutado')",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " signOut()",
+          "pos": 21
+        }
+      ]
+    },
+    {
+      "lineNumber": 617,
+      "line": "console.log('✓ Recargando página...')",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Recargand",
+          "pos": 21
+        }
+      ]
+    },
+    {
+      "lineNumber": 620,
+      "line": "console.error('✓ Error al cerrar sesión:', error)",
+      "contexts": [
+        {
+          "before": "le.error('",
+          "after": " Error al ",
+          "pos": 23
+        }
+      ]
+    },
+    {
+      "lineNumber": 636,
+      "line": "console.log('✓ Plan seleccionado:', planId);",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Plan sele",
+          "pos": 17
+        }
+      ]
+    },
+    {
+      "lineNumber": 643,
+      "line": "console.log('✓ Ya tienes el plan FREE');",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Ya tienes",
+          "pos": 21
+        }
+      ]
+    },
+    {
+      "lineNumber": 649,
+      "line": "console.log('✓ Usuario no logueado - Mostrando modal de login');",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Usuario n",
+          "pos": 19
+        }
+      ]
+    },
+    {
+      "lineNumber": 655,
+      "line": "console.log('✓ Usuario logueado - Iniciando checkout...');",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Usuario l",
+          "pos": 17
+        }
+      ]
+    },
+    {
+      "lineNumber": 678,
+      "line": "console.log('✓ Sesión creada - Redirigiendo a Stripe...');",
+      "contexts": [
+        {
+          "before": "sole.log('",
+          "after": " Sesión cr",
+          "pos": 19
+        }
+      ]
+    },
+    {
+      "lineNumber": 683,
+      "line": "console.error('✓ Error en checkout:', error);",
+      "contexts": [
+        {
+          "before": "le.error('",
+          "after": " Error en ",
+          "pos": 21
+        }
+      ]
+    },
+    {
+      "lineNumber": 923,
+      "line": "onError={(e) => { e.target.src = \"https://via.placeholder.com/400x500✓text=No+disponible\"; }}",
+      "contexts": [
+        {
+          "before": "om/400x500",
+          "after": "text=No+di",
+          "pos": 93
+        }
+      ]
+    }
+  ]
+}
