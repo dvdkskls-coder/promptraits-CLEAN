@@ -1,15 +1,18 @@
 // filepath: api/generate-prompt.js
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
+import Anthropic from '@anthropic-ai/sdk';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
 
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
 export default async function handler(req, res) {
-  // CORS
+  // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -26,14 +29,14 @@ export default async function handler(req, res) {
   try {
     const { userId, theme, style, details } = req.body;
 
-    console.log(' Generando prompt con Gemini:', { userId, theme, style });
+    console.log(' Generando prompt:', { userId, theme, style });
 
-    // Validar
+    // Validar datos
     if (!userId || !theme) {
       return res.status(400).json({ error: 'userId y theme son requeridos' });
     }
 
-    // Verificar créditos
+    // Verificar créditos del usuario
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('credits')
@@ -41,7 +44,7 @@ export default async function handler(req, res) {
       .single();
 
     if (profileError) {
-      console.error('? Error al obtener perfil:', profileError);
+      console.error(' Error al obtener perfil:', profileError);
       return res.status(500).json({ error: 'Error al verificar créditos' });
     }
 
@@ -54,48 +57,60 @@ export default async function handler(req, res) {
 
     console.log(' Créditos disponibles:', profile.credits);
 
-    // Llamar a Gemini
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-
+    // Construir prompt para Claude
     const systemPrompt = `Eres un experto en generación de prompts para DALL-E 3 y Midjourney.
+Tu tarea es crear prompts detallados, visuales y efectivos basados en las indicaciones del usuario.
 
-REGLAS:
+Reglas:
 - El prompt debe ser en INGLÉS
+- Debe ser descriptivo y visual
+- Incluir estilo artístico si se especifica
+- Incluir detalles de iluminación, composición y atmósfera
 - Máximo 200 palabras
-- Muy descriptivo y visual
-- Incluir detalles de iluminación, composición, atmósfera
-- Si se especifica estilo, inclúyelo
-- Formato directo (sin explicaciones)
+- Formato claro y directo (sin explicaciones adicionales)`;
 
-GENERA UN PROMPT PERFECTO BASADO EN:`;
-
-    const userPrompt = `${systemPrompt}
+    const userPrompt = `Genera un prompt para imagen basado en:
 
 Tema: ${theme}
-${style ? `Estilo: ${style}` : ''}
-${details ? `Detalles: ${details}` : ''}`;
+${style ? `Estilo artístico: ${style}` : ''}
+${details ? `Detalles adicionales: ${details}` : ''}
 
-    console.log(' Llamando a Gemini...');
+Crea un prompt detallado y visual que capture perfectamente esta idea.`;
 
-    const result = await model.generateContent(userPrompt);
-    const generatedPrompt = result.response.text().trim();
+    // Llamar a Claude
+    console.log(' Llamando a Claude Sonnet 4...');
+    
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 500,
+      temperature: 0.8,
+      system: systemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: userPrompt
+        }
+      ]
+    });
 
-    console.log('? Prompt generado:', generatedPrompt.substring(0, 100) + '...');
+    const generatedPrompt = message.content[0].text.trim();
+    
+    console.log(' Prompt generado:', generatedPrompt.substring(0, 100) + '...');
 
-    // Descontar crédito
+    // Descontar 1 crédito
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ credits: profile.credits - 1 })
       .eq('id', userId);
 
     if (updateError) {
-      console.error(' Error al descontar créditos:', updateError);
+      console.error('? Error al descontar créditos:', updateError);
     } else {
-      console.log(' Crédito descontado. Nuevos créditos:', profile.credits - 1);
+      console.log('?? Crédito descontado. Nuevos créditos:', profile.credits - 1);
     }
 
-    // Guardar en historial (si existe la tabla)
-    await supabase
+    // Guardar en historial (tabla generated_prompts debe existir en Supabase)
+    const { error: insertError } = await supabase
       .from('generated_prompts')
       .insert({
         user_id: userId,
@@ -104,9 +119,11 @@ ${details ? `Detalles: ${details}` : ''}`;
         input_details: details || null,
         generated_prompt: generatedPrompt,
         credits_used: 1
-      })
-      .then(() => console.log('? Guardado en historial'))
-      .catch(err => console.log(' No se pudo guardar en historial:', err.message));
+      });
+
+    if (insertError) {
+      console.error(' Error al guardar en historial:', insertError);
+    }
 
     // Responder
     return res.status(200).json({
@@ -118,6 +135,18 @@ ${details ? `Detalles: ${details}` : ''}`;
   } catch (error) {
     console.error(' Error en generate-prompt:', error);
     
+    if (error.status === 429) {
+      return res.status(429).json({ 
+        error: 'Demasiadas solicitudes. Intenta de nuevo en 1 minuto.' 
+      });
+    }
+    
+    if (error.status === 401) {
+      return res.status(500).json({ 
+        error: 'Error de configuración del servicio' 
+      });
+    }
+
     return res.status(500).json({ 
       error: error.message || 'Error al generar prompt' 
     });
