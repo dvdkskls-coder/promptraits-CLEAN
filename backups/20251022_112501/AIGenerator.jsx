@@ -34,27 +34,18 @@ export default function AIGenerator() {
     setGeneratedPrompt('');
 
     try {
-      console.log(' Generando prompt con Gemini...');
+      console.log(' Generando prompt...');
 
-      // Construir prompt combinado
-      let fullPrompt = theme.trim();
-      if (style.trim()) {
-        fullPrompt += `\n\nEstilo: ${style.trim()}`;
-      }
-      if (details.trim()) {
-        fullPrompt += `\n\nDetalles adicionales: ${details.trim()}`;
-      }
-
-      // Llamar a tu endpoint existente gemini-processor
-      const response = await fetch('/api/gemini-processor', {
+      const response = await fetch('/api/generate-prompt', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          prompt: fullPrompt,
-          isPro: profile?.plan === 'pro',
-          analyzeQuality: false // No analizar calidad en esta versión simple
+          userId: user.id,
+          theme: theme.trim(),
+          style: style.trim() || null,
+          details: details.trim() || null
         })
       });
 
@@ -68,10 +59,7 @@ export default function AIGenerator() {
 
       setGeneratedPrompt(data.prompt);
       
-      // Descontar 1 crédito (hacer request a tu endpoint de créditos)
-      // TODO: crear endpoint /api/deduct-credit si no existe
-      
-      // Refrescar perfil para actualizar créditos en UI
+      // Refrescar perfil para actualizar créditos
       await refreshProfile();
 
     } catch (err) {
@@ -119,7 +107,7 @@ export default function AIGenerator() {
             Generador de Prompts con IA
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Describe tu idea y Gemini creará el prompt perfecto para tus imágenes
+            Describe tu idea y nuestra IA creará el prompt perfecto para DALL-E 3 o Midjourney
           </p>
         </div>
 
