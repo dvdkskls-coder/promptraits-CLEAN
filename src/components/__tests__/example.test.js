@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest'
 
-describe('Ejemplo b�sico', () => {
-  it('deber�a pasar este test simple', () => {
+describe('Ejemplo básico', () => {
+  it('debería pasar este test simple', () => {
     expect(1 + 1).toBe(2)
   })
 
-  it('deber�a verificar strings', () => {
+  it('debería verificar strings', () => {
     const nombre = 'Promptraits'
     expect(nombre).toBe('Promptraits')
   })
 
-  it('deber�a verificar arrays', () => {
+  it('debería verificar arrays', () => {
     const numeros = [1, 2, 3, 4, 5]
     expect(numeros).toHaveLength(5)
     expect(numeros).toContain(3)

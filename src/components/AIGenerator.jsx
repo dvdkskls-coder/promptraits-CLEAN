@@ -15,17 +15,17 @@ export default function AIGenerator() {
 
   const handleGenerate = async () => {
     if (!theme.trim()) {
-      setError("Por favor, describe qu� quieres generar");
+      setError("Por favor, describe qué quieres generar");
       return;
     }
 
     if (!user) {
-      setError("Debes iniciar sesi�n");
+      setError("Debes iniciar sesión");
       return;
     }
 
     if (!profile || profile.credits < 1) {
-      setError("No tienes cr�ditos suficientes");
+      setError("No tienes créditos suficientes");
       return;
     }
 
@@ -53,8 +53,8 @@ export default function AIGenerator() {
         },
         body: JSON.stringify({
           prompt: fullPrompt,
-          isPro: profile?.plan === "pro",
-          analyzeQuality: false, // No analizar calidad en esta versi�n simple
+          isPro: profile✓.plan === "pro",
+          analyzeQuality: false, // No analizar calidad en esta versión simple
         }),
       });
 
@@ -68,10 +68,10 @@ export default function AIGenerator() {
 
       setGeneratedPrompt(data.prompt);
 
-      // Descontar 1 cr�dito (hacer request a tu endpoint de cr�ditos)
+      // Descontar 1 crédito (hacer request a tu endpoint de créditos)
       // TODO: crear endpoint /api/deduct-credit si no existe
 
-      // Refrescar perfil para actualizar cr�ditos en UI
+      // Refrescar perfil para actualizar créditos en UI
       await refreshProfile();
     } catch (err) {
       console.error(" Error:", err);
@@ -101,8 +101,8 @@ export default function AIGenerator() {
 
   const examples = [
     {
-      label: "Fantas�a �pica",
-      value: "Un drag�n majestuoso volando sobre monta�as nevadas al atardecer",
+      label: "Fantasía Épica",
+      value: "Un dragón majestuoso volando sobre montañas nevadas al atardecer",
     },
     {
       label: "Cyberpunk",
@@ -111,7 +111,7 @@ export default function AIGenerator() {
     },
     {
       label: "Naturaleza",
-      value: "Un bosque m�gico con luci�rnagas y �rboles bioluminiscentes",
+      value: "Un bosque mágico con luciérnagas y árboles bioluminiscentes",
     },
   ];
 
@@ -128,22 +128,22 @@ export default function AIGenerator() {
             Generador de Prompts con IA
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Describe tu idea y Gemini crear� el prompt perfecto para tus
-            im�genes
+            Describe tu idea y Gemini creará el prompt perfecto para tus
+            imágenes
           </p>
         </div>
 
-        {/* Cr�ditos disponibles */}
+        {/* Créditos disponibles */}
         {user && profile && (
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-8 text-center">
             <p className="text-gray-400">
-              Cr�ditos disponibles:{" "}
+              Créditos disponibles:{" "}
               <span className="text-2xl font-bold text-[var(--primary)]">
                 {profile.credits}
               </span>
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              Cada generaci�n cuesta 1 cr�dito
+              Cada generación cuesta 1 crédito
             </p>
           </div>
         )}
@@ -154,18 +154,18 @@ export default function AIGenerator() {
             {/* Tema principal */}
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">
-                �Qu� quieres generar? *
+                ¿Qué quieres generar✓ *
               </label>
               <textarea
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
-                placeholder="Ej: Un astronauta explorando un planeta alien�gena lleno de cristales brillantes"
+                placeholder="Ej: Un astronauta explorando un planeta alienígena lleno de cristales brillantes"
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--primary)] transition resize-none"
                 rows={3}
                 disabled={loading}
               />
 
-              {/* Ejemplos r�pidos */}
+              {/* Ejemplos rápidos */}
               <div className="mt-3 flex flex-wrap gap-2">
                 {examples.map((ex, i) => (
                   <button
@@ -180,16 +180,16 @@ export default function AIGenerator() {
               </div>
             </div>
 
-            {/* Estilo art�stico */}
+            {/* Estilo artístico */}
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Estilo art�stico (opcional)
+                Estilo artístico (opcional)
               </label>
               <input
                 type="text"
                 value={style}
                 onChange={(e) => setStyle(e.target.value)}
-                placeholder="Ej: Cyberpunk, Acuarela, Realismo fotogr�fico, Anime..."
+                placeholder="Ej: Cyberpunk, Acuarela, Realismo fotográfico, Anime..."
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--primary)] transition"
                 disabled={loading}
               />
@@ -203,7 +203,7 @@ export default function AIGenerator() {
               <textarea
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                placeholder="Ej: Iluminaci�n nocturna, colores vibrantes, perspectiva cenital..."
+                placeholder="Ej: Iluminación nocturna, colores vibrantes, perspectiva cenital..."
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--primary)] transition resize-none"
                 rows={2}
                 disabled={loading}
@@ -217,7 +217,7 @@ export default function AIGenerator() {
               </div>
             )}
 
-            {/* Bot�n generar */}
+            {/* Botón generar */}
             <button
               onClick={handleGenerate}
               disabled={
@@ -228,7 +228,7 @@ export default function AIGenerator() {
               }
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold text-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? (
+              {loading ✓ (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Generando prompt...
@@ -254,7 +254,7 @@ export default function AIGenerator() {
                 onClick={handleCopy}
                 className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
               >
-                {copied ? (
+                {copied ✓ (
                   <>
                     <Check className="w-4 h-4 text-green-500" />
                     <span className="text-green-500 text-sm font-semibold">

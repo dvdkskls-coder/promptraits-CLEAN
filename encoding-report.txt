@@ -1,0 +1,423 @@
+{
+  "filesWithBadChars": [
+    {
+      "path": "src\\App.jsx",
+      "lines": [
+        {
+          "lineNumber": 18,
+          "content": "// ? A�ADIR ESTOS IMPORTS"
+        },
+        {
+          "lineNumber": 40,
+          "content": "{ id: 1, name: \"Cinematogr�fico Editorial\", subtitle: \"Low-Key Rembrandt\", free: true, promptBlock: "
+        },
+        {
+          "lineNumber": 41,
+          "content": "{ id: 2, name: \"Golden Hour Lifestyle\", subtitle: \"C�lido atardecer\", free: true, promptBlock: \"Warm"
+        },
+        {
+          "lineNumber": 44,
+          "content": "{ id: 5, name: \"Beauty Soft Front\", subtitle: \"Beauty homog�neo\", free: false, promptBlock: \"Beauty "
+        },
+        {
+          "lineNumber": 45,
+          "content": "{ id: 6, name: \"B/N Cl�sico Film\", subtitle: \"Monocromo atemporal\", free: false, promptBlock: \"Class"
+        },
+        {
+          "lineNumber": 46,
+          "content": "{ id: 7, name: \"Fotograf�a Urbana Street\", subtitle: \"Energ�a callejera\", free: false, promptBlock: "
+        },
+        {
+          "lineNumber": 47,
+          "content": "{ id: 8, name: \"Ensue�o Vintage 70s\", subtitle: \"Nost�lgico y c�lido\", free: false, promptBlock: \"Vi"
+        },
+        {
+          "lineNumber": 48,
+          "content": "{ id: 9, name: \"Film Noir Cl�sico\", subtitle: \"Drama B/N a�os 40-50\", free: false, promptBlock: \"Cla"
+        },
+        {
+          "lineNumber": 49,
+          "content": "{ id: 10, name: \"Ne�n Cyberpunk\", subtitle: \"Futurista urbano nocturno\", free: false, promptBlock: \""
+        },
+        {
+          "lineNumber": 50,
+          "content": "{ id: 11, name: \"Retrato �ntimo Ventana\", subtitle: \"Luz natural pensativa\", free: false, promptBloc"
+        },
+        {
+          "lineNumber": 51,
+          "content": "{ id: 12, name: \"Acci�n Deportiva Congelado\", subtitle: \"Movimiento n�tido\", free: false, promptBloc"
+        },
+        {
+          "lineNumber": 53,
+          "content": "{ id: 14, name: \"Fantas�a Surrealista Et�reo\", subtitle: \"On�rico y de otro mundo\", free: false, pro"
+        },
+        {
+          "lineNumber": 54,
+          "content": "{ id: 15, name: \"Editorial Fashion\", subtitle: \"Alta moda dram�tica\", free: false, promptBlock: \"Edi"
+        },
+        {
+          "lineNumber": 58,
+          "content": "{ id: 1, name: \"Estudio Fondo Negro\", description: \"Minimalista, dram�tico, fondo oscuro\", prompt: \""
+        },
+        {
+          "lineNumber": 59,
+          "content": "{ id: 2, name: \"Calle Europea Atardecer\", description: \"Arquitectura cl�sica, luz dorada\", prompt: \""
+        },
+        {
+          "lineNumber": 63,
+          "content": "{ id: 6, name: \"Bosque Niebla Atmosf�rico\", description: \"Naturaleza, bruma, luz filtrada\", prompt: "
+        },
+        {
+          "lineNumber": 65,
+          "content": "{ id: 8, name: \"Industrial Warehouse Oscuro\", description: \"Grungy, luces pr�cticas, textura\", promp"
+        },
+        {
+          "lineNumber": 75,
+          "content": "// Planes y cr�ditos (seg�n tu especificaci�n)"
+        },
+        {
+          "lineNumber": 84,
+          "content": "features: [\"5 cr�ditos al registrarte\", \"Newsletter con consejos y trucos\", \"4 prompts exclusivos al"
+        },
+        {
+          "lineNumber": 93,
+          "content": "features: [\"60 cr�ditos/mes\", \"3 prompts personalizados (24–48h)\", \"Revisiones incluidas\", \"8 prompt"
+        },
+        {
+          "lineNumber": 102,
+          "content": "features: [\"300 cr�ditos/mes\", \"Acceso al agente personalizado\", \"Asesor�a 1 a 1\", \"5 prompts person"
+        },
+        {
+          "lineNumber": 156,
+          "content": "// Generaci�n real: llamada al endpoint /api/gemini-processor"
+        },
+        {
+          "lineNumber": 161,
+          "content": "setResponse(\"Inicia sesi�n para generar.\");"
+        },
+        {
+          "lineNumber": 162,
+          "content": "window.App_showToast?.(\"Inicia sesi�n para generar.\");"
+        },
+        {
+          "lineNumber": 166,
+          "content": "setResponse(\"No tienes cr�ditos disponibles. Compra cr�ditos o suscr�bete.\");"
+        },
+        {
+          "lineNumber": 167,
+          "content": "window.App_showToast?.(\"No tienes cr�ditos.\");"
+        },
+        {
+          "lineNumber": 202,
+          "content": "setResponse(data.prompt || \"No se recibi� respuesta del generador.\");"
+        },
+        {
+          "lineNumber": 248,
+          "content": "{/* ALERTA DE CR�DITOS */}"
+        },
+        {
+          "lineNumber": 253,
+          "content": "? '⚠️ No tienes cr�ditos. Actualiza tu plan para continuar.'"
+        },
+        {
+          "lineNumber": 254,
+          "content": ": `⚠️ Te quedan ${profile.credits} cr�dito${profile.credits === 1 ? '' : 's'}.`"
+        },
+        {
+          "lineNumber": 279,
+          "content": "placeholder=\"Ej: un retrato cinematogr�fico en una calle europea al atardecer...\""
+        },
+        {
+          "lineNumber": 313,
+          "content": "<label className=\"block text-sm font-medium text-gray-300 mb-3\">🎨 Estilos B�sicos (GRATIS):</label>"
+        },
+        {
+          "lineNumber": 384,
+          "content": "{/* BOT�N GENERAR */}"
+        },
+        {
+          "lineNumber": 396,
+          "content": "{/* AN�LISIS DE CALIDAD */}"
+        },
+        {
+          "lineNumber": 402,
+          "content": "<pre className=\"text-gray-300 whitespace-pre-wrap font-sans text-sm\">{response || \"Aqu� aparecer� el"
+        },
+        {
+          "lineNumber": 414,
+          "content": "{/* Usar en Gemini: copia + abre pesta�a */}"
+        },
+        {
+          "lineNumber": 487,
+          "content": "No tienes prompts guardados a�n."
+        },
+        {
+          "lineNumber": 490,
+          "content": "Los usuarios Free guardan solo los �ltimos 3 prompts."
+        },
+        {
+          "lineNumber": 504,
+          "content": "(�ltimos 3)"
+        },
+        {
+          "lineNumber": 586,
+          "content": "// Mostrar mensaje de �xito"
+        },
+        {
+          "lineNumber": 592,
+          "content": "// Esperar 3 segundos y RECARGAR P�GINA COMPLETA"
+        },
+        {
+          "lineNumber": 594,
+          "content": "console.log('?? Recargando p�gina para actualizar datos...');"
+        },
+        {
+          "lineNumber": 609,
+          "content": "console.log('?? CERRANDO SESI�N - Inicio')"
+        },
+        {
+          "lineNumber": 617,
+          "content": "console.log('?? Recargando p�gina...')"
+        },
+        {
+          "lineNumber": 620,
+          "content": "console.error('? Error al cerrar sesi�n:', error)"
+        },
+        {
+          "lineNumber": 673,
+          "content": "throw new Error(errorData.error || 'Error al crear sesi�n de checkout');"
+        },
+        {
+          "lineNumber": 678,
+          "content": "console.log('? Sesi�n creada - Redirigiendo a Stripe...');"
+        },
+        {
+          "lineNumber": 695,
+          "content": "{/* Bot�n Hamburguesa (solo m�vil) */}"
+        },
+        {
+          "lineNumber": 708,
+          "content": "{/* Logo - Centrado en m�vil, izquierda en desktop */}"
+        },
+        {
+          "lineNumber": 729,
+          "content": "{/* Spacer para balance en m�vil */}"
+        },
+        {
+          "lineNumber": 738,
+          "content": "Galer�a"
+        },
+        {
+          "lineNumber": 770,
+          "content": "Iniciar sesi�n"
+        },
+        {
+          "lineNumber": 793,
+          "content": "Galer�a"
+        },
+        {
+          "lineNumber": 830,
+          "content": "<span className=\"text-sm text-gray-400\">Cr�ditos</span>"
+        },
+        {
+          "lineNumber": 865,
+          "content": "Cerrar Sesi�n"
+        },
+        {
+          "lineNumber": 877,
+          "content": "Iniciar sesi�n"
+        },
+        {
+          "lineNumber": 904,
+          "content": "{/* Galer�a Preview */}"
+        },
+        {
+          "lineNumber": 908,
+          "content": "<h2 className=\"text-4xl font-bold mb-4\">Galer�a de Prompts Profesionales</h2>"
+        },
+        {
+          "lineNumber": 909,
+          "content": "<p className=\"text-muted text-lg\">Explora nuestra colecci�n de prompts optimizados</p>"
+        },
+        {
+          "lineNumber": 935,
+          "content": "Ver Galer�a Completa"
+        },
+        {
+          "lineNumber": 963,
+          "content": "<p className=\"text-sm text-muted\">Preset optimizado para fotograf�a {preset.toLowerCase()}</p>"
+        },
+        {
+          "lineNumber": 970,
+          "content": "{/* CTA Gu�a PDF */}"
+        },
+        {
+          "lineNumber": 973,
+          "content": "<h3 className=\"text-2xl font-heading font-semibold mb-3\">Gu�a para crear PROMPTS de retratos profesi"
+        },
+        {
+          "lineNumber": 974,
+          "content": "<p className=\"text-lg text-muted mb-6\">Descarga nuestra gu�a en pdf</p>"
+        },
+        {
+          "lineNumber": 977,
+          "content": "<span>Descargar gu�a GRATIS</span>"
+        },
+        {
+          "lineNumber": 997,
+          "content": "<p className=\"text-gray-600 text-sm\">� {new Date().getFullYear()} Promptraits by Sr. Waly.</p>"
+        },
+        {
+          "lineNumber": 1003,
+          "content": "{/* GALER�A */}"
+        },
+        {
+          "lineNumber": 1077,
+          "content": "<h2 className=\"text-3xl font-bold mb-4 text-white\">�Pago Exitoso!</h2>"
+        },
+        {
+          "lineNumber": 1079,
+          "content": "Tu compra se ha procesado correctamente. Actualizando tus cr�ditos..."
+        }
+      ]
+    },
+    {
+      "path": "src\\components\\AIGenerator.jsx",
+      "lines": [
+        {
+          "lineNumber": 18,
+          "content": "setError(\"Por favor, describe qu� quieres generar\");"
+        },
+        {
+          "lineNumber": 23,
+          "content": "setError(\"Debes iniciar sesi�n\");"
+        },
+        {
+          "lineNumber": 28,
+          "content": "setError(\"No tienes cr�ditos suficientes\");"
+        },
+        {
+          "lineNumber": 57,
+          "content": "analyzeQuality: false, // No analizar calidad en esta versi�n simple"
+        },
+        {
+          "lineNumber": 71,
+          "content": "// Descontar 1 cr�dito (hacer request a tu endpoint de cr�ditos)"
+        },
+        {
+          "lineNumber": 74,
+          "content": "// Refrescar perfil para actualizar cr�ditos en UI"
+        },
+        {
+          "lineNumber": 104,
+          "content": "label: \"Fantas�a �pica\","
+        },
+        {
+          "lineNumber": 105,
+          "content": "value: \"Un drag�n majestuoso volando sobre monta�as nevadas al atardecer\","
+        },
+        {
+          "lineNumber": 114,
+          "content": "value: \"Un bosque m�gico con luci�rnagas y �rboles bioluminiscentes\","
+        },
+        {
+          "lineNumber": 131,
+          "content": "Describe tu idea y Gemini crear� el prompt perfecto para tus"
+        },
+        {
+          "lineNumber": 132,
+          "content": "im�genes"
+        },
+        {
+          "lineNumber": 136,
+          "content": "{/* Cr�ditos disponibles */}"
+        },
+        {
+          "lineNumber": 140,
+          "content": "Cr�ditos disponibles:{\" \"}"
+        },
+        {
+          "lineNumber": 146,
+          "content": "Cada generaci�n cuesta 1 cr�dito"
+        },
+        {
+          "lineNumber": 157,
+          "content": "�Qu� quieres generar? *"
+        },
+        {
+          "lineNumber": 162,
+          "content": "placeholder=\"Ej: Un astronauta explorando un planeta alien�gena lleno de cristales brillantes\""
+        },
+        {
+          "lineNumber": 168,
+          "content": "{/* Ejemplos r�pidos */}"
+        },
+        {
+          "lineNumber": 183,
+          "content": "{/* Estilo art�stico */}"
+        },
+        {
+          "lineNumber": 186,
+          "content": "Estilo art�stico (opcional)"
+        },
+        {
+          "lineNumber": 192,
+          "content": "placeholder=\"Ej: Cyberpunk, Acuarela, Realismo fotogr�fico, Anime...\""
+        },
+        {
+          "lineNumber": 206,
+          "content": "placeholder=\"Ej: Iluminaci�n nocturna, colores vibrantes, perspectiva cenital...\""
+        },
+        {
+          "lineNumber": 220,
+          "content": "{/* Bot�n generar */}"
+        }
+      ]
+    },
+    {
+      "path": "src\\components\\__tests__\\example.test.js",
+      "lines": [
+        {
+          "lineNumber": 3,
+          "content": "describe('Ejemplo b�sico', () => {"
+        },
+        {
+          "lineNumber": 4,
+          "content": "it('deber�a pasar este test simple', () => {"
+        },
+        {
+          "lineNumber": 8,
+          "content": "it('deber�a verificar strings', () => {"
+        },
+        {
+          "lineNumber": 13,
+          "content": "it('deber�a verificar arrays', () => {"
+        }
+      ]
+    },
+    {
+      "path": "src\\test\\setup.js",
+      "lines": [
+        {
+          "lineNumber": 5,
+          "content": "// Cleanup despu�s de cada test"
+        }
+      ]
+    }
+  ],
+  "filesWithGoodChars": [
+    "src\\components\\Auth\\Checkout.jsx",
+    "src\\components\\Auth\\Profile.jsx",
+    "src\\components\\Gallery.jsx",
+    "src\\components\\Pricing.jsx",
+    "src\\data\\prompts.js",
+    "api\\gemini-processor.js",
+    "api\\__tests__\\gemini-processor.test.js"
+  ],
+  "suspiciousFiles": [
+    "src\\config\\stripe.js",
+    "api\\create-checkout.js",
+    "api\\stripe-webhook.js"
+  ],
+  "totalFiles": 30
+}
