@@ -1,4 +1,4 @@
-﻿import { User, Settings, LogOut, Crown } from "lucide-react";
+import { User, Settings, LogOut, Crown } from "lucide-react";
 import { useState } from "react";
 
 export default function UserMenu({ credits = 0, plan = 'free', onNavigate }) {

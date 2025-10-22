@@ -1,4 +1,4 @@
-﻿export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, isApplying }) {
+export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, isApplying }) {
   if (!analysis) return null;
   
   return (

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { ALL_PROMPTS } from '../data/prompts.js';
 import { Check } from 'lucide-react';
 

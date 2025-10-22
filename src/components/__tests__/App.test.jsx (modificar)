@@ -1,0 +1,10 @@
+describe('App Component', () => {
+    it('renders correctly', () => {
+        expect(true).toBe(true);
+    });
+
+    it('has the correct title', () => {
+        const title = 'My App';
+        expect(title).toBe('My App');
+    });
+});

@@ -294,3 +294,53 @@ export default function AIGenerator() {
 }
 
 // src/components/__tests__/AIGenerator.test.jsx
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import AIGenerator from "../AIGenerator";
+import { AuthContext } from "../../contexts/AuthContext";
+
+// Mock del contexto de autenticación
+const mockAuthContext = {
+  user: { id: "123", email: "test@test.com" },
+  profile: { credits: 100, plan: "free" },
+  refreshProfile: vi.fn(),
+};
+
+describe("AIGenerator Component", () => {
+  it("debería mostrar el formulario", () => {
+    render(
+      <AuthContext.Provider value={mockAuthContext}>
+        <AIGenerator />
+      </AuthContext.Provider>
+    );
+
+    expect(
+      screen.getByText(/Generador de Prompts con IA/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/¿Qué quieres generar?/i)
+    ).toBeInTheDocument();
+  });
+
+  it("debería mostrar los créditos disponibles", () => {
+    render(
+      <AuthContext.Provider value={mockAuthContext}>
+        <AIGenerator />
+      </AuthContext.Provider>
+    );
+
+    expect(screen.getByText(/Créditos disponibles:/i)).toBeInTheDocument();
+    expect(screen.getByText("100")).toBeInTheDocument();
+  });
+
+  it("debería deshabilitar el botón si no hay tema", () => {
+    render(
+      <AuthContext.Provider value={mockAuthContext}>
+        <AIGenerator />
+      </AuthContext.Provider>
+    );
+
+    const button = screen.getByRole("button", { name: /Generar Prompt/i });
+    expect(button).toBeDisabled();
+  });
+});
