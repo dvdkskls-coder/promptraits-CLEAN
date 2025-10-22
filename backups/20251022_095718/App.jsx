@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+Ôªøimport React, { useState, useMemo, useEffect } from "react";
 import { Camera, Check, Instagram, Send, Menu, X, Download, Copy, Gift, Crown, Lock, ChevronDown, ChevronUp, Lightbulb, Trash2, Upload, Sparkles } from "lucide-react";
 
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
@@ -10,12 +10,11 @@ import CategoryTabs from './components/CategoryTabs.jsx';
 import Login from './components/Auth/Login.jsx';
 import Register from './components/Auth/Register.jsx';
 import UserMenu from './components/Auth/UserMenu.jsx';
-import AIGenerator from './components/AIGenerator';
 import Profile from './components/Auth/Profile.jsx';
 import Checkout from './components/Auth/Checkout.jsx';
 import Pricing from './components/Pricing.jsx';
 
-// ? A—ADIR ESTOS IMPORTS
+// ‚Üê A√ëADIR ESTOS IMPORTS
 import Gallery from './components/Gallery.jsx';
 import Generator from './components/Generator.jsx';
 import History from './components/History.jsx';
@@ -37,32 +36,32 @@ const CATEGORIES = [
 
 // PRESETS (3 free + 12 pro)
 const PRESETS = [
-  { id: 1, name: "Cinematogr·fico Editorial", subtitle: "Low-Key Rembrandt", free: true, promptBlock: "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting..." },
-  { id: 2, name: "Golden Hour Lifestyle", subtitle: "C·lido atardecer", free: true, promptBlock: "Warm golden hour portrait, 50mm f/1.8..." },
+  { id: 1, name: "Cinematogr√°fico Editorial", subtitle: "Low-Key Rembrandt", free: true, promptBlock: "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting..." },
+  { id: 2, name: "Golden Hour Lifestyle", subtitle: "C√°lido atardecer", free: true, promptBlock: "Warm golden hour portrait, 50mm f/1.8..." },
   { id: 3, name: "Corporate Clean", subtitle: "High-Key profesional", free: true, promptBlock: "High-key professional headshot..." },
   { id: 4, name: "Environmental Portrait", subtitle: "Sujeto en su entorno", free: false, promptBlock: "Environmental portrait..." },
-  { id: 5, name: "Beauty Soft Front", subtitle: "Beauty homogÈneo", free: false, promptBlock: "Beauty portrait..." },
-  { id: 6, name: "B/N Cl·sico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait..." },
-  { id: 7, name: "FotografÌa Urbana Street", subtitle: "EnergÌa callejera", free: false, promptBlock: "Urban street photography..." },
-  { id: 8, name: "EnsueÒo Vintage 70s", subtitle: "Nost·lgico y c·lido", free: false, promptBlock: "Vintage 70s dreamy portrait..." },
-  { id: 9, name: "Film Noir Cl·sico", subtitle: "Drama B/N aÒos 40-50", free: false, promptBlock: "Classic film noir portrait..." },
-  { id: 10, name: "NeÛn Cyberpunk", subtitle: "Futurista urbano nocturno", free: false, promptBlock: "Cyberpunk neon portrait..." },
-  { id: 11, name: "Retrato Ìçntimo Ventana", subtitle: "Luz natural pensativa", free: false, promptBlock: "Intimate window light portrait..." },
-  { id: 12, name: "AcciÛn Deportiva Congelado", subtitle: "Movimiento nÌtido", free: false, promptBlock: "Frozen sports action..." },
+  { id: 5, name: "Beauty Soft Front", subtitle: "Beauty homog√©neo", free: false, promptBlock: "Beauty portrait..." },
+  { id: 6, name: "B/N Cl√°sico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait..." },
+  { id: 7, name: "Fotograf√≠a Urbana Street", subtitle: "Energ√≠a callejera", free: false, promptBlock: "Urban street photography..." },
+  { id: 8, name: "Ensue√±o Vintage 70s", subtitle: "Nost√°lgico y c√°lido", free: false, promptBlock: "Vintage 70s dreamy portrait..." },
+  { id: 9, name: "Film Noir Cl√°sico", subtitle: "Drama B/N a√±os 40-50", free: false, promptBlock: "Classic film noir portrait..." },
+  { id: 10, name: "Ne√≥n Cyberpunk", subtitle: "Futurista urbano nocturno", free: false, promptBlock: "Cyberpunk neon portrait..." },
+  { id: 11, name: "Retrato √≠¬çntimo Ventana", subtitle: "Luz natural pensativa", free: false, promptBlock: "Intimate window light portrait..." },
+  { id: 12, name: "Acci√≥n Deportiva Congelado", subtitle: "Movimiento n√≠tido", free: false, promptBlock: "Frozen sports action..." },
   { id: 13, name: "Producto Minimalista Lujo", subtitle: "Elegante y limpio", free: false, promptBlock: "Luxury minimalist product..." },
-  { id: 14, name: "FantasÌa Surrealista EtÈreo", subtitle: "OnÌrico y de otro mundo", free: false, promptBlock: "Surreal ethereal fantasy..." },
-  { id: 15, name: "Editorial Fashion", subtitle: "Alta moda dram·tica", free: false, promptBlock: "Editorial fashion portrait..." }
+  { id: 14, name: "Fantas√≠a Surrealista Et√©reo", subtitle: "On√≠rico y de otro mundo", free: false, promptBlock: "Surreal ethereal fantasy..." },
+  { id: 15, name: "Editorial Fashion", subtitle: "Alta moda dram√°tica", free: false, promptBlock: "Editorial fashion portrait..." }
 ];
 
 const SCENARIOS = [
-  { id: 1, name: "Estudio Fondo Negro", description: "Minimalista, dram·tico, fondo oscuro", prompt: "Professional studio with seamless black backdrop..." },
-  { id: 2, name: "Calle Europea Atardecer", description: "Arquitectura cl·sica, luz dorada", prompt: "Narrow European street at golden hour..." },
+  { id: 1, name: "Estudio Fondo Negro", description: "Minimalista, dram√°tico, fondo oscuro", prompt: "Professional studio with seamless black backdrop..." },
+  { id: 2, name: "Calle Europea Atardecer", description: "Arquitectura cl√°sica, luz dorada", prompt: "Narrow European street at golden hour..." },
   { id: 3, name: "Playa Amanecer Contraluz", description: "Costa, luz suave, horizonte marino", prompt: "Sandy beach at sunrise..." },
   { id: 4, name: "Urbano Nocturno Neones", description: "Ciudad de noche, luces vibrantes", prompt: "Night city street with neon signs..." },
   { id: 5, name: "Interior Ventana Natural", description: "Luz de ventana lateral suave", prompt: "Indoor setting with large window as single light source..." },
-  { id: 6, name: "Bosque Niebla AtmosfÈrico", description: "Naturaleza, bruma, luz filtrada", prompt: "Misty forest setting..." },
+  { id: 6, name: "Bosque Niebla Atmosf√©rico", description: "Naturaleza, bruma, luz filtrada", prompt: "Misty forest setting..." },
   { id: 7, name: "Azotea Ciudad Atardecer", description: "Skyline urbano, golden hour", prompt: "Rooftop location at sunset..." },
-  { id: 8, name: "Industrial Warehouse Oscuro", description: "Grungy, luces pr·cticas, textura", prompt: "Dark industrial warehouse..." }
+  { id: 8, name: "Industrial Warehouse Oscuro", description: "Grungy, luces pr√°cticas, textura", prompt: "Dark industrial warehouse..." }
 ];
 
 // Packs de recarga
@@ -72,7 +71,7 @@ const CREDIT_PACKS = [
   { credits: 100, price: "15.99" }
 ];
 
-// Planes y crÈditos (seg˙n tu especificaciÛn)
+// Planes y cr√©ditos (seg√∫n tu especificaci√≥n)
 const SUBSCRIPTION_PLANS = [
   {
     name: "FREE",
@@ -81,25 +80,25 @@ const SUBSCRIPTION_PLANS = [
     period: "por registrarte",
     popular: false,
     credits: 5,
-    features: ["5 crÈditos al registrarte", "Newsletter con consejos y trucos", "4 prompts exclusivos al mes"]
+    features: ["5 cr√©ditos al registrarte", "Newsletter con consejos y trucos", "4 prompts exclusivos al mes"]
   },
   {
     name: "PRO",
     price: "6.99",
-    priceLabel: "6.99‚Ç¨",
+    priceLabel: "6.99√¢‚Äö¬¨",
     period: "/mes",
     popular: true,
     credits: 60,
-    features: ["60 crÈditos/mes", "3 prompts personalizados (24‚Äì48h)", "Revisiones incluidas", "8 prompts exclusivos al mes"]
+    features: ["60 cr√©ditos/mes", "3 prompts personalizados (24√¢‚Ç¨‚Äú48h)", "Revisiones incluidas", "8 prompts exclusivos al mes"]
   },
   {
     name: "PREMIUM",
     price: "19.99",
-    priceLabel: "19.99‚Ç¨",
+    priceLabel: "19.99√¢‚Äö¬¨",
     period: "/mes",
     popular: false,
     credits: 300,
-    features: ["300 crÈditos/mes", "Acceso al agente personalizado", "AsesorÌa 1 a 1", "5 prompts personalizados"]
+    features: ["300 cr√©ditos/mes", "Acceso al agente personalizado", "Asesor√≠a 1 a 1", "5 prompts personalizados"]
   }
 ];
 
@@ -153,18 +152,18 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
     reader.onerror = (err) => reject(err);
   });
 
-  // GeneraciÛn real: llamada al endpoint /api/gemini-processor
+  // Generaci√≥n real: llamada al endpoint /api/gemini-processor
   const handleGenerate = async (e) => {
     e && e.preventDefault();
 
     if (!user) {
-      setResponse("Inicia sesiÛn para generar.");
-      window.App_showToast?.("Inicia sesiÛn para generar.");
+      setResponse("Inicia sesi√≥n para generar.");
+      window.App_showToast?.("Inicia sesi√≥n para generar.");
       return;
     }
     if (profile?.credits <= 0) {
-      setResponse("No tienes crÈditos disponibles. Compra crÈditos o suscrÌbete.");
-      window.App_showToast?.("No tienes crÈditos.");
+      setResponse("No tienes cr√©ditos disponibles. Compra cr√©ditos o suscr√≠bete.");
+      window.App_showToast?.("No tienes cr√©ditos.");
       return;
     }
 
@@ -199,7 +198,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
       }
 
       const data = await res.json();
-      setResponse(data.prompt || "No se recibiÛ respuesta del generador.");
+      setResponse(data.prompt || "No se recibi√≥ respuesta del generador.");
       if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
       window.App_showToast?.("Prompt generado.");
     } catch (err) {
@@ -245,17 +244,17 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
   return (
     <section id="prompt-generator" className="py-24 px-4 bg-black/20">
       <div className="max-w-6xl mx-auto">
-        {/* ALERTA DE CRÌâDITOS */}
+        {/* ALERTA DE CR√≠‚Ä∞DITOS */}
         {user && profile && profile.credits <= 3 && (
           <div className={`mb-6 p-4 rounded-lg border ${profile.credits === 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-[color:var(--primary)]/10 border-[color:var(--primary)]/30'}`}>
             <p className={`font-bold ${profile.credits === 0 ? 'text-red-400' : 'text-[color:var(--primary)]'}`}>
               {profile.credits === 0
-                ? '‚ö†Ô∏è No tienes crÈditos. Actualiza tu plan para continuar.'
-                : `‚ö†Ô∏è Te quedan ${profile.credits} crÈdito${profile.credits === 1 ? '' : 's'}.`
+                ? '√¢≈°¬†√Ø¬∏¬è No tienes cr√©ditos. Actualiza tu plan para continuar.'
+                : `√¢≈°¬†√Ø¬∏¬è Te quedan ${profile.credits} cr√©dito${profile.credits === 1 ? '' : 's'}.`
               }
             </p>
             {profile.plan === 'free' && (
-              <a href="#planes" className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold mt-2 inline-block">Ver planes ‚Üí</a>
+              <a href="#planes" className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold mt-2 inline-block">Ver planes √¢‚Ä†‚Äô</a>
             )}
           </div>
         )}
@@ -276,7 +275,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                   id="inputText"
                   rows="8"
                   className="w-full h-full bg-black/50 border border-[color:var(--border)] rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-[color:var(--primary)] resize-none"
-                  placeholder="Ej: un retrato cinematogr·fico en una calle europea al atardecer..."
+                  placeholder="Ej: un retrato cinematogr√°fico en una calle europea al atardecer..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                 ></textarea>
@@ -310,7 +309,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
 
             {/* PRESETS FREE (compactos) */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">üé® Estilos B·sicos (GRATIS):</label>
+              <label className="block text-sm font-medium text-gray-300 mb-3">√∞≈∏≈Ω¬® Estilos B√°sicos (GRATIS):</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {PRESETS.filter(p => p.free).map(preset => (
                   <button
@@ -332,7 +331,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
                   <Lock className="w-10 h-10 text-[color:var(--primary)] mx-auto mb-4" />
                   <p className="text-white font-bold text-lg mb-2">Herramientas PRO</p>
-                  <a href="#planes" className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold">Actualizar a PRO ‚Üí</a>
+                  <a href="#planes" className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold">Actualizar a PRO √¢‚Ä†‚Äô</a>
                 </div>
               )}
 
@@ -354,7 +353,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                   <div>
                     <button type="button" onClick={generateRandomIdea} className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition-all">
                       <Lightbulb size={18} />
-                      <span>üí° Generar Idea Aleatoria</span>
+                      <span>√∞≈∏‚Äô¬° Generar Idea Aleatoria</span>
                     </button>
                     <p className="text-xs text-muted mt-2 text-center">Genera ideas completas con estilo, escenario y vestuario</p>
                   </div>
@@ -362,7 +361,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                   <div className="border-t border-[color:var(--border)] my-2"></div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">‚ú® Presets PRO (12 adicionales):</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">√¢≈ì¬® Presets PRO (12 adicionales):</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {PRESETS.filter(p => !p.free).map(preset => (
                         <button
@@ -381,7 +380,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
               )}
             </div>
 
-            {/* BOTÌìN GENERAR */}
+            {/* BOT√≠‚ÄúN GENERAR */}
             <div className="pt-2">
               <button
                 type="submit"
@@ -393,13 +392,13 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
             </div>
           </form>
 
-          {/* ANÌÅLISIS DE CALIDAD */}
+          {/* AN√≠¬ÅLISIS DE CALIDAD */}
 <QualityAnalysis analysis={qualityAnalysis} isPro={isPro} onApplySuggestions={handleApplySuggestions} isApplying={isApplyingSuggestions} />
           {/* PROMPT GENERADO */}
           <div className="mt-6">
             <h3 className="font-semibold text-lg mb-3">Prompt Generado:</h3>
             <div className="bg-black/40 border border-[color:var(--border)] rounded-lg p-4">
-              <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">{response || "AquÌ aparecer· el prompt generado..."}</pre>
+              <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">{response || "Aqu√≠ aparecer√° el prompt generado..."}</pre>
               {response && (
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Copiar */}
@@ -411,12 +410,12 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                     <span>Copiar Prompt</span>
                   </button>
 
-                  {/* Usar en Gemini: copia + abre pestaÒa */}
+                  {/* Usar en Gemini: copia + abre pesta√±a */}
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(response);
                       window.open("https://gemini.google.com/app", "_blank", "noopener,noreferrer");
-                      if (window.App_showToast) window.App_showToast("Prompt copiado. Abriendo Gemini‚Ä¶");
+                      if (window.App_showToast) window.App_showToast("Prompt copiado. Abriendo Gemini√¢‚Ç¨¬¶");
                     }}
                     className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition"
                   >
@@ -484,10 +483,10 @@ function PromptHistory() {
   if (history.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400">
-        No tienes prompts guardados a˙n.
+        No tienes prompts guardados a√∫n.
         {profile.plan === 'free' && (
           <p className="mt-2 text-sm">
-            Los usuarios Free guardan solo los ˙ltimos 3 prompts.
+            Los usuarios Free guardan solo los √∫ltimos 3 prompts.
           </p>
         )}
       </div>
@@ -501,7 +500,7 @@ function PromptHistory() {
           Historial de Prompts
           {profile.plan === 'free' && (
             <span className="text-sm text-gray-400 ml-2">
-              (˙ltimos 3)
+              (√∫ltimos 3)
             </span>
           )}
         </h3>
@@ -581,43 +580,43 @@ function AppContent() {
     const sessionId = params.get('session_id');
     
     if (payment === 'success' && sessionId) {
-      console.log('? Pago exitoso detectado');
+      console.log('‚úÖ Pago exitoso detectado');
       
-      // Mostrar mensaje de Èxito
+      // Mostrar mensaje de √©xito
       setShowPaymentSuccess(true);
       
       // Limpiar URL inmediatamente
       window.history.replaceState({}, '', '/');
       
-      // Esperar 3 segundos y RECARGAR P¡GINA COMPLETA
+      // Esperar 3 segundos y RECARGAR P√ÅGINA COMPLETA
       setTimeout(() => {
-        console.log('?? Recargando p·gina para actualizar datos...');
+        console.log('üîÑ Recargando p√°gina para actualizar datos...');
         window.location.reload();
       }, 3000);
       
     } else if (payment === 'cancelled') {
-      console.log('?? Pago cancelado');
+      console.log('‚ö†Ô∏è Pago cancelado');
       setView('pricing');
       window.history.replaceState({}, '', '/');
     }
   }, []);
 
   const handleNavigation = async (action) => {
-    console.log('?? handleNavigation:', action)
+    console.log('üî¥ handleNavigation:', action)
 
     if (action === 'logout') {
-      console.log('?? CERRANDO SESI”N - Inicio')
+      console.log('üî¥ CERRANDO SESI√ìN - Inicio')
       try {
         const { error } = await signOut()
         if (error) {
-          console.error('? Error en signOut:', error)
+          console.error('‚ùå Error en signOut:', error)
           throw error
         }
-        console.log('? signOut() ejecutado')
-        console.log('?? Recargando p·gina...')
+        console.log('‚úÖ signOut() ejecutado')
+        console.log('üîÑ Recargando p√°gina...')
         window.location.reload()
       } catch (error) {
-        console.error('? Error al cerrar sesiÛn:', error)
+        console.error('‚ùå Error al cerrar sesi√≥n:', error)
       }
       return
     }
@@ -633,26 +632,26 @@ function AppContent() {
   }
 
   const handlePlanSelection = async (planId) => {
-    console.log('?? Plan seleccionado:', planId);
+    console.log('üîµ Plan seleccionado:', planId);
 
     if (planId === 'free') {
       if (!user) {
         setShowAuth(true);
         setAuthMode('register');
       } else {
-        console.log('?? Ya tienes el plan FREE');
+        console.log('‚ÑπÔ∏è Ya tienes el plan FREE');
       }
       return;
     }
 
     if (!user) {
-      console.log('?? Usuario no logueado - Mostrando modal de login');
+      console.log('‚ö†Ô∏è Usuario no logueado - Mostrando modal de login');
       setShowAuth(true);
       setAuthMode('login');
       return;
     }
 
-    console.log('?? Usuario logueado - Iniciando checkout...');
+    console.log('üí≥ Usuario logueado - Iniciando checkout...');
     setIsProcessingCheckout(true);
     
     try {
@@ -670,17 +669,17 @@ function AppContent() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear sesiÛn de checkout');
+        throw new Error(errorData.error || 'Error al crear sesi√≥n de checkout');
       }
 
       const { url } = await response.json();
       
-      console.log('? SesiÛn creada - Redirigiendo a Stripe...');
+      console.log('‚úÖ Sesi√≥n creada - Redirigiendo a Stripe...');
       
       // Redirigir a Stripe Checkout
       window.location.href = url;
     } catch (error) {
-      console.error('? Error en checkout:', error);
+      console.error('‚ùå Error en checkout:', error);
       alert(`Error al procesar el pago: ${error.message}\n\nPor favor, intenta de nuevo.`);
       setIsProcessingCheckout(false);
     }
@@ -692,7 +691,7 @@ function AppContent() {
       <header className="fixed top-0 left-0 right-0 z-40 bg-black/50 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* BotÛn Hamburguesa (solo mÛvil) */}
+            {/* Bot√≥n Hamburguesa (solo m√≥vil) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
@@ -705,7 +704,7 @@ function AppContent() {
               )}
             </button>
 
-            {/* Logo - Centrado en mÛvil, izquierda en desktop */}
+            {/* Logo - Centrado en m√≥vil, izquierda en desktop */}
             <div className="flex-1 md:flex-initial flex justify-center md:justify-start">
               <div 
                 onClick={() => {
@@ -726,7 +725,7 @@ function AppContent() {
               </div>
             </div>
 
-            {/* Spacer para balance en mÛvil */}
+            {/* Spacer para balance en m√≥vil */}
             <div className="w-10 md:hidden"></div>
 
             {/* Navigation Desktop */}
@@ -735,7 +734,7 @@ function AppContent() {
                 onClick={() => setView('gallery')} 
                 className={`transition duration-300 ${view === 'gallery' ? 'text-[var(--primary)]' : 'text-gray-300 hover:text-white'}`}
               >
-                GalerÌa
+                Galer√≠a
               </button>
               <button 
                 onClick={() => handleNavigation('generator')} 
@@ -767,7 +766,7 @@ function AppContent() {
                   }}
                   className="px-6 py-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-semibold hover:opacity-90 transition duration-300"
                 >
-                  Iniciar sesiÛn
+                  Iniciar sesi√≥n
                 </button>
               )}
             </div>
@@ -790,7 +789,7 @@ function AppContent() {
                     : 'text-gray-300 hover:bg-white/10'
                 }`}
               >
-                GalerÌa
+                Galer√≠a
               </button>
               
               <button
@@ -827,7 +826,7 @@ function AppContent() {
                 <div className="space-y-3">
                   <div className="px-4 py-3 bg-white/5 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-400">CrÈditos</span>
+                      <span className="text-sm text-gray-400">Cr√©ditos</span>
                       <span className="text-lg font-bold text-[var(--primary)]">
                         {profile?.credits || 0}
                       </span>
@@ -862,7 +861,7 @@ function AppContent() {
                     onClick={() => handleNavigation('logout')}
                     className="block w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition"
                   >
-                    Cerrar SesiÛn
+                    Cerrar Sesi√≥n
                   </button>
                 </div>
               ) : (
@@ -874,7 +873,7 @@ function AppContent() {
                   }}
                   className="w-full px-6 py-3 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-semibold hover:opacity-90 transition"
                 >
-                  Iniciar sesiÛn
+                  Iniciar sesi√≥n
                 </button>
               )}
             </div>
@@ -901,12 +900,12 @@ function AppContent() {
               </AnimatedSection>
             </section>
 
-            {/* GalerÌa Preview */}
+            {/* Galer√≠a Preview */}
             <AnimatedSection className="py-20 px-4">
               <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold mb-4">GalerÌa de Prompts Profesionales</h2>
-                  <p className="text-muted text-lg">Explora nuestra colecciÛn de prompts optimizados</p>
+                  <h2 className="text-4xl font-bold mb-4">Galer√≠a de Prompts Profesionales</h2>
+                  <p className="text-muted text-lg">Explora nuestra colecci√≥n de prompts optimizados</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   {ALL_PROMPTS.slice(0, 4).map((prompt) => (
@@ -932,7 +931,7 @@ function AppContent() {
                     onClick={() => setView('gallery')} 
                     className="px-8 py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition"
                   >
-                    Ver GalerÌa Completa
+                    Ver Galer√≠a Completa
                   </button>
                 </div>
               </div>
@@ -960,21 +959,21 @@ function AppContent() {
                         <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
                       </div>
                       <h3 className="text-xl font-semibold mb-2">{preset}</h3>
-                      <p className="text-sm text-muted">Preset optimizado para fotografÌa {preset.toLowerCase()}</p>
+                      <p className="text-sm text-muted">Preset optimizado para fotograf√≠a {preset.toLowerCase()}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </AnimatedSection>
 
-            {/* CTA GuÌa PDF */}
+            {/* CTA Gu√≠a PDF */}
             <section className="py-12 px-4">
               <div className="max-w-7xl mx-auto text-center">
-                <h3 className="text-2xl font-heading font-semibold mb-3">GuÌa para crear PROMPTS de retratos profesional <span className="text-[color:var(--primary)]">GRATIS</span></h3>
-                <p className="text-lg text-muted mb-6">Descarga nuestra guÌa en pdf</p>
+                <h3 className="text-2xl font-heading font-semibold mb-3">Gu√≠a para crear PROMPTS de retratos profesional <span className="text-[color:var(--primary)]">GRATIS</span></h3>
+                <p className="text-lg text-muted mb-6">Descarga nuestra gu√≠a en pdf</p>
                 <a href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf" download className="inline-flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg transition-all">
                   <Download className="w-5 h-5" />
-                  <span>Descargar guÌa GRATIS</span>
+                  <span>Descargar gu√≠a GRATIS</span>
                 </a>
               </div>
             </section>
@@ -994,13 +993,13 @@ function AppContent() {
                     <Send />
                   </a>
                 </div>
-                <p className="text-gray-600 text-sm">© {new Date().getFullYear()} Promptraits by Sr. Waly.</p>
+                <p className="text-gray-600 text-sm">¬© {new Date().getFullYear()} Promptraits by Sr. Waly.</p>
               </div>
             </footer>
           </>
         )}
 
-        {/* GALERÕA */}
+        {/* GALER√çA */}
         {view === 'gallery' && <Gallery />}
 
         {/* GENERADOR */}
@@ -1074,9 +1073,9 @@ function AppContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold mb-4 text-white">°Pago Exitoso!</h2>
+            <h2 className="text-3xl font-bold mb-4 text-white">¬°Pago Exitoso!</h2>
             <p className="text-gray-400 mb-6">
-              Tu compra se ha procesado correctamente. Actualizando tus crÈditos...
+              Tu compra se ha procesado correctamente. Actualizando tus cr√©ditos...
             </p>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--primary)] mx-auto"></div>
             <p className="text-sm text-gray-500 mt-4">Recargando en 3 segundos...</p>
