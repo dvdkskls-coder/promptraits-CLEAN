@@ -184,10 +184,10 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
         body: JSON.stringify({
           prompt,
           referenceImage: imageBase64,              // base64 puro
-          mimeType: referenceImage ✓ referenceImage.type : null,
-          preset: selectedPreset ✓ PRESETS.find(p => p.id === selectedPreset)✓.promptBlock : null,
-          scenario: selectedScenario ✓ SCENARIOS.find(s => s.id === selectedScenario)✓.prompt : null,
-          sliders: isPro && showAdvanced ✓ sliders : null,
+          mimeType: referenceImage ? referenceImage.type : null,
+          preset: selectedPreset ? PRESETS.find(p => p.id === selectedPreset)?.promptBlock : null,
+          scenario: selectedScenario ? SCENARIOS.find(s => s.id === selectedScenario)?.prompt : null,
+          sliders: isPro && showAdvanced ? sliders : null,
           analyzeQuality: isPro,
           isPro
         })
@@ -213,7 +213,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
 
   // Aplicar sugerencias (llama al mismo endpoint pidiendo aplicar sugerencias)
   const handleApplySuggestions = async () => {
-    if (!qualityAnalysis || !qualityAnalysis.suggestions✓.length) return;
+    if (!qualityAnalysis || !qualityAnalysis.suggestions?.length) return;
 
     setIsApplyingSuggestions(true);
     try {
@@ -247,11 +247,11 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
       <div className="max-w-6xl mx-auto">
         {/* ALERTA DE CRÉDITOS */}
         {user && profile && profile.credits <= 3 && (
-          <div className={`mb-6 p-4 rounded-lg border ${profile.credits === 0 ✓ 'bg-red-500/10 border-red-500/30' : 'bg-[color:var(--primary)]/10 border-[color:var(--primary)]/30'}`}>
-            <p className={`font-bold ${profile.credits === 0 ✓ 'text-red-400' : 'text-[color:var(--primary)]'}`}>
+          <div className={`mb-6 p-4 rounded-lg border ${profile.credits === 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-[color:var(--primary)]/10 border-[color:var(--primary)]/30'}`}>
+            <p className={`font-bold ${profile.credits === 0 ? 'text-red-400' : 'text-[color:var(--primary)]'}`}>
               {profile.credits === 0
-                ✓ '⚠️ No tienes créditos. Actualiza tu plan para continuar.'
-                : `⚠️ Te quedan ${profile.credits} crédito${profile.credits === 1 ✓ '' : 's'}.`
+                ? '⚠️ No tienes créditos. Actualiza tu plan para continuar.'
+                : `⚠️ Te quedan ${profile.credits} crédito${profile.credits === 1 ? '' : 's'}.`
               }
             </p>
             {profile.plan === 'free' && (
@@ -284,7 +284,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
 
               <div className="flex flex-col">
                 <label className="block text-sm font-medium text-gray-300 mb-2">Imagen de referencia:</label>
-                {!imagePreview ✓ (
+                {!imagePreview ? (
                   <label htmlFor="referenceImagePrompt-Gen" className="flex-1 flex flex-col items-center justify-center bg-[color:var(--surface)]/30 border-2 border-dashed border-[color:var(--border)] rounded-lg cursor-pointer hover:bg-[color:var(--surface)]/40 transition-all p-4">
                     <Upload className="w-8 h-8 text-[color:var(--primary)] mb-2" />
                     <span className="text-sm font-semibold text-center">Subir imagen</span>
@@ -316,8 +316,8 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                   <button
                     key={preset.id}
                     type="button"
-                    onClick={() => setSelectedPreset(selectedPreset === preset.id ✓ null : preset.id)}
-                    className={`p-3 rounded-lg text-left transition-all text-sm ${selectedPreset === preset.id ✓ 'bg-[color:var(--primary)]/10 border-2 border-[color:var(--primary)] shadow-sm' : 'bg-white/5 border border-[color:var(--border)] hover:bg-white/10'}`}
+                    onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
+                    className={`p-3 rounded-lg text-left transition-all text-sm ${selectedPreset === preset.id ? 'bg-[color:var(--primary)]/10 border-2 border-[color:var(--primary)] shadow-sm' : 'bg-white/5 border border-[color:var(--border)] hover:bg-white/10'}`}
                   >
                     <div className="text-sm font-semibold">{preset.name}</div>
                     <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
@@ -346,7 +346,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                   <Crown className="w-5 h-5 text-[color:var(--primary)]" />
                   <span>Herramientas PRO</span>
                 </span>
-                {showProTools ✓ <ChevronUp /> : <ChevronDown />}
+                {showProTools ? <ChevronUp /> : <ChevronDown />}
               </button>
 
               {showProTools && isPro && (
@@ -368,8 +368,8 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                         <button
                           key={preset.id}
                           type="button"
-                          onClick={() => setSelectedPreset(selectedPreset === preset.id ✓ null : preset.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${selectedPreset === preset.id ✓ 'bg-[color:var(--primary)]/10 border-2 border-[color:var(--primary)]' : 'bg-white/5 border border-[color:var(--border)] hover:bg-white/10'}`}
+                          onClick={() => setSelectedPreset(selectedPreset === preset.id ? null : preset.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${selectedPreset === preset.id ? 'bg-[color:var(--primary)]/10 border-2 border-[color:var(--primary)]' : 'bg-white/5 border border-[color:var(--border)] hover:bg-white/10'}`}
                         >
                           <div className="text-sm font-semibold">{preset.name}</div>
                           <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
@@ -388,7 +388,7 @@ const GeminiAssistantView = ({ onCopy, isPro }) => {
                 disabled={isLoading || (!prompt && !referenceImage)}
                 className="w-full bg-[color:var(--primary)] text-black px-6 py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
               >
-                {isLoading ✓ "Generando..." : "Generar Prompt"}
+                {isLoading ? "Generando..." : "Generar Prompt"}
               </button>
             </div>
           </form>
@@ -506,7 +506,7 @@ function PromptHistory() {
           )}
         </h3>
         <span className="text-sm text-gray-400">
-          {history.length} prompt{history.length !== 1 ✓ 's' : ''}
+          {history.length} prompt{history.length !== 1 ? 's' : ''}
         </span>
       </div>
 
@@ -698,7 +698,7 @@ function AppContent() {
               className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ✓ (
+              {mobileMenuOpen ? (
                 <X className="w-6 h-6 text-white" />
               ) : (
                 <Menu className="w-6 h-6 text-white" />
@@ -733,19 +733,19 @@ function AppContent() {
             <nav className="hidden md:flex space-x-8">
               <button 
                 onClick={() => setView('gallery')} 
-                className={`transition duration-300 ${view === 'gallery' ✓ 'text-[var(--primary)]' : 'text-gray-300 hover:text-white'}`}
+                className={`transition duration-300 ${view === 'gallery' ? 'text-[var(--primary)]' : 'text-gray-300 hover:text-white'}`}
               >
                 Galería
               </button>
               <button 
                 onClick={() => handleNavigation('generator')} 
-                className={`transition duration-300 ${view === 'generator' ✓ 'text-[var(--primary)]' : 'text-gray-300 hover:text-white'}`}
+                className={`transition duration-300 ${view === 'generator' ? 'text-[var(--primary)]' : 'text-gray-300 hover:text-white'}`}
               >
                 Generador IA
               </button>
               <button 
                 onClick={() => setView('pricing')} 
-                className={`transition duration-300 ${view === 'pricing' ✓ 'text-[var(--primary)]' : 'text-gray-300 hover:text-white'}`}
+                className={`transition duration-300 ${view === 'pricing' ? 'text-[var(--primary)]' : 'text-gray-300 hover:text-white'}`}
               >
                 Precios
               </button>
@@ -753,7 +753,7 @@ function AppContent() {
 
             {/* User Menu / Auth Button Desktop */}
             <div className="hidden md:block">
-              {user ✓ (
+              {user ? (
                 <UserMenu 
                   credits={profile?.credits || 0}
                   plan={profile?.plan || 'free'}
@@ -786,7 +786,7 @@ function AppContent() {
                 }}
                 className={`block w-full text-left px-4 py-3 rounded-lg transition ${
                   view === 'gallery' 
-                    ✓ 'bg-[var(--primary)]/20 text-[var(--primary)]' 
+                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]' 
                     : 'text-gray-300 hover:bg-white/10'
                 }`}
               >
@@ -799,7 +799,7 @@ function AppContent() {
                 }}
                 className={`block w-full text-left px-4 py-3 rounded-lg transition ${
                   view === 'generator' 
-                    ✓ 'bg-[var(--primary)]/20 text-[var(--primary)]' 
+                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]' 
                     : 'text-gray-300 hover:bg-white/10'
                 }`}
               >
@@ -813,7 +813,7 @@ function AppContent() {
                 }}
                 className={`block w-full text-left px-4 py-3 rounded-lg transition ${
                   view === 'pricing' 
-                    ✓ 'bg-[var(--primary)]/20 text-[var(--primary)]' 
+                    ? 'bg-[var(--primary)]/20 text-[var(--primary)]' 
                     : 'text-gray-300 hover:bg-white/10'
                 }`}
               >
@@ -823,7 +823,7 @@ function AppContent() {
               <div className="border-t border-white/10 my-4"></div>
 
               {/* User Section */}
-              {user ✓ (
+              {user ? (
                 <div className="space-y-3">
                   <div className="px-4 py-3 bg-white/5 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
@@ -920,7 +920,7 @@ function AppContent() {
                         alt={prompt.title}
                         loading="lazy"
                         className="w-full h-full object-cover"
-                        onError={(e) => { e.target.src = "https://via.placeholder.com/400x500✓text=No+disponible"; }}
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/400x500?text=No+disponible"; }}
                       />
                       {/* Overlay sutil al hover */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
@@ -1024,7 +1024,7 @@ function AppContent() {
       {/* Auth Modal */}
       {showAuth && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          {authMode === 'login' ✓ (
+          {authMode === 'login' ? (
             <Login
               onClose={() => setShowAuth(false)}
               onSwitchToRegister={() => setAuthMode('register')}
