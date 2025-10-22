@@ -1,6 +1,6 @@
-import React from 'react';
-import AIGenerator from './AIGenerator';
+import React from "react";
+import AdvancedGenerator from "./AdvancedGenerator";
 
 export default function Generator() {
-  return <AIGenerator />;
+  return <AdvancedGenerator />;
 }
