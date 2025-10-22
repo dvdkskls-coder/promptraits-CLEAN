@@ -1,37 +1,180 @@
 import React, { useState, useEffect } from "react";
-import { Camera, Upload, Trash2, Sparkles, Copy, Check, Loader2, Wand2, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
-import { useAuth } from '../contexts/AuthContext';
-import QualityAnalysis from './QualityAnalysis';
+import {
+  Camera,
+  Upload,
+  Trash2,
+  Sparkles,
+  Copy,
+  Check,
+  Loader2,
+  Wand2,
+  Lightbulb,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import QualityAnalysis from "./QualityAnalysis";
 
 // PRESETS (15 estilos profesionales)
 const PRESETS = [
-  { id: 1, name: "Cinematográfico Editorial", subtitle: "Low-Key Rembrandt", free: true, promptBlock: "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting..." },
-  { id: 2, name: "Golden Hour Lifestyle", subtitle: "Cálido atardecer", free: true, promptBlock: "Warm golden hour portrait, 50mm f/1.8..." },
-  { id: 3, name: "Corporate Clean", subtitle: "High-Key profesional", free: true, promptBlock: "High-key professional headshot..." },
-  { id: 4, name: "Environmental Portrait", subtitle: "Sujeto en su entorno", free: false, promptBlock: "Environmental portrait..." },
-  { id: 5, name: "Beauty Soft Front", subtitle: "Beauty homogéneo", free: false, promptBlock: "Beauty portrait..." },
-  { id: 6, name: "B/N Clásico Film", subtitle: "Monocromo atemporal", free: false, promptBlock: "Classic black and white portrait..." },
-  { id: 7, name: "Fotografía Urbana Street", subtitle: "Energía callejera", free: false, promptBlock: "Urban street photography..." },
-  { id: 8, name: "Ensueño Vintage 70s", subtitle: "Nostálgico y cálido", free: false, promptBlock: "Vintage 70s dreamy portrait..." },
-  { id: 9, name: "Film Noir Clásico", subtitle: "Drama B/N años 40-50", free: false, promptBlock: "Classic film noir portrait..." },
-  { id: 10, name: "Neón Cyberpunk", subtitle: "Futurista urbano nocturno", free: false, promptBlock: "Cyberpunk neon portrait..." },
-  { id: 11, name: "Retrato Íntimo Ventana", subtitle: "Luz natural pensativa", free: false, promptBlock: "Intimate window light portrait..." },
-  { id: 12, name: "Acción Deportiva Congelado", subtitle: "Movimiento nítido", free: false, promptBlock: "Frozen sports action..." },
-  { id: 13, name: "Producto Minimalista Lujo", subtitle: "Elegante y limpio", free: false, promptBlock: "Luxury minimalist product..." },
-  { id: 14, name: "Fantasía Surrealista Etéreo", subtitle: "Onírico y de otro mundo", free: false, promptBlock: "Surreal ethereal fantasy..." },
-  { id: 15, name: "Editorial Fashion", subtitle: "Alta moda dramática", free: false, promptBlock: "Editorial fashion portrait..." }
+  {
+    id: 1,
+    name: "Cinematográfico Editorial",
+    subtitle: "Low-Key Rembrandt",
+    free: true,
+    promptBlock:
+      "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting...",
+  },
+  {
+    id: 2,
+    name: "Golden Hour Lifestyle",
+    subtitle: "Cálido atardecer",
+    free: true,
+    promptBlock: "Warm golden hour portrait, 50mm f/1.8...",
+  },
+  {
+    id: 3,
+    name: "Corporate Clean",
+    subtitle: "High-Key profesional",
+    free: true,
+    promptBlock: "High-key professional headshot...",
+  },
+  {
+    id: 4,
+    name: "Environmental Portrait",
+    subtitle: "Sujeto en su entorno",
+    free: false,
+    promptBlock: "Environmental portrait...",
+  },
+  {
+    id: 5,
+    name: "Beauty Soft Front",
+    subtitle: "Beauty homogéneo",
+    free: false,
+    promptBlock: "Beauty portrait...",
+  },
+  {
+    id: 6,
+    name: "B/N Clásico Film",
+    subtitle: "Monocromo atemporal",
+    free: false,
+    promptBlock: "Classic black and white portrait...",
+  },
+  {
+    id: 7,
+    name: "Fotografía Urbana Street",
+    subtitle: "Energía callejera",
+    free: false,
+    promptBlock: "Urban street photography...",
+  },
+  {
+    id: 8,
+    name: "Ensueño Vintage 70s",
+    subtitle: "Nostálgico y cálido",
+    free: false,
+    promptBlock: "Vintage 70s dreamy portrait...",
+  },
+  {
+    id: 9,
+    name: "Film Noir Clásico",
+    subtitle: "Drama B/N años 40-50",
+    free: false,
+    promptBlock: "Classic film noir portrait...",
+  },
+  {
+    id: 10,
+    name: "Neón Cyberpunk",
+    subtitle: "Futurista urbano nocturno",
+    free: false,
+    promptBlock: "Cyberpunk neon portrait...",
+  },
+  {
+    id: 11,
+    name: "Retrato Íntimo Ventana",
+    subtitle: "Luz natural pensativa",
+    free: false,
+    promptBlock: "Intimate window light portrait...",
+  },
+  {
+    id: 12,
+    name: "Acción Deportiva Congelado",
+    subtitle: "Movimiento nítido",
+    free: false,
+    promptBlock: "Frozen sports action...",
+  },
+  {
+    id: 13,
+    name: "Producto Minimalista Lujo",
+    subtitle: "Elegante y limpio",
+    free: false,
+    promptBlock: "Luxury minimalist product...",
+  },
+  {
+    id: 14,
+    name: "Fantasía Surrealista Etéreo",
+    subtitle: "Onírico y de otro mundo",
+    free: false,
+    promptBlock: "Surreal ethereal fantasy...",
+  },
+  {
+    id: 15,
+    name: "Editorial Fashion",
+    subtitle: "Alta moda dramática",
+    free: false,
+    promptBlock: "Editorial fashion portrait...",
+  },
 ];
 
 // SCENARIOS (8 escenarios)
 const SCENARIOS = [
-  { id: 1, name: "Estudio Fondo Negro", description: "Minimalista, dramático, fondo oscuro", prompt: "Professional studio with seamless black backdrop..." },
-  { id: 2, name: "Calle Europea Atardecer", description: "Arquitectura clásica, luz dorada", prompt: "Narrow European street at golden hour..." },
-  { id: 3, name: "Playa Amanecer Contraluz", description: "Costa, luz suave, horizonte marino", prompt: "Sandy beach at sunrise..." },
-  { id: 4, name: "Urbano Nocturno Neones", description: "Ciudad de noche, luces vibrantes", prompt: "Night city street with neon signs..." },
-  { id: 5, name: "Interior Ventana Natural", description: "Luz de ventana lateral suave", prompt: "Indoor setting with large window as single light source..." },
-  { id: 6, name: "Bosque Niebla Atmosférico", description: "Naturaleza, bruma, luz filtrada", prompt: "Misty forest setting..." },
-  { id: 7, name: "Azotea Ciudad Atardecer", description: "Skyline urbano, golden hour", prompt: "Rooftop location at sunset..." },
-  { id: 8, name: "Industrial Warehouse Oscuro", description: "Grungy, luces prácticas, textura", prompt: "Dark industrial warehouse..." }
+  {
+    id: 1,
+    name: "Estudio Fondo Negro",
+    description: "Minimalista, dramático, fondo oscuro",
+    prompt: "Professional studio with seamless black backdrop...",
+  },
+  {
+    id: 2,
+    name: "Calle Europea Atardecer",
+    description: "Arquitectura clásica, luz dorada",
+    prompt: "Narrow European street at golden hour...",
+  },
+  {
+    id: 3,
+    name: "Playa Amanecer Contraluz",
+    description: "Costa, luz suave, horizonte marino",
+    prompt: "Sandy beach at sunrise...",
+  },
+  {
+    id: 4,
+    name: "Urbano Nocturno Neones",
+    description: "Ciudad de noche, luces vibrantes",
+    prompt: "Night city street with neon signs...",
+  },
+  {
+    id: 5,
+    name: "Interior Ventana Natural",
+    description: "Luz de ventana lateral suave",
+    prompt: "Indoor setting with large window as single light source...",
+  },
+  {
+    id: 6,
+    name: "Bosque Niebla Atmosférico",
+    description: "Naturaleza, bruma, luz filtrada",
+    prompt: "Misty forest setting...",
+  },
+  {
+    id: 7,
+    name: "Azotea Ciudad Atardecer",
+    description: "Skyline urbano, golden hour",
+    prompt: "Rooftop location at sunset...",
+  },
+  {
+    id: 8,
+    name: "Industrial Warehouse Oscuro",
+    description: "Grungy, luces prácticas, textura",
+    prompt: "Dark industrial warehouse...",
+  },
 ];
 
 export default function AdvancedGenerator() {
@@ -52,7 +195,7 @@ export default function AdvancedGenerator() {
     focalLength: 85,
     contrast: "medium",
     grain: "subtle",
-    temperature: 5500
+    temperature: 5500,
   });
 
   const handleImageChange = (e) => {
@@ -70,17 +213,20 @@ export default function AdvancedGenerator() {
     setImagePreview("");
   };
 
-  const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      try {
-        const parts = String(reader.result).split(',');
-        resolve(parts[1] || null);
-      } catch (err) { resolve(null); }
-    };
-    reader.onerror = (err) => reject(err);
-  });
+  const fileToBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        try {
+          const parts = String(reader.result).split(",");
+          resolve(parts[1] || null);
+        } catch (err) {
+          resolve(null);
+        }
+      };
+      reader.onerror = (err) => reject(err);
+    });
 
   const handleGenerate = async (e) => {
     e && e.preventDefault();
@@ -90,7 +236,9 @@ export default function AdvancedGenerator() {
       return;
     }
     if (profile?.credits <= 0) {
-      setResponse("No tienes créditos disponibles. Compra créditos o suscríbete.");
+      setResponse(
+        "No tienes créditos disponibles. Compra créditos o suscríbete."
+      );
       return;
     }
 
@@ -111,12 +259,16 @@ export default function AdvancedGenerator() {
           prompt,
           referenceImage: imageBase64,
           mimeType: referenceImage ? referenceImage.type : null,
-          preset: selectedPreset ? PRESETS.find(p => p.id === selectedPreset)?.promptBlock : null,
-          scenario: selectedScenario ? SCENARIOS.find(s => s.id === selectedScenario)?.prompt : null,
+          preset: selectedPreset
+            ? PRESETS.find((p) => p.id === selectedPreset)?.promptBlock
+            : null,
+          scenario: selectedScenario
+            ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
+            : null,
           sliders,
           isPro: profile?.plan === "pro",
-          analyzeQuality: false
-        })
+          analyzeQuality: false,
+        }),
       });
 
       if (!res.ok) {
@@ -129,7 +281,6 @@ export default function AdvancedGenerator() {
       if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
 
       await refreshProfile();
-
     } catch (error) {
       console.error("Error al generar:", error);
       setResponse(`Error: ${error.message}`);
@@ -148,8 +299,8 @@ export default function AdvancedGenerator() {
         body: JSON.stringify({
           prompt: response,
           applyFixes: true,
-          suggestions: qualityAnalysis.suggestions
-        })
+          suggestions: qualityAnalysis.suggestions,
+        }),
       });
       const data = await res.json();
       if (data.prompt) setResponse(data.prompt);
@@ -199,15 +350,18 @@ export default function AdvancedGenerator() {
               </span>
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              Plan: <span className="text-[var(--primary)] font-semibold">{profile.plan || 'FREE'}</span>
+              Plan:{" "}
+              <span className="text-[var(--primary)] font-semibold">
+                {profile.plan || "FREE"}
+              </span>
             </p>
           </div>
         )}
 
         {/* Formulario Principal */}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 mb-8">
-          <div className="space-y-6"></div>
-          {/* Descripción */}
+          <div className="space-y-6">
+            {/* Descripción */}
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">
                 Describe tu idea *
@@ -242,7 +396,11 @@ export default function AdvancedGenerator() {
                 </label>
               ) : (
                 <div className="relative rounded-xl overflow-hidden border border-white/10">
-                  <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover" />
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-cover"
+                  />
                   <button
                     onClick={removeImage}
                     className="absolute top-2 right-2 p-2 bg-red-500 rounded-full hover:bg-red-600 transition"
@@ -259,21 +417,35 @@ export default function AdvancedGenerator() {
                 🎨 Presets Profesionales (selecciona uno):
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-                {PRESETS.map(preset => (
+                {PRESETS.map((preset) => (
                   <button
                     key={preset.id}
-                    onClick={() => setSelectedPreset(preset.id === selectedPreset ? null : preset.id)}
+                    onClick={() =>
+                      setSelectedPreset(
+                        preset.id === selectedPreset ? null : preset.id
+                      )
+                    }
                     disabled={!preset.free && !isPro}
                     className={`p-3 rounded-lg border text-left transition ${
                       selectedPreset === preset.id
-                        ? 'border-[var(--primary)] bg-[var(--primary)]/10'
-                        : 'border-white/10 bg-white/5 hover:border-white/20'
-                    } ${!preset.free && !isPro ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                        : "border-white/10 bg-white/5 hover:border-white/20"
+                    } ${
+                      !preset.free && !isPro
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
                   >
-                    <div className="font-semibold text-sm text-white">{preset.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">{preset.subtitle}</div>
+                    <div className="font-semibold text-sm text-white">
+                      {preset.name}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {preset.subtitle}
+                    </div>
                     {!preset.free && !isPro && (
-                      <div className="text-xs text-[var(--primary)] mt-1">🔒 PRO</div>
+                      <div className="text-xs text-[var(--primary)] mt-1">
+                        🔒 PRO
+                      </div>
                     )}
                   </button>
                 ))}
@@ -286,18 +458,26 @@ export default function AdvancedGenerator() {
                 📍 Escenarios (selecciona uno):
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {SCENARIOS.map(scenario => (
+                {SCENARIOS.map((scenario) => (
                   <button
                     key={scenario.id}
-                    onClick={() => setSelectedScenario(scenario.id === selectedScenario ? null : scenario.id)}
+                    onClick={() =>
+                      setSelectedScenario(
+                        scenario.id === selectedScenario ? null : scenario.id
+                      )
+                    }
                     className={`p-3 rounded-lg border text-left transition ${
                       selectedScenario === scenario.id
-                        ? 'border-[var(--primary)] bg-[var(--primary)]/10'
-                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                        : "border-white/10 bg-white/5 hover:border-white/20"
                     }`}
                   >
-                    <div className="font-semibold text-sm text-white">{scenario.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">{scenario.description}</div>
+                    <div className="font-semibold text-sm text-white">
+                      {scenario.name}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {scenario.description}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -309,45 +489,73 @@ export default function AdvancedGenerator() {
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition"
               >
-                {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                Controles Avanzados {isPro && <span className="text-[var(--primary)] text-xs">PRO</span>}
+                {showAdvanced ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+                Controles Avanzados{" "}
+                {isPro && (
+                  <span className="text-[var(--primary)] text-xs">PRO</span>
+                )}
               </button>
 
               {showAdvanced && isPro && (
                 <div className="mt-4 space-y-4 p-4 bg-white/5 rounded-lg border border-white/10">
                   <div>
-                    <label className="text-xs text-gray-400">Apertura (f-stop): {sliders.aperture}</label>
+                    <label className="text-xs text-gray-400">
+                      Apertura (f-stop): {sliders.aperture}
+                    </label>
                     <input
                       type="range"
                       min="1.4"
                       max="16"
                       step="0.1"
                       value={sliders.aperture}
-                      onChange={(e) => setSliders({...sliders, aperture: parseFloat(e.target.value)})}
+                      onChange={(e) =>
+                        setSliders({
+                          ...sliders,
+                          aperture: parseFloat(e.target.value),
+                        })
+                      }
                       className="w-full"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">Distancia Focal (mm): {sliders.focalLength}</label>
+                    <label className="text-xs text-gray-400">
+                      Distancia Focal (mm): {sliders.focalLength}
+                    </label>
                     <input
                       type="range"
                       min="24"
                       max="200"
                       step="1"
                       value={sliders.focalLength}
-                      onChange={(e) => setSliders({...sliders, focalLength: parseInt(e.target.value)})}
+                      onChange={(e) =>
+                        setSliders({
+                          ...sliders,
+                          focalLength: parseInt(e.target.value),
+                        })
+                      }
                       className="w-full"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">Temperatura de Color (K): {sliders.temperature}</label>
+                    <label className="text-xs text-gray-400">
+                      Temperatura de Color (K): {sliders.temperature}
+                    </label>
                     <input
                       type="range"
                       min="2500"
                       max="9000"
                       step="100"
                       value={sliders.temperature}
-                      onChange={(e) => setSliders({...sliders, temperature: parseInt(e.target.value)})}
+                      onChange={(e) =>
+                        setSliders({
+                          ...sliders,
+                          temperature: parseInt(e.target.value),
+                        })
+                      }
                       className="w-full"
                     />
                   </div>
@@ -358,7 +566,12 @@ export default function AdvancedGenerator() {
             {/* Botón Generar */}
             <button
               onClick={handleGenerate}
-              disabled={isLoading || !prompt.trim() || !user || (profile && profile.credits < 1)}
+              disabled={
+                isLoading ||
+                !prompt.trim() ||
+                !user ||
+                (profile && profile.credits < 1)
+              }
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-bold text-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
@@ -380,7 +593,9 @@ export default function AdvancedGenerator() {
         {response && (
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">Tu Prompt Generado</h3>
+              <h3 className="text-xl font-bold text-white">
+                Tu Prompt Generado
+              </h3>
               <button
                 onClick={handleCopy}
                 className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition"
@@ -388,19 +603,25 @@ export default function AdvancedGenerator() {
                 {copied ? (
                   <>
                     <Check className="w-4 h-4 text-green-500" />
-                    <span className="text-green-500 text-sm font-semibold">Copiado</span>
+                    <span className="text-green-500 text-sm font-semibold">
+                      Copiado
+                    </span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-400 text-sm font-semibold">Copiar</span>
+                    <span className="text-gray-400 text-sm font-semibold">
+                      Copiar
+                    </span>
                   </>
                 )}
               </button>
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
-              <p className="text-white leading-relaxed whitespace-pre-wrap">{response}</p>
+              <p className="text-white leading-relaxed whitespace-pre-wrap">
+                {response}
+              </p>
             </div>
 
             {qualityAnalysis && (
