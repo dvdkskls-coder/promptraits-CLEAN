@@ -94,11 +94,9 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
     // MODO: GENERACIÓN NORMAL DE PROMPT
     // ===================================================================================
     if (!prompt && !referenceImage) {
-      return res
-        .status(400)
-        .json({
-          error: "Debes proporcionar un prompt o una imagen de referencia",
-        });
+      return res.status(400).json({
+        error: "Debes proporcionar un prompt o una imagen de referencia",
+      });
     }
 
     console.log("✅ Generando prompt profesional...");
@@ -110,7 +108,7 @@ MANDATORY OUTPUT FORMAT (8 paragraphs separated by blank lines, NO headers, NO l
 
 Paragraph 1: Ultra-realistic [style] portrait in [location/environment], [ambient details and mood].
 
-Paragraph 2: Subject [position/pose details], torso [angle], shoulders [position], head [tilt/angle], gaze [direction], expression [mood]. Wearing [detailed outfit description]. Hair [natural styling]. using the exact face from the provided selfie — no editing, no retouching, no smoothing.
+Paragraph 2: Subject [position/pose details], torso [angle], shoulders [position], head [tilt/angle], gaze [direction], expression [mood]. Wearing [detailed outfit description]. Hair [natural styling from reference]. Facial hair [exact style from reference if present]. using the exact face from the provided selfie — no editing, no retouching, no smoothing, preserve natural haircut and facial hair exactly as shown.
 
 Paragraph 3: [Lighting pattern name if applicable] with key light [modifier] at [position/angle], [power in stops/EV]. Fill [source] at [position], [ratio to key]. Rim/back [modifier] at [position], [power]. Practicals [if any]. Negative fill [if any]. WB [exact K], contrast ratio [X:1].
 
@@ -118,19 +116,22 @@ Paragraph 4: [Sensor type] sensor, [focal length]mm lens at ~[distance]m, apertu
 
 Paragraph 5: [Shot type] portrait, [orientation] [aspect ratio] orientation, [composition technique], eyes aligned to [position], [headroom]% headroom, background [treatment].
 
-Paragraph 6: [Dynamic range approach], [contrast curve], [color grading/B&W treatment], [grain/texture], [vignette], [clarity/structure], [sharpening], no beauty retouching.
+Paragraph 6: [Dynamic range approach], [contrast curve], [color grading/B&W treatment], [grain/texture], [vignette], [clarity/structure], [sharpening], no beauty retouching, maintain authentic haircut and facial hair.
 
 Paragraph 7: [10-18 comma-separated technical photography keywords without categories].
 
-Paragraph 8: Preserves natural skin texture, authentic facial features, real hair styling from selfie reference.
+Paragraph 8: Preserves natural skin texture, authentic facial features, exact haircut style, natural facial hair (beard/mustache/stubble) as shown in selfie reference, no grooming modifications.
 
 CRITICAL RULES:
 - Write in ENGLISH only
 - NO line labels (no "Line 1:", no "SCENE & ATMOSPHERE —", etc.)
 - Each paragraph is ONE continuous block of text
 - Separate paragraphs with ONE blank line
-- ALWAYS include in Paragraph 2: "using the exact face from the provided selfie — no editing, no retouching, no smoothing"
-- ALWAYS end Paragraph 6 with: "no beauty retouching"
+- ALWAYS include in Paragraph 2: "using the exact face from the provided selfie — no editing, no retouching, no smoothing, preserve natural haircut and facial hair exactly as shown"
+- ALWAYS include in Paragraph 6: "no beauty retouching, maintain authentic haircut and facial hair"
+- ALWAYS include in Paragraph 8: specific mention of haircut and facial hair preservation
+- DO NOT modify, trim, shave, or alter facial hair unless user explicitly requests it
+- DO NOT change hairstyle, length, or cut unless user explicitly requests it
 - Use exact technical values: angles (45°), distance (~1.5m), temperature (5600K), f-stops, ISO
 - Total length: 250-350 words
 - Professional cinematographic tone
@@ -167,15 +168,16 @@ ANALYZE FROM THE IMAGE:
 2. Lighting setup (key, fill, rim, practicals, direction, quality, temperature)
 3. Subject pose and body language (angle, stance, expression type)
 4. Outfit/styling (describe clothes, accessories, colors)
-5. Camera specs (infer focal length, aperture, framing from depth of field and perspective)
-6. Composition (framing, orientation, rule of thirds, negative space)
-7. Post-processing (color grading, contrast, grain, mood)
+5. Haircut style and facial hair (exact description: length, style, grooming)
+6. Camera specs (infer focal length, aperture, framing from depth of field and perspective)
+7. Composition (framing, orientation, rule of thirds, negative space)
+8. Post-processing (color grading, contrast, grain, mood)
 
 OUTPUT FORMAT (8 paragraphs separated by blank lines, NO headers, NO labels):
 
 Paragraph 1: Ultra-realistic [style] portrait in [analyzed location/environment], [ambient details and mood from image].
 
-Paragraph 2: Subject [analyzed pose details], torso [angle], shoulders [position], head [tilt/angle], gaze [direction from image], expression [mood]. Wearing [analyzed outfit from image]. Hair [natural styling from image]. using the exact face from the provided selfie — no editing, no retouching, no smoothing.
+Paragraph 2: Subject [analyzed pose details], torso [angle], shoulders [position], head [tilt/angle], gaze [direction from image], expression [mood]. Wearing [analyzed outfit from image]. Hair [exact natural styling from image: length, cut, texture]. Facial hair [exact style from image if present: beard type, length, grooming]. using the exact face from the provided selfie — no editing, no retouching, no smoothing, preserve natural haircut and facial hair exactly as shown.
 
 Paragraph 3: [Analyzed lighting pattern] with key light [inferred modifier] at [position/angle], [power estimate]. Fill [source] at [position], [ratio to key]. Rim/back [if visible], practicals [if any]. WB [estimate from image], contrast ratio [estimate].
 
@@ -183,11 +185,11 @@ Paragraph 4: [Inferred sensor type] sensor, [estimated focal length]mm lens at ~
 
 Paragraph 5: [Analyzed shot type] portrait, [orientation from image] [aspect ratio], [composition technique observed], eyes aligned to [position], [headroom estimate]% headroom, background [treatment observed].
 
-Paragraph 6: [Observed dynamic range], [analyzed contrast curve], [color grading observed], [grain/texture visible], [vignette if any], [clarity level], [sharpening], no beauty retouching.
+Paragraph 6: [Observed dynamic range], [analyzed contrast curve], [color grading observed], [grain/texture visible], [vignette if any], [clarity level], [sharpening], no beauty retouching, maintain authentic haircut and facial hair.
 
 Paragraph 7: [10-18 comma-separated technical photography keywords describing the image style].
 
-Paragraph 8: Preserves natural skin texture, authentic facial features, real hair styling from selfie reference.
+Paragraph 8: Preserves natural skin texture, authentic facial features, exact haircut style from reference (length, layers, texture), natural facial hair exactly as shown (beard/mustache/stubble style and length), no grooming modifications.
 
 CRITICAL RULES:
 - Write in ENGLISH only
@@ -195,6 +197,8 @@ CRITICAL RULES:
 - Each paragraph is ONE continuous block of text
 - Separate paragraphs with ONE blank line
 - Make the prompt SHAREABLE (no specific gender/age/race mentions)
+- PRESERVE EXACT haircut and facial hair from reference image
+- DO NOT suggest trimming, shaving, or altering hair/facial hair unless user requests it
 - Focus on TECHNICAL recreation (lighting, camera, composition)
 - Length: 250-350 words
 - Professional cinematographic tone
