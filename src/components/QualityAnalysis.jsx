@@ -1,10 +1,15 @@
 import { CheckCircle2, Lightbulb, TrendingUp } from "lucide-react";
 
-export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, isApplying }) {
+export default function QualityAnalysis({
+  analysis,
+  isPro,
+  onApplySuggestions,
+  isApplying,
+}) {
   if (!analysis) return null;
-  
+
   const { score, included, suggestions } = analysis;
-  
+
   // Calcular porcentaje y color
   const percentage = Math.round(score * 10);
   const getScoreColor = () => {
@@ -12,7 +17,7 @@ export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, i
     if (score >= 7) return "text-yellow-400";
     return "text-orange-400";
   };
-  
+
   const getScoreLabel = () => {
     if (score >= 9) return "Excelente";
     if (score >= 7.5) return "Muy Bueno";
@@ -37,10 +42,10 @@ export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, i
             <span className="text-sm opacity-60">/10</span>
           </div>
         </div>
-        
+
         {/* Progress bar */}
         <div className="mt-3 w-full bg-white/5 rounded-full h-2 overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-[var(--primary)] to-yellow-400 transition-all duration-500 ease-out"
             style={{ width: `${percentage}%` }}
           />
@@ -54,11 +59,16 @@ export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, i
           <div>
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 className="w-4 h-4 text-green-400" />
-              <h4 className="font-semibold text-green-400">Elementos Fuertes</h4>
+              <h4 className="font-semibold text-green-400">
+                Elementos Fuertes
+              </h4>
             </div>
             <ul className="space-y-2">
               {included.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm opacity-80">
+                <li
+                  key={index}
+                  className="flex items-start gap-2 text-sm opacity-80"
+                >
                   <span className="text-green-400 mt-0.5">•</span>
                   <span>{item}</span>
                 </li>
@@ -72,17 +82,22 @@ export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, i
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-4 h-4 text-yellow-400" />
-              <h4 className="font-semibold text-yellow-400">Sugerencias de Mejora</h4>
+              <h4 className="font-semibold text-yellow-400">
+                Sugerencias de Mejora
+              </h4>
             </div>
             <ul className="space-y-2">
               {suggestions.map((item, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm opacity-80">
+                <li
+                  key={index}
+                  className="flex items-start gap-2 text-sm opacity-80"
+                >
                   <span className="text-yellow-400 mt-0.5">•</span>
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
-            
+
             {/* Botón aplicar sugerencias (solo PRO) */}
             {isPro && (
               <button
@@ -110,7 +125,8 @@ export default function QualityAnalysis({ analysis, isPro, onApplySuggestions, i
       {/* Footer con nota */}
       <div className="px-5 py-3 bg-white/5 border-t border-white/10">
         <p className="text-xs opacity-60 text-center">
-          Análisis basado en estándares de fotografía profesional y edición en Capture One
+          Análisis basado en estándares de fotografía profesional y edición en
+          Capture One
         </p>
       </div>
     </div>

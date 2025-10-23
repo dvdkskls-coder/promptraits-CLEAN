@@ -31,6 +31,9 @@ export default async function handler(req, res) {
       applySuggestions,
       currentPrompt,
       suggestions,
+      shotType,        // ← NUEVO
+      outfitStyle,     // ← NUEVO
+      environment,     // ← NUEVO
     } = req.body;
 
     const API_KEY = process.env.GEMINI_API_KEY;
@@ -206,12 +209,90 @@ CRITICAL RULES:
 - The output prompt must adapt perfectly to ANY selfie the user provides
 - Output ONLY the single continuous paragraph, nothing else`;
 
-      if (preset)
-        systemPrompt += `\n\nBLEND WITH THIS PRESET STYLE:\n${preset}`;
-      if (scenario) systemPrompt += `\n\nADAPT TO THIS SCENARIO:\n${scenario}`;
-      if (sliders)
-        systemPrompt += `\n\nAPPLY THESE PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Grain: ${sliders.grain}\n- Temp: ${sliders.temperature}K`;
+    // Añadir shot type si existe
+    if (shotType) {
+      systemPrompt += `\n\nSHOT TYPE/FRAMING:\nUse this specific shot type and framing: ${shotType.technical}\nEnsure the composition follows: ${shotType.nameEN} - ${shotType.description}`;
     }
+
+    // Añadir outfit style si existe
+    if (outfitStyle) {
+      systemPrompt += `\n\nOUTFIT STYLE:\nSubject wearing: ${outfitStyle.keywords}\nStyle aesthetic: ${outfitStyle.name} - ${outfitStyle.description}`;
+    }
+
+    // Añadir environment si existe
+    if (environment) {
+      systemPrompt += `\n\nENVIRONMENT/LOCATION:\n${environment.prompt}\nLighting setup: ${environment.lighting}\nTechnical specs: ${environment.technical}`;
+    }
+
+    // Añadir preset si existe
+    if (preset) {
+      systemPrompt += `\n\nAPPLY THIS PRESET STYLE:\n${preset}`;
+    }
+
+    // Añadir escenario si existe
+    if (scenario) {
+      systemPrompt += `\n\nUSE THIS SCENARIO AS BASE:\n${scenario}`;
+    }
+
+    // Añadir parámetros de sliders si existen
+    if (sliders) {
+      systemPrompt += `\n\nAPPLY THESE TECHNICAL PARAMETERS:
+- Aperture: f/${sliders.aperture}
+- Focal length: ${sliders.focalLength}mm
+- Contrast: ${sliders.contrast}
+- Film grain: ${sliders.grain}
+- Color temperature: ${sliders.temperature}K`;
+    }
+
+    // Si hay imagen de referencia, cambiar instrucciones
+    if (referenceImage) {
+      systemPrompt = `You are Promptraits, an expert in analyzing reference images and creating ultra-realistic portrait prompts.
+
+TASK: Analyze the provided reference image and generate a technical prompt that recreates the scene, lighting, pose, and style. Make it completely UNISEX and UNIVERSAL so it adapts to any selfie provided.
+
+ANALYZE FROM THE IMAGE (BUT DO NOT COPY PERSONAL FEATURES):
+1. Scene/Environment (location, background, atmosphere, mood)
+2. Lighting setup (quality, direction, temperature, contrast ratio - NOT the person's appearance)
+3. Subject pose and body language (angles, stance, expression type - NOT facial features)
+4. Outfit/styling (describe clothes style, accessories, colors - NOT the person wearing them)
+5. Camera specs (infer focal length, aperture, framing from depth of field and perspective)
+6. Composition (framing, orientation, rule of thirds, negative space, headroom)
+7. Post-processing (color grading, contrast, grain, mood, vignette)
+
+CRITICAL: DO NOT describe or reference the person's hair, facial hair, face shape, or any gender/age/race-specific features. The prompt must be a TEMPLATE that works for any subject.
+
+OUTPUT FORMAT (ONE SINGLE CONTINUOUS PARAGRAPH):
+
+Create a prompt that flows naturally as ONE continuous paragraph integrating these 7 elements:
+
+1. Opening: "Ultra-realistic [style from image] portrait in [analyzed location/environment], [ambient details and mood from image]."
+
+2. Subject & Pose: Describe [analyzed pose details from image], torso [angle observed], shoulders [position], head [tilt/angle], gaze [direction type], expression [mood type]. Wearing [outfit style analyzed from image]. Make this completely UNISEX - describe only the pose, body language, and wardrobe style without any reference to the person's physical features, hair, or gender.
+
+3. Lighting Setup: [Analyzed lighting pattern from image] with key light [QUALITY not equipment] at [position/angle observed], [estimated power]. Fill light [quality] from [position observed], [ratio to key]. Rim/back light [if visible]. Practicals [environmental lights if any]. White balance [estimated from image K], contrast ratio [estimate]. CRITICAL: Describe only LIGHT QUALITIES and EFFECTS visible in the image, never physical modifiers. Equipment must NOT appear in frame.
+
+4. Camera Technical Specs: [Inferred sensor type/format] sensor, [estimated focal length based on compression and perspective]mm lens at approximately [estimated distance]m, aperture f/[estimate from depth of field], shutter speed 1/[X]s, ISO [estimate from grain/noise], white balance [X]K, [color profile observed], [AF mode] focused on [subject area].
+
+5. Composition & Framing: [Shot type observed] portrait, [orientation from image] orientation at [aspect ratio], [composition technique visible], subject's eyes positioned at [observed placement], [estimated]% headroom, background [treatment observed - bokeh/sharp/depth].
+
+6. Post-Processing Style: [Observed dynamic range], [contrast curve type visible], [color grading style or B&W treatment], [film grain visible/amount], [vignette if present/strength], [clarity/structure level], [sharpening observed]. Natural skin texture preserved, no digital beauty filters.
+
+7. Technical Keywords: [12-18 comma-separated photography and aesthetic keywords describing the image style, mood, and technique].
+
+CRITICAL RULES:
+- Write in ENGLISH only
+- Output as ONE SINGLE CONTINUOUS PARAGRAPH - all 7 elements flow together naturally with NO line breaks, NO section separators, NO labels
+- Maximum 2500 characters total
+- The prompt MUST be completely UNISEX and UNIVERSAL - works for male or female selfies
+- DO NOT describe the reference person's hair, facial hair, face shape, skin tone, age indicators, or any gender/race-specific features
+- Focus ONLY on: scene, atmosphere, pose angles, body position, outfit STYLE, lighting EFFECTS, camera technical specs, composition rules, post-processing, and aesthetic keywords
+- Analyze the TECHNICAL and AESTHETIC elements of the reference, NOT the person's appearance
+- When describing lighting, specify LIGHT QUALITY and EFFECT from the image, never equipment
+- Physical lighting equipment must remain INVISIBLE in generated image
+- Use precise technical values inferred from the reference: angles (45°, 60°), distances (~1.5m, ~3m), color temps (3200K, 5600K), f-stops (f/1.8, f/2.8), ISO (100, 400, 800)
+- Professional cinematographic tone
+- The output prompt must adapt perfectly to ANY selfie the user provides
+- Output ONLY the single continuous paragraph, nothing else`;
 
     // Añadir solicitud del usuario
     if (prompt && !referenceImage) {

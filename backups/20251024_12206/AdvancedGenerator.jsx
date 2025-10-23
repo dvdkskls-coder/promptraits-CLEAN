@@ -27,16 +27,6 @@ import {
   PRESET_PLANS,
 } from "../data/presetsData";
 
-// ✅ NUEVOS IMPORTS: Sistema de Control Avanzado
-import { SHOT_TYPES, getRandomShotType } from "../data/shotTypesData";
-import { OUTFIT_STYLES, getRandomOutfit } from "../data/outfitStylesData";
-import {
-  ENVIRONMENTS,
-  ENVIRONMENT_CATEGORIES,
-  getEnvironmentsByCategory,
-  getRandomEnvironment,
-} from "../data/environmentsData";
-
 // SCENARIOS (8 escenarios) - Mantener igual por ahora
 const SCENARIOS = [
   {
@@ -110,7 +100,7 @@ const RANDOM_IDEAS = [
   "Fotografía lifestyle en estudio de arquitecto con luz natural difusa",
   "Retrato editorial en bar speakeasy con luces prácticas y neones sutiles",
   "Sesión creativa en biblioteca pública con columnas clásicas y luz lateral",
-
+  
   // URBANO EXTERIOR (10)
   "Fotografía urbana nocturna con reflejos en charcos y luces de neón vibrantes",
   "Retrato de calle en mercado callejero colorido al mediodía con sombras marcadas",
@@ -122,7 +112,7 @@ const RANDOM_IDEAS = [
   "Retrato nocturno en Times Square con luces artificiales multicolor",
   "Sesión de moda en parking subterráneo con luz de neón fría",
   "Fotografía editorial en escaleras de metro con luz artificial dramática",
-
+  
   // NATURALEZA Y EXTERIOR (10)
   "Sesión lifestyle en campo de lavanda al atardecer con luz dorada suave",
   "Retrato en bosque de niebla con luz filtrada entre árboles al amanecer",
@@ -134,7 +124,7 @@ const RANDOM_IDEAS = [
   "Retrato en campo de trigo dorado con luz de tarde lateral",
   "Fotografía lifestyle en lago de montaña con reflejo y luz azul",
   "Sesión editorial en cañón rocoso con luz dramática de mediodía",
-
+  
   // CONCEPTUAL Y CREATIVO (10)
   "Retrato conceptual en museo de historia natural con iluminación direccional",
   "Fotografía surrealista en estudio con fondos de colores vibrantes",
@@ -146,7 +136,7 @@ const RANDOM_IDEAS = [
   "Fotografía creativa en piscina cubierta con luz reflejada en agua",
   "Sesión artística en iglesia gótica abandonada con luz de vitral",
   "Retrato conceptual en sala de máquinas vintage con luz práctica",
-
+  
   // MODA Y EDITORIAL (10)
   "Sesión de alta moda en estudio minimalista con fondo infinito blanco",
   "Fotografía editorial en showroom de diseño con luz arquitectónica",
@@ -182,13 +172,6 @@ export default function AdvancedGenerator() {
     temperature: 5500,
   });
 
-  // ✅ NUEVOS ESTADOS: Sistema de Control Avanzado
-  const [selectedShot, setSelectedShot] = useState(null);
-  const [selectedOutfit, setSelectedOutfit] = useState(null);
-  const [selectedEnvironment, setSelectedEnvironment] = useState(null);
-  const [selectedEnvCategory, setSelectedEnvCategory] = useState("all");
-  const [showCompositionTools, setShowCompositionTools] = useState(false);
-
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
   // ✅ OBTENER PRESETS SEGÚN PLAN DEL USUARIO
@@ -203,29 +186,20 @@ export default function AdvancedGenerator() {
     return `Ultra-realistic portrait, ${technical.lens}, ${technical.lighting}, WB ${technical.wb}, ${technical.post}`;
   };
 
-  // Función para generar idea aleatoria (PRO) - ✅ MEJORADA
+  // Función para generar idea aleatoria (PRO)
   const generateRandomIdea = () => {
-    // Seleccionar aleatoriamente de cada categoría
-    const randomShot = getRandomShotType();
-    const randomOutfit = getRandomOutfit();
-    const randomEnvironment = getRandomEnvironment();
+    const randomIdea =
+      RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)];
     const randomPreset =
       presetsData[Math.floor(Math.random() * presetsData.length)];
     const randomScenario =
       SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
 
-    // Construir descripción humana de la idea
-    const ideaDescription = `${randomShot.name} de estilo ${randomOutfit.name} en ${randomEnvironment.name} con look ${randomPreset.name}`;
-
-    // Actualizar todos los estados
-    setPrompt(ideaDescription);
-    setSelectedShot(randomShot.id);
-    setSelectedOutfit(randomOutfit.id);
-    setSelectedEnvironment(randomEnvironment.id);
+    setPrompt(randomIdea);
     setSelectedPreset(randomPreset.id);
     setSelectedScenario(randomScenario.id);
 
-    showToast("💡 Idea completa generada aleatoriamente");
+    showToast("💡 Idea generada aleatoriamente");
   };
 
   const handleImageChange = (e) => {
@@ -290,40 +264,28 @@ export default function AdvancedGenerator() {
         imageBase64 = await fileToBase64(referenceImage);
       }
 
-      // Preparar los objetos completos (no solo IDs)
+      // ✅ BUSCAR PRESET SELECCIONADO Y CONVERTIRLO
       const selectedPresetData = selectedPreset
         ? presetsData.find((p) => p.id === selectedPreset)
         : null;
-      const shotData = selectedShot ? SHOT_TYPES[selectedShot] : null;
-      const outfitData = selectedOutfit ? OUTFIT_STYLES[selectedOutfit] : null;
-      const envData = selectedEnvironment
-        ? ENVIRONMENTS[selectedEnvironment]
-        : null;
-      const presetPrompt = selectedPresetData
-        ? presetToPromptBlock(selectedPresetData)
-        : null;
-      const scenarioPrompt = selectedScenario
-        ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
-        : null;
-
-      const payload = {
-        prompt,
-        referenceImage: imageBase64,
-        mimeType: referenceImage ? referenceImage.type : null,
-        preset: presetPrompt,
-        scenario: scenarioPrompt,
-        sliders: isPro && showAdvanced ? sliders : null,
-        shotType: shotData, // ← NUEVO
-        outfitStyle: outfitData, // ← NUEVO
-        environment: envData, // ← NUEVO
-        analyzeQuality: isPro,
-        isPro,
-      };
 
       const res = await fetch("/api/gemini-processor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          prompt,
+          referenceImage: imageBase64,
+          mimeType: referenceImage ? referenceImage.type : null,
+          preset: selectedPresetData
+            ? presetToPromptBlock(selectedPresetData)
+            : null,
+          scenario: selectedScenario
+            ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
+            : null,
+          sliders: isPro && showAdvanced ? sliders : null,
+          analyzeQuality: isPro,
+          isPro,
+        }),
       });
 
       if (!res.ok) {
@@ -533,201 +495,6 @@ export default function AdvancedGenerator() {
                 ))}
               </div>
             </div>
-
-            {/* ✅ CONFIGURACIÓN DE COMPOSICIÓN (PRO) - NUEVO */}
-            {isPro && (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCompositionTools(!showCompositionTools)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-black/30 border border-[var(--border)] rounded-lg hover:bg-black/40 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    <Camera size={18} />
-                    <span className="font-medium">
-                      Configuración de Composición
-                    </span>
-                    <span className="text-xs opacity-60">(PRO)</span>
-                  </div>
-                  {showCompositionTools ? (
-                    <ChevronUp size={18} />
-                  ) : (
-                    <ChevronDown size={18} />
-                  )}
-                </button>
-
-                {showCompositionTools && (
-                  <div className="mt-3 p-4 bg-black/20 border border-[var(--border)] rounded-lg space-y-4">
-                    {/* 📷 PLANO FOTOGRÁFICO */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        📷 Plano Fotográfico
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={selectedShot || ""}
-                          onChange={(e) =>
-                            setSelectedShot(e.target.value || null)
-                          }
-                          className="flex-1 bg-[var(--surface)] text-white border border-[var(--border)] rounded-lg px-3 py-2 text-sm"
-                        >
-                          <option value="">Ninguno (automático)</option>
-                          <optgroup label="Planos Generales">
-                            <option value="extreme_wide">
-                              Gran Plano General
-                            </option>
-                            <option value="wide">Plano General</option>
-                            <option value="full">Plano Entero</option>
-                          </optgroup>
-                          <optgroup label="Planos Medios">
-                            <option value="american">Plano Americano</option>
-                            <option value="medium">Plano Medio</option>
-                            <option value="medium_close">
-                              Plano Medio Corto
-                            </option>
-                          </optgroup>
-                          <optgroup label="Primeros Planos">
-                            <option value="close_up">Primer Plano</option>
-                            <option value="extreme_close_up">
-                              Primerísimo Primer Plano
-                            </option>
-                            <option value="detail">Plano de Detalle</option>
-                          </optgroup>
-                          <optgroup label="Ángulos">
-                            <option value="overhead">Cenital</option>
-                            <option value="high_angle">Picado</option>
-                            <option value="eye_level">Normal</option>
-                            <option value="low_angle">Contrapicado</option>
-                            <option value="worms_eye">Nadir</option>
-                          </optgroup>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedShot(getRandomShotType().id)
-                          }
-                          className="px-3 py-2 bg-[var(--primary)]/20 border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/30 transition"
-                          title="Aleatorio"
-                        >
-                          🎲
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 👔 ESTILO DE OUTFIT */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        👔 Estilo de Outfit
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={selectedOutfit || ""}
-                          onChange={(e) =>
-                            setSelectedOutfit(e.target.value || null)
-                          }
-                          className="flex-1 bg-[var(--surface)] text-white border border-[var(--border)] rounded-lg px-3 py-2 text-sm"
-                        >
-                          <option value="">Ninguno (automático)</option>
-                          <option value="casual">Casual</option>
-                          <option value="classic">Clásico</option>
-                          <option value="smart_casual">Smart Casual</option>
-                          <option value="elegant">Elegante</option>
-                          <option value="streetwear">Streetwear</option>
-                          <option value="minimalist">Minimalista</option>
-                          <option value="vintage">Vintage</option>
-                          <option value="sporty">Deportivo</option>
-                          <option value="boho">Boho</option>
-                          <option value="grunge">Grunge</option>
-                          <option value="gothic">Gótico</option>
-                          <option value="cyberpunk">Cyberpunk</option>
-                          <option value="kpop">K-Pop</option>
-                          <option value="athleisure">Athleisure</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedOutfit(getRandomOutfit().id)
-                          }
-                          className="px-3 py-2 bg-[var(--primary)]/20 border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/30 transition"
-                          title="Aleatorio"
-                        >
-                          🎲
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 🏞️ ENTORNO/LOCACIÓN */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        🏞️ Entorno/Locación
-                      </label>
-
-                      {/* Filtros de categoría */}
-                      <div className="flex gap-2 mb-2 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedEnvCategory("all")}
-                          className={`px-3 py-1 rounded-lg text-xs transition ${
-                            selectedEnvCategory === "all"
-                              ? "bg-[var(--primary)] text-black"
-                              : "bg-black/30 border border-[var(--border)] hover:bg-black/40"
-                          }`}
-                        >
-                          Todos
-                        </button>
-                        {Object.entries(ENVIRONMENT_CATEGORIES).map(
-                          ([key, cat]) => (
-                            <button
-                              key={key}
-                              type="button"
-                              onClick={() => setSelectedEnvCategory(key)}
-                              className={`px-3 py-1 rounded-lg text-xs transition ${
-                                selectedEnvCategory === key
-                                  ? "bg-[var(--primary)] text-black"
-                                  : "bg-black/30 border border-[var(--border)] hover:bg-black/40"
-                              }`}
-                            >
-                              {cat.icon} {cat.name}
-                            </button>
-                          )
-                        )}
-                      </div>
-
-                      {/* Selector de entorno */}
-                      <div className="flex gap-2">
-                        <select
-                          value={selectedEnvironment || ""}
-                          onChange={(e) =>
-                            setSelectedEnvironment(e.target.value || null)
-                          }
-                          className="flex-1 bg-[var(--surface)] text-white border border-[var(--border)] rounded-lg px-3 py-2 text-sm max-h-48 overflow-y-auto"
-                        >
-                          <option value="">Ninguno (automático)</option>
-                          {(selectedEnvCategory === "all"
-                            ? Object.values(ENVIRONMENTS)
-                            : getEnvironmentsByCategory(selectedEnvCategory)
-                          ).map((env) => (
-                            <option key={env.id} value={env.id}>
-                              {env.name}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedEnvironment(getRandomEnvironment().id)
-                          }
-                          className="px-3 py-2 bg-[var(--primary)]/20 border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/30 transition"
-                          title="Aleatorio"
-                        >
-                          🎲
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* ✅ HERRAMIENTAS PRO */}
             <div className="relative mt-4">
