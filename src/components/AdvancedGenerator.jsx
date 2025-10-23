@@ -87,18 +87,67 @@ const SCENARIOS = [
   },
 ];
 
-// IDEAS ALEATORIAS para generar (PRO feature)
+// IDEAS ALEATORIAS para generar (PRO feature) - 50 ideas variadas
 const RANDOM_IDEAS = [
-  "Retrato elegante en biblioteca antigua con luz de ventana",
-  "Fotografía editorial en mercado callejero colorido al mediodía",
-  "Sesión de moda minimalista en galería de arte contemporáneo",
-  "Retrato íntimo en café parisino con luz natural suave",
-  "Fotografía urbana nocturna con reflejos en charcos de lluvia",
-  "Retrato cinematográfico en estación de tren vintage",
-  "Sesión lifestyle en campo de lavanda al atardecer",
-  "Retrato conceptual en museo de historia natural",
-  "Fotografía de moda en azotea con skyline de fondo",
-  "Retrato dramático en teatro abandonado con luz cenital",
+  // INTERIORES ELEGANTES (10)
+  "Retrato elegante en biblioteca antigua con luz de ventana natural suave",
+  "Fotografía editorial en museo de arte moderno con luz cenital controlada",
+  "Sesión íntima en café parisino vintage con luz cálida de atardecer",
+  "Retrato minimalista en galería de arte blanca con iluminación puntual",
+  "Fotografía conceptual en teatro abandonado con luz dramática filtrada",
+  "Sesión de moda en loft industrial con ventanales amplios y luz natural",
+  "Retrato cinematográfico en hotel boutique art déco con iluminación ambiente",
+  "Fotografía lifestyle en estudio de arquitecto con luz natural difusa",
+  "Retrato editorial en bar speakeasy con luces prácticas y neones sutiles",
+  "Sesión creativa en biblioteca pública con columnas clásicas y luz lateral",
+  
+  // URBANO EXTERIOR (10)
+  "Fotografía urbana nocturna con reflejos en charcos y luces de neón vibrantes",
+  "Retrato de calle en mercado callejero colorido al mediodía con sombras marcadas",
+  "Sesión editorial en azotea urbana al atardecer con skyline de fondo",
+  "Fotografía de moda en callejón de graffiti con luz natural contrastada",
+  "Retrato cinematográfico en estación de tren vintage con luz volumétrica",
+  "Sesión urbana en puente de acero al amanecer con niebla atmosférica",
+  "Fotografía lifestyle en plaza europea con arquitectura clásica y luz dorada",
+  "Retrato nocturno en Times Square con luces artificiales multicolor",
+  "Sesión de moda en parking subterráneo con luz de neón fría",
+  "Fotografía editorial en escaleras de metro con luz artificial dramática",
+  
+  // NATURALEZA Y EXTERIOR (10)
+  "Sesión lifestyle en campo de lavanda al atardecer con luz dorada suave",
+  "Retrato en bosque de niebla con luz filtrada entre árboles al amanecer",
+  "Fotografía editorial en playa desierta al sunrise con contraluz dramático",
+  "Sesión bohemia en jardín botánico con luz natural difusa de mediodía",
+  "Retrato en acantilado costero al golden hour con viento natural",
+  "Fotografía de moda en desierto al atardecer con luz cálida rasante",
+  "Sesión íntima en viñedo al amanecer con niebla baja y luz suave",
+  "Retrato en campo de trigo dorado con luz de tarde lateral",
+  "Fotografía lifestyle en lago de montaña con reflejo y luz azul",
+  "Sesión editorial en cañón rocoso con luz dramática de mediodía",
+  
+  // CONCEPTUAL Y CREATIVO (10)
+  "Retrato conceptual en museo de historia natural con iluminación direccional",
+  "Fotografía surrealista en estudio con fondos de colores vibrantes",
+  "Sesión creativa en invernadero tropical con luz natural filtrada por plantas",
+  "Retrato artístico en galería de espejos con reflejos múltiples",
+  "Fotografía experimental en túnel urbano con luz led multicolor",
+  "Sesión conceptual en escalera caracol minimalista con luz cenital",
+  "Retrato editorial en habitación victoriana con luz de velas y ambiente",
+  "Fotografía creativa en piscina cubierta con luz reflejada en agua",
+  "Sesión artística en iglesia gótica abandonada con luz de vitral",
+  "Retrato conceptual en sala de máquinas vintage con luz práctica",
+  
+  // MODA Y EDITORIAL (10)
+  "Sesión de alta moda en estudio minimalista con fondo infinito blanco",
+  "Fotografía editorial en showroom de diseño con luz arquitectónica",
+  "Retrato de moda en boutique de lujo con iluminación comercial suave",
+  "Sesión editorial en pasarela con luz de estudio profesional",
+  "Fotografía de moda en mansión clásica con luz de araña y ambiente",
+  "Retrato editorial en jardín francés con luz natural filtrada",
+  "Sesión de moda en warehouse moderno con luz industrial dura",
+  "Fotografía editorial en yate de lujo al sunset con luz dorada",
+  "Retrato de moda en penthouse con vista panorámica y luz de ciudad",
+  "Sesión editorial en estudio fotográfico con setup de tres puntos clásico",
 ];
 
 export default function AdvancedGenerator() {
