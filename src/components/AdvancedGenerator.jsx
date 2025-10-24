@@ -27,6 +27,16 @@ import {
   PRESET_PLANS,
 } from "../data/presetsData";
 
+// ✅ IMPORTAR NUEVOS DATOS DE COMPOSICIÓN
+import { SHOT_TYPES, getRandomShotType } from "../data/shotTypesData";
+import { OUTFIT_STYLES, getRandomOutfit } from "../data/outfitStylesData";
+import { 
+  ENVIRONMENTS, 
+  ENVIRONMENT_CATEGORIES,
+  getEnvironmentsByCategory,
+  getRandomEnvironment 
+} from "../data/environmentsData";
+
 // SCENARIOS (8 escenarios) - Mantener igual por ahora
 const SCENARIOS = [
   {
@@ -172,6 +182,13 @@ export default function AdvancedGenerator() {
     temperature: 5500,
   });
 
+  // ✅ NUEVOS ESTADOS PARA CONTROL AVANZADO
+  const [selectedShot, setSelectedShot] = useState(null);
+  const [selectedOutfit, setSelectedOutfit] = useState(null);
+  const [selectedEnvironment, setSelectedEnvironment] = useState(null);
+  const [selectedEnvCategory, setSelectedEnvCategory] = useState("all");
+  const [showCompositionTools, setShowCompositionTools] = useState(false);
+
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
   // ✅ OBTENER PRESETS SEGÚN PLAN DEL USUARIO
@@ -186,30 +203,177 @@ export default function AdvancedGenerator() {
     return `Ultra-realistic portrait, ${technical.lens}, ${technical.lighting}, WB ${technical.wb}, ${technical.post}`;
   };
 
-  // Función para generar idea aleatoria (PRO)
+  // ✅ GENERAR IDEA ALEATORIA COMPLETA (MODIFICADA)
   const generateRandomIdea = () => {
-    const randomIdea =
-      RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)];
-    const randomPreset =
-      presetsData[Math.floor(Math.random() * presetsData.length)];
-    const randomScenario =
-      SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
-
-    setPrompt(randomIdea);
+    // Seleccionar aleatoriamente de cada categoría
+    const randomShot = getRandomShotType();
+    const randomOutfit = getRandomOutfit();
+    const randomEnvironment = getRandomEnvironment();
+    const randomPreset = presetsData[
+      Math.floor(Math.random() * presetsData.length)
+    ];
+    
+    // Construir descripción humana de la idea
+    const ideaDescription = `${randomShot.name} de estilo ${randomOutfit.name} en ${randomEnvironment.name} con look ${randomPreset.name}`;
+    
+    // Actualizar todos los estados
+    setSelectedShot(randomShot.id);
+    setSelectedOutfit(randomOutfit.id);
+    setSelectedEnvironment(randomEnvironment.id);
     setSelectedPreset(randomPreset.id);
-    setSelectedScenario(randomScenario.id);
-
-    showToast("💡 Idea generada aleatoriamente");
+    setPrompt(ideaDescription);
+    
+    showToast("💡 Idea completa generada aleatoriamente");
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setReferenceImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
+  // Toast notification
+  const showToast = (message) => {
+    const toast = document.createElement("div");
+    toast.className =
+      "fixed top-4 right-4 bg-black/80 text-white px-4 py-2 rounded-lg z-50";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+  };
+
+  // Handle form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!prompt && !referenceImage) return;
+
+    setIsLoading(true);
+    setResponse("");
+    setQualityAnalysis(null);
+
+    try {
+      const selectedPresetObj = presetsData.find((p) => p.id === selectedPreset);
+      const presetPrompt = selectedPresetObj
+        ? presetToPromptBlock(selectedPresetObj)
+        : null;
+
+      const selectedScenarioObj = SCENARIOS.find(
+        (s) => s.id === selectedScenario
+      );
+      const scenarioPrompt = selectedScenarioObj?.prompt || null;
+
+      // Convertir imagen a base64 si existe
+      let base64Image = null;
+      if (referenceImage) {
+        const reader = new FileReader();
+        base64Image = await new Promise((resolve, reject) => {
+          reader.onload = () => {
+            const base64String = reader.result.split(",")[1];
+            resolve(base64String);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(referenceImage);
+        });
+      }
+
+      // ✅ PREPARAR LOS OBJETOS COMPLETOS PARA LOS NUEVOS PARÁMETROS
+      const shotData = selectedShot ? SHOT_TYPES[selectedShot] : null;
+      const outfitData = selectedOutfit ? OUTFIT_STYLES[selectedOutfit] : null;
+      const envData = selectedEnvironment ? ENVIRONMENTS[selectedEnvironment] : null;
+
+      const payload = {
+        prompt,
+        referenceImage: base64Image,
+        mimeType: referenceImage?.type,
+        preset: presetPrompt,
+        scenario: scenarioPrompt,
+        sliders: sliders,
+        shotType: shotData,      // ← NUEVO
+        outfitStyle: outfitData, // ← NUEVO
+        environment: envData,    // ← NUEVO
+        analyzeQuality: isPro,
+        isPro,
+      };
+
+      const res = await fetch("/api/gemini-processor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al generar el prompt");
+      }
+
+      setResponse(data.prompt);
+
+      if (data.qualityAnalysis) {
+        setQualityAnalysis(data.qualityAnalysis);
+      }
+
+      showToast("✅ Prompt generado correctamente");
+    } catch (error) {
+      console.error("Error:", error);
+      showToast("❌ Error al generar el prompt");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Handle apply suggestions
+  const handleApplySuggestions = async () => {
+    if (!qualityAnalysis?.suggestions || !response) return;
+
+    setIsApplyingSuggestions(true);
+
+    try {
+      const payload = {
+        applySuggestions: true,
+        currentPrompt: response,
+        suggestions: qualityAnalysis.suggestions,
+        isPro: true,
+      };
+
+      const res = await fetch("/api/gemini-processor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al aplicar sugerencias");
+      }
+
+      setResponse(data.prompt);
+      setQualityAnalysis(null);
+      showToast("✅ Sugerencias aplicadas correctamente");
+    } catch (error) {
+      console.error("Error:", error);
+      showToast("❌ Error al aplicar sugerencias");
+    } finally {
+      setIsApplyingSuggestions(false);
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("❌ La imagen debe ser menor a 5MB");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      showToast("❌ Solo se permiten archivos de imagen");
+      return;
+    }
+
+    setReferenceImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
@@ -217,263 +381,272 @@ export default function AdvancedGenerator() {
     setImagePreview("");
   };
 
-  const fileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        try {
-          const parts = String(reader.result).split(",");
-          resolve(parts[1] || null);
-        } catch (err) {
-          resolve(null);
-        }
-      };
-      reader.onerror = (err) => reject(err);
-    });
-
-  const showToast = (message) => {
-    if (window.App_showToast) {
-      window.App_showToast(message);
-    }
-  };
-
-  const handleGenerate = async (e) => {
-    e && e.preventDefault();
-
-    if (!user) {
-      setResponse("Inicia sesión para generar.");
-      showToast("Inicia sesión para generar.");
-      return;
-    }
-    if (profile?.credits <= 0) {
-      setResponse(
-        "No tienes créditos disponibles. Compra créditos o suscríbete."
-      );
-      showToast("No tienes créditos.");
-      return;
-    }
-
-    setIsLoading(true);
-    setResponse("Generando prompt con IA... por favor, espera.");
-    setQualityAnalysis(null);
-
-    try {
-      let imageBase64 = null;
-      if (referenceImage) {
-        imageBase64 = await fileToBase64(referenceImage);
-      }
-
-      // ✅ BUSCAR PRESET SELECCIONADO Y CONVERTIRLO
-      const selectedPresetData = selectedPreset
-        ? presetsData.find((p) => p.id === selectedPreset)
-        : null;
-
-      const res = await fetch("/api/gemini-processor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt,
-          referenceImage: imageBase64,
-          mimeType: referenceImage ? referenceImage.type : null,
-          preset: selectedPresetData
-            ? presetToPromptBlock(selectedPresetData)
-            : null,
-          scenario: selectedScenario
-            ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
-            : null,
-          sliders: isPro && showAdvanced ? sliders : null,
-          analyzeQuality: isPro,
-          isPro,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res
-          .json()
-          .catch(() => ({ error: `Error del servidor: ${res.status}` }));
-        throw new Error(err.error || "Fallo en el generador");
-      }
-
-      const data = await res.json();
-      setResponse(data.prompt || "No se recibió respuesta del generador.");
-      if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
-      showToast("Prompt generado correctamente");
-
-      await refreshProfile();
-    } catch (err) {
-      console.error(err);
-      setResponse("Hubo un error generando el prompt. Intenta de nuevo.");
-      showToast("Error generando prompt.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleApplySuggestions = async () => {
-    if (!qualityAnalysis || !qualityAnalysis.suggestions?.length) return;
-
-    setIsApplyingSuggestions(true);
-    try {
-      const res = await fetch("/api/gemini-processor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applySuggestions: true,
-          currentPrompt: response,
-          suggestions: qualityAnalysis.suggestions,
-          isPro,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res
-          .json()
-          .catch(() => ({ error: `Error del servidor: ${res.status}` }));
-        throw new Error(err.error || "Fallo aplicando sugerencias");
-      }
-      const data = await res.json();
-      setResponse(data.prompt || response);
-      setQualityAnalysis(null);
-      showToast("Sugerencias aplicadas.");
-    } catch (e) {
-      console.error(e);
-      alert(`Error: ${e.message || "Fallo aplicando sugerencias"}`);
-    } finally {
-      setIsApplyingSuggestions(false);
-    }
-  };
-
   const handleCopy = () => {
     navigator.clipboard.writeText(response);
     setCopied(true);
-    showToast("Prompt copiado");
+    showToast("✅ Prompt copiado");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleUseInGemini = () => {
-    navigator.clipboard.writeText(response);
     window.open(
-      "https://gemini.google.com/app",
-      "_blank",
-      "noopener,noreferrer"
+      `https://gemini.google.com/?prompt=${encodeURIComponent(response)}`,
+      "_blank"
     );
-    showToast("Prompt copiado. Abriendo Gemini...");
   };
 
   return (
-    <section id="prompt-generator" className="py-24 px-4 bg-black/20">
-      <div className="max-w-6xl mx-auto">
-        {/* ALERTA DE CRÉDITOS */}
-        {user && profile && profile.credits <= 3 && (
-          <div
-            className={`mb-6 p-4 rounded-lg border ${
-              profile.credits === 0
-                ? "bg-red-500/10 border-red-500/30"
-                : "bg-[var(--primary)]/10 border-[var(--primary)]/30"
-            }`}
-          >
-            <p
-              className={`font-bold ${
-                profile.credits === 0 ? "text-red-400" : "text-[var(--primary)]"
-              }`}
-            >
-              {profile.credits === 0
-                ? "⚠️ No tienes créditos. Actualiza tu plan para continuar."
-                : `⚠️ Te quedan ${profile.credits} crédito${
-                    profile.credits === 1 ? "" : "s"
-                  }.`}
-            </p>
-            {profile.plan === "free" && (
-              <a
-                href="#planes"
-                className="text-[var(--primary)] hover:opacity-90 text-sm font-semibold mt-2 inline-block"
-              >
-                Ver planes →
-              </a>
-            )}
-          </div>
-        )}
+    <section className="min-h-screen py-20 px-4">
+      <div className="max-w-4xl mx-auto">
+        <AnimatedSection>
+          <h1 className="text-4xl font-black text-center mb-12">
+            Generador Avanzado
+          </h1>
 
-        <AnimatedSection className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-heading mb-4">
-            Generador de Prompts{" "}
-            <span className="text-[var(--primary)]">PROMPTRAITS</span>
-          </h2>
-          <p className="text-gray-400 text-lg">
-            Describe tu idea o sube una imagen de referencia para generar un
-            prompt profesional.
-          </p>
-        </AnimatedSection>
-
-        <div className="bg-white/5 border border-[var(--border)] rounded-2xl p-6">
-          <form onSubmit={handleGenerate} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <label
-                  htmlFor="inputText"
-                  className="block text-sm font-medium text-gray-300 mb-2"
-                >
-                  Describe tu idea:
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Upload de imagen */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                📸 Imagen de Referencia (opcional):
+              </label>
+              {!imagePreview ? (
+                <label className="w-full flex flex-col items-center justify-center border-2 border-dashed border-[var(--border)] rounded-lg p-8 cursor-pointer hover:border-[var(--primary)] transition">
+                  <Upload className="w-12 h-12 mb-2 opacity-50" />
+                  <p className="text-sm opacity-70">
+                    Sube una imagen para recrear su estilo
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
                 </label>
-                <textarea
-                  id="inputText"
-                  rows="8"
-                  className="w-full h-full bg-black/50 border border-[var(--border)] rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-[var(--primary)] resize-none"
-                  placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                ></textarea>
-              </div>
-
-              <div className="flex flex-col">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Imagen de referencia:
-                </label>
-                {!imagePreview ? (
-                  <label
-                    htmlFor="referenceImagePrompt-Gen"
-                    className="flex-1 flex flex-col items-center justify-center bg-[var(--surface)]/30 border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:bg-[var(--surface)]/40 transition-all p-4"
+              ) : (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 bg-red-500/80 backdrop-blur-sm p-2 rounded-full hover:bg-red-600 transition"
                   >
-                    <Upload className="w-8 h-8 text-[var(--primary)] mb-2" />
-                    <span className="text-sm font-semibold text-center">
-                      Subir imagen
-                    </span>
-                    <span className="text-xs text-gray-400 mt-1 text-center">
-                      Opcional
-                    </span>
-                  </label>
-                ) : (
-                  <div className="relative flex-1 rounded-lg overflow-hidden border border-[var(--border)]">
-                    <img
-                      src={imagePreview}
-                      alt="Referencia"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-all shadow-lg"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                )}
-                <input
-                  id="referenceImagePrompt-Gen"
-                  type="file"
-                  className="hidden"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                />
-              </div>
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* ✅ PRESETS FREE - BOTONES COMPACTOS */}
+            {/* Prompt */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">
-                🎨 Presets Básicos (GRATIS):
+              <label className="block text-sm font-medium mb-2">
+                💬 Describe tu idea:
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Ej: Retrato cinematográfico en bosque con luz natural filtrada..."
+                rows={4}
+                className="w-full bg-[var(--surface)] text-white border border-[var(--border)] rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--primary)] transition"
+              />
+            </div>
+
+            {/* ✅ CONFIGURACIÓN DE COMPOSICIÓN (PRO) */}
+            {isPro && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCompositionTools(!showCompositionTools)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-black/30 border border-[var(--border)] rounded-lg hover:bg-black/40 transition"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">📷 Configuración de Composición</span>
+                    <span className="text-xs opacity-60">(PRO)</span>
+                  </div>
+                  {showCompositionTools ? "▲" : "▼"}
+                </button>
+
+                {showCompositionTools && (
+                  <div className="mt-3 p-4 bg-black/20 border border-[var(--border)] rounded-lg space-y-4">
+                    
+                    {/* PLANO */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        📷 Plano Fotográfico
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={selectedShot || ""}
+                          onChange={(e) => setSelectedShot(e.target.value || null)}
+                          className="flex-1 bg-[var(--surface)] text-white border border-[var(--border)] rounded-lg px-3 py-2"
+                        >
+                          <option value="">Ninguno (automático)</option>
+                          <optgroup label="Planos Generales">
+                            <option value="extreme_wide">Gran Plano General</option>
+                            <option value="wide">Plano General</option>
+                            <option value="full">Plano Entero</option>
+                          </optgroup>
+                          <optgroup label="Planos Medios">
+                            <option value="american">Plano Americano</option>
+                            <option value="medium">Plano Medio</option>
+                            <option value="medium_close">Plano Medio Corto</option>
+                          </optgroup>
+                          <optgroup label="Primeros Planos">
+                            <option value="close_up">Primer Plano</option>
+                            <option value="extreme_close_up">Primerísimo Primer Plano</option>
+                            <option value="detail">Plano de Detalle</option>
+                          </optgroup>
+                          <optgroup label="Ángulos">
+                            <option value="overhead">Cenital</option>
+                            <option value="high_angle">Picado</option>
+                            <option value="eye_level">Normal</option>
+                            <option value="low_angle">Contrapicado</option>
+                            <option value="worms_eye">Nadir</option>
+                          </optgroup>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedShot(getRandomShotType().id)}
+                          className="px-3 py-2 bg-[var(--primary)]/20 border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/30 transition"
+                        >
+                          🎲
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* OUTFIT */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        👔 Estilo de Outfit
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={selectedOutfit || ""}
+                          onChange={(e) => setSelectedOutfit(e.target.value || null)}
+                          className="flex-1 bg-[var(--surface)] text-white border border-[var(--border)] rounded-lg px-3 py-2"
+                        >
+                          <option value="">Ninguno (automático)</option>
+                          <option value="casual">Casual</option>
+                          <option value="smart_casual">Smart Casual</option>
+                          <option value="elegant">Elegante</option>
+                          <option value="streetwear">Streetwear</option>
+                          <option value="minimalist">Minimalista</option>
+                          <option value="vintage">Vintage</option>
+                          <option value="boho">Boho</option>
+                          <option value="cyberpunk">Cyberpunk</option>
+                          <option value="grunge">Grunge</option>
+                          <option value="preppy">Preppy</option>
+                          <option value="athleisure">Athleisure</option>
+                          <option value="gothic">Gótico</option>
+                          <option value="punk">Punk</option>
+                          <option value="rockabilly">Rockabilly</option>
+                          <option value="country">Country</option>
+                          <option value="military">Militar</option>
+                          <option value="safari">Safari</option>
+                          <option value="nautical">Náutico</option>
+                          <option value="western">Western</option>
+                          <option value="kpop">K-Pop</option>
+                          <option value="techwear">Techwear</option>
+                          <option value="art_deco">Art Déco</option>
+                          <option value="edwardian">Eduardiano</option>
+                          <option value="victorian">Victoriano</option>
+                          <option value="retro_80s">Retro 80s</option>
+                          <option value="retro_90s">Retro 90s</option>
+                          <option value="seventies">Años 70</option>
+                          <option value="flapper">Flapper</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedOutfit(getRandomOutfit().id)}
+                          className="px-3 py-2 bg-[var(--primary)]/20 border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/30 transition"
+                        >
+                          🎲
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ENTORNO */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        🏞️ Entorno/Locación
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={selectedEnvironment || ""}
+                          onChange={(e) => setSelectedEnvironment(e.target.value || null)}
+                          className="flex-1 bg-[var(--surface)] text-white border border-[var(--border)] rounded-lg px-3 py-2"
+                        >
+                          <option value="">Ninguno (automático)</option>
+                          <optgroup label="Estudio">
+                            <option value="studio_gray">Estudio Fondo Gris</option>
+                            <option value="studio_black_lowkey">Estudio Fondo Negro</option>
+                            <option value="studio_white_highkey">Estudio Fondo Blanco</option>
+                          </optgroup>
+                          <optgroup label="Urbano">
+                            <option value="modern_glass_window">Ventanal Moderno</option>
+                            <option value="industrial_concrete">Cemento Industrial</option>
+                            <option value="neon_street_night">Calle con Neones</option>
+                            <option value="rooftop_urban">Azotea Urbana</option>
+                            <option value="graffiti_alley">Callejón Graffiti</option>
+                            <option value="parking_garage">Parking</option>
+                          </optgroup>
+                          <optgroup label="Natural">
+                            <option value="golden_wheat_field">Campo de Trigo</option>
+                            <option value="foggy_forest">Bosque con Niebla</option>
+                            <option value="beach_sunrise">Playa Amanecer</option>
+                            <option value="mountain_lake">Lago de Montaña</option>
+                            <option value="botanical_garden">Jardín Botánico</option>
+                            <option value="desert_dunes">Dunas del Desierto</option>
+                          </optgroup>
+                          <optgroup label="Atmosférico">
+                            <option value="vintage_cafe">Café Vintage</option>
+                            <option value="dim_bedroom">Habitación Tenue</option>
+                            <option value="artist_workshop">Taller de Artista</option>
+                            <option value="library_classic">Biblioteca Clásica</option>
+                            <option value="jazz_club">Club de Jazz</option>
+                            <option value="bookstore_cozy">Librería Acogedora</option>
+                          </optgroup>
+                          <optgroup label="Cinemático">
+                            <option value="dark_corridor">Pasillo Oscuro</option>
+                            <option value="motel_neon">Motel con Neón</option>
+                            <option value="abandoned_theater">Teatro Abandonado</option>
+                            <option value="industrial_factory">Fábrica Industrial</option>
+                            <option value="subway_station">Estación de Metro</option>
+                            <option value="warehouse_empty">Warehouse Vacío</option>
+                          </optgroup>
+                          <optgroup label="Cyberpunk">
+                            <option value="rain_city_night">Ciudad Lluvia</option>
+                            <option value="neon_arcade">Arcade de Neones</option>
+                            <option value="cyberpunk_ruins">Ruinas Futuristas</option>
+                            <option value="underground_tunnel">Túnel Subterráneo</option>
+                            <option value="hacker_den">Guarida Hacker</option>
+                            <option value="spaceship_interior">Interior Nave Espacial</option>
+                          </optgroup>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedEnvironment(getRandomEnvironment().id)}
+                          className="px-3 py-2 bg-[var(--primary)]/20 border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/30 transition"
+                        >
+                          🎲
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PRESETS FREE */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                🎨 Estilos (Gratis - {freePresets.length}):
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {freePresets.map((preset) => (
                   <button
                     key={preset.id}
@@ -483,9 +656,9 @@ export default function AdvancedGenerator() {
                         selectedPreset === preset.id ? null : preset.id
                       )
                     }
-                    className={`px-3 py-2 rounded-lg text-center transition-all text-xs font-semibold ${
+                    className={`px-2 py-2 rounded-lg text-center text-xs font-semibold transition-all ${
                       selectedPreset === preset.id
-                        ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)] text-white shadow-sm"
+                        ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)] text-white"
                         : "bg-white/5 border border-[var(--border)] text-gray-300 hover:bg-white/10 hover:border-[var(--primary)]/50"
                     }`}
                     title={preset.fullName}
@@ -669,7 +842,7 @@ export default function AdvancedGenerator() {
               )}
             </div>
           </div>
-        </div>
+        </AnimatedSection>
       </div>
     </section>
   );
