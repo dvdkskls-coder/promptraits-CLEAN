@@ -16,6 +16,7 @@ import {
   Send,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
@@ -241,6 +242,18 @@ export default function AdvancedGenerator() {
     e.preventDefault();
     if (!prompt && !referenceImage) return;
 
+    // 🔒 VERIFICAR AUTENTICACIÓN
+    if (!user) {
+      showToast("❌ Debes iniciar sesión para generar prompts");
+      return;
+    }
+
+    // 🔒 VERIFICAR CRÉDITOS
+    if (!profile || profile.credits <= 0) {
+      showToast("❌ No tienes créditos suficientes. Actualiza tu plan.");
+      return;
+    }
+
     setIsLoading(true);
     setResponse("");
     setQualityAnalysis(null);
@@ -295,10 +308,18 @@ export default function AdvancedGenerator() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      // Verificar si la respuesta es JSON válida
+      let data;
+      try {
+        const text = await res.text();
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("Error parsing response:", parseError);
+        throw new Error("El servidor no devolvió una respuesta válida. Verifica que la API_KEY esté configurada.");
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || "Error al generar el prompt");
+        throw new Error(data.error || data.details || "Error al generar el prompt");
       }
 
       setResponse(data.prompt);
@@ -307,7 +328,37 @@ export default function AdvancedGenerator() {
         setQualityAnalysis(data.qualityAnalysis);
       }
 
-      showToast("✅ Prompt generado correctamente");
+      // 💳 DESCONTAR CRÉDITO DESPUÉS DE GENERAR EXITOSAMENTE
+      try {
+        const { data: creditData, error: creditError } = await supabase.rpc('use_credit', {
+          user_id_param: user.id
+        });
+
+        if (creditError) {
+          console.error("Error al descontar crédito:", creditError);
+          showToast("⚠️ Prompt generado, pero no se pudo descontar el crédito");
+        } else if (creditData === false) {
+          showToast("⚠️ Prompt generado, pero no tenías créditos suficientes");
+        } else {
+          // ✅ GUARDAR EN HISTORIAL
+          await supabase.rpc('add_prompt_to_history', {
+            user_id_param: user.id,
+            prompt_text_param: data.prompt,
+            preset_used_param: selectedPresetObj?.name || null,
+            scenario_used_param: selectedScenarioObj?.name || null
+          });
+
+          // 🔄 RECARGAR PERFIL PARA ACTUALIZAR CRÉDITOS
+          if (refreshProfile) {
+            await refreshProfile();
+          }
+
+          showToast("✅ Prompt generado correctamente");
+        }
+      } catch (creditError) {
+        console.error("Error en sistema de créditos:", creditError);
+        showToast("⚠️ Prompt generado, pero hubo un problema con los créditos");
+      }
     } catch (error) {
       console.error("Error:", error);
       showToast("❌ Error al generar el prompt");
@@ -336,10 +387,18 @@ export default function AdvancedGenerator() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      // Verificar si la respuesta es JSON válida
+      let data;
+      try {
+        const text = await res.text();
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("Error parsing response:", parseError);
+        throw new Error("El servidor no devolvió una respuesta válida. Verifica que la API_KEY esté configurada.");
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || "Error al aplicar sugerencias");
+        throw new Error(data.error || data.details || "Error al aplicar sugerencias");
       }
 
       setResponse(data.prompt);
@@ -785,11 +844,22 @@ export default function AdvancedGenerator() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isLoading || (!prompt && !referenceImage)}
+                disabled={isLoading || (!prompt && !referenceImage) || !profile || profile.credits <= 0}
                 className="w-full bg-[var(--primary)] text-black px-6 py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
               >
-                {isLoading ? "Generando..." : "Generar Prompt"}
+                {!profile || profile.credits <= 0
+                  ? "Sin créditos disponibles"
+                  : isLoading
+                  ? "Generando..."
+                  : `Generar Prompt (${profile.credits} créditos)`}
               </button>
+              {profile && (
+                <p className="text-xs text-center mt-2 opacity-60">
+                  {profile.credits > 0 
+                    ? `Tienes ${profile.credits} crédito${profile.credits !== 1 ? 's' : ''} disponible${profile.credits !== 1 ? 's' : ''}`
+                    : "No tienes créditos. Actualiza tu plan para continuar."}
+                </p>
+              )}
             </div>
           </form>
 

@@ -57,6 +57,26 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // 🔄 Función para recargar el perfil (útil después de usar créditos)
+  async function refreshProfile() {
+    if (!user) return { success: false, error: "No user logged in" };
+    
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+      return { success: true };
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
   async function signIn(email, password) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -136,13 +156,13 @@ export function AuthProvider({ children }) {
     signUp,
     signOut,
     resendConfirmation,
-    refreshProfile: () => user && loadProfile(user.id),
+    refreshProfile,  // ✅ Función mejorada para recargar perfil
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// ✅ AGREGAR ESTE HOOK (FALTABA)
+// ✅ Hook para usar el contexto
 export function useAuth() {
   const context = useContext(AuthContext);
 
