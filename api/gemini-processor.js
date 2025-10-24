@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -31,23 +32,19 @@ export default async function handler(req, res) {
       applySuggestions,
       currentPrompt,
       suggestions,
-      shotType,        // ← NUEVO
-      outfitStyle,     // ← NUEVO
-      environment,     // ← NUEVO
+      shotType,
+      outfitStyle,
+      environment,
     } = req.body;
 
     const API_KEY = process.env.GEMINI_API_KEY;
 
     if (!API_KEY) {
       console.error("❌ API key no configurada");
-      return res
-        .status(500)
-        .json({ error: "API key no configurada en el servidor" });
+      return res.status(500).json({ error: "API key no configurada en el servidor" });
     }
 
-    // ===================================================================================
     // MODO: APLICAR SUGERENCIAS (Solo PRO)
-    // ===================================================================================
     if (applySuggestions && currentPrompt && suggestions) {
       console.log("✅ Aplicando sugerencias al prompt...");
 
@@ -89,13 +86,11 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       console.log("✅ Prompt mejorado generado");
       return res.status(200).json({
         prompt: improvedPrompt,
-        qualityAnalysis: null, // No re-analizar, solo devolver el prompt mejorado
+        qualityAnalysis: null,
       });
     }
 
-    // ===================================================================================
     // MODO: GENERACIÓN NORMAL DE PROMPT
-    // ===================================================================================
     if (!prompt && !referenceImage) {
       return res.status(400).json({
         error: "Debes proporcionar un prompt o una imagen de referencia",
@@ -139,35 +134,20 @@ CRITICAL RULES:
 - The prompt must adapt seamlessly to ANY selfie the user provides, regardless of the subject's characteristics
 - Output ONLY the single continuous paragraph, nothing else, no preamble, no explanations`;
 
-    // ============================================================================
-    // AÑADIR NUEVOS PARÁMETROS (shotType, outfitStyle, environment)
-    // ============================================================================
-    
     // Añadir shot type si existe
     if (shotType) {
-      systemPrompt += `\n\nSHOT TYPE/FRAMING:
-Use this specific shot type and framing: ${shotType.technical}
-Ensure the composition follows: ${shotType.nameEN} - ${shotType.description}`;
+      systemPrompt += `\n\nSHOT TYPE/FRAMING:\nUse this specific shot type and framing: ${shotType.technical}\nEnsure the composition follows: ${shotType.nameEN} - ${shotType.description}`;
     }
 
     // Añadir outfit style si existe
     if (outfitStyle) {
-      systemPrompt += `\n\nOUTFIT STYLE:
-Subject wearing: ${outfitStyle.keywords}
-Style aesthetic: ${outfitStyle.name} - ${outfitStyle.description}`;
+      systemPrompt += `\n\nOUTFIT STYLE:\nSubject wearing: ${outfitStyle.keywords}\nStyle aesthetic: ${outfitStyle.name} - ${outfitStyle.description}`;
     }
 
     // Añadir environment si existe
     if (environment) {
-      systemPrompt += `\n\nENVIRONMENT/LOCATION:
-${environment.prompt}
-Lighting setup: ${environment.lighting}
-Technical specs: ${environment.technical}`;
+      systemPrompt += `\n\nENVIRONMENT/LOCATION:\n${environment.prompt}\nLighting setup: ${environment.lighting}\nTechnical specs: ${environment.technical}`;
     }
-
-    // ============================================================================
-    // FIN DE NUEVOS PARÁMETROS
-    // ============================================================================
 
     // Añadir preset si existe
     if (preset) {
@@ -181,12 +161,7 @@ Technical specs: ${environment.technical}`;
 
     // Añadir parámetros de sliders si existen
     if (sliders) {
-      systemPrompt += `\n\nAPPLY THESE TECHNICAL PARAMETERS:
-- Aperture: f/${sliders.aperture}
-- Focal length: ${sliders.focalLength}mm
-- Contrast: ${sliders.contrast}
-- Film grain: ${sliders.grain}
-- Color temperature: ${sliders.temperature}K`;
+      systemPrompt += `\n\nAPPLY THESE TECHNICAL PARAMETERS:\n- Aperture: f/${sliders.aperture}\n- Focal length: ${sliders.focalLength}mm\n- Contrast: ${sliders.contrast}\n- Film grain: ${sliders.grain}\n- Color temperature: ${sliders.temperature}K`;
     }
 
     // Si hay imagen de referencia, cambiar instrucciones
@@ -242,6 +217,7 @@ CRITICAL RULES:
 - Professional cinematographic tone
 - The output prompt must adapt perfectly to ANY selfie the user provides
 - Output ONLY the single continuous paragraph, nothing else`;
+    }
 
     // Añadir solicitud del usuario
     if (prompt && !referenceImage) {
@@ -385,12 +361,14 @@ Rules:
       qualityAnalysis: qualityAnalysis,
     });
   } catch (error) {
-    console.error("❌ Error:", error.message);
+    console.error("❌ Error en gemini-processor:");
+    console.error("Message:", error.message);
+    console.error("Stack:", error.stack);
 
     return res.status(500).json({
       error: "Error al procesar la solicitud",
       details: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 }
-
