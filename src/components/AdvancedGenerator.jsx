@@ -10,6 +10,7 @@ import {
   ChevronUp,
   Crown,
   Send,
+  Info,
   Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -17,15 +18,8 @@ import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
-// ✅ IMPORTAR DATOS
-import {
-  presetsData,
-  getFreePresets,
-} from "../data/presetsData";
-
-import { SHOT_TYPES } from "../data/shotTypesData";
+// ✅ IMPORTAR SOLO OUTFIT_STYLES
 import { OUTFIT_STYLES } from "../data/outfitStylesData";
-import { ENVIRONMENTS } from "../data/environmentsData";
 
 // ============================================================================
 // ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
@@ -34,38 +28,44 @@ const QUICK_FEATURES = [
   {
     id: 'professional-lighting',
     name: 'Iluminación Profesional',
-    description: 'Rembrandt, Butterfly o Loop lighting con ratio 3:1',
+    description: 'Rembrandt, Butterfly o Loop lighting',
   },
   {
     id: 'bokeh',
-    name: 'Fondo Desenfocado (Bokeh)',
-    description: 'Shallow depth of field con 85mm f/1.2',
+    name: 'Fondo Desenfocado',
+    description: 'Shallow depth of field con 85mm',
   },
   {
     id: 'cinematic',
     name: 'Look Cinematográfico',
-    description: 'Black Pro-Mist filter effect para look de película',
+    description: 'Black Pro-Mist effect',
   },
   {
     id: 'golden-hour',
     name: 'Golden Hour',
-    description: 'Luz cálida mágica de atardecer, 5500K',
+    description: 'Luz cálida de atardecer',
   },
   {
     id: 'smooth-skin',
     name: 'Piel Suave y Uniforme',
-    description: 'Skin tone uniformity con textura preservada',
+    description: 'Skin tone uniformity',
   },
   {
     id: 'teal-orange',
     name: 'Teal & Orange',
-    description: 'Color grading cinematográfico estilo Hollywood',
+    description: 'Color grading Hollywood',
   },
 ];
 
 // ============================================================================
-// ✨ HERRAMIENTAS PRO - DATOS
+// ✨ HERRAMIENTAS PRO - SIMPLIFICADAS (7 elementos)
 // ============================================================================
+
+const GENDER_OPTIONS = [
+  { id: 'masculine', name: 'Masculino' },
+  { id: 'feminine', name: 'Femenino' },
+  { id: 'neutral', name: 'Neutral' },
+];
 
 const LIGHTING_SCHEMES = [
   { id: 'rembrandt', name: 'Rembrandt', description: '45° con triángulo de luz' },
@@ -95,25 +95,8 @@ const COLOR_GRADING = [
 const FILTERS = [
   { id: 'black-pro-mist', name: 'Black Pro-Mist', description: 'Look cinematográfico' },
   { id: 'nd', name: 'ND Filter', description: 'Largas exposiciones, bokeh' },
-  { id: 'polarizer', name: 'Polarizer (CPL)', description: 'Elimina reflejos, satura' },
+  { id: 'polarizer', name: 'Polarizer', description: 'Elimina reflejos, satura' },
   { id: 'anamorphic', name: 'Anamorphic Flare', description: 'Destello horizontal azul' },
-];
-
-const CAMERA_ANGLES = [
-  { id: 'eye-level', name: 'Eye Level', description: 'Neutral, natural' },
-  { id: 'high-angle', name: 'High Angle', description: 'Picado, desde arriba' },
-  { id: 'low-angle', name: 'Low Angle', description: 'Contrapicado, heroico' },
-  { id: 'birds-eye', name: "Bird's Eye", description: 'Cenital, desde arriba' },
-  { id: 'dutch', name: 'Dutch Angle', description: 'Inclinado, dinámico' },
-  { id: 'selfie', name: 'Selfie Angle', description: 'Brazo extendido, personal' },
-];
-
-const COMPOSITION_RULES = [
-  { id: 'rule-thirds', name: 'Rule of Thirds', description: 'Clásica, equilibrada' },
-  { id: 'golden-ratio', name: 'Golden Ratio', description: 'Proporción áurea' },
-  { id: 'centered', name: 'Centered', description: 'Centrado, simétrico' },
-  { id: 'leading-lines', name: 'Leading Lines', description: 'Líneas guía' },
-  { id: 'negative-space', name: 'Negative Space', description: 'Espacio negativo' },
 ];
 
 const ASPECT_RATIOS = [
@@ -125,11 +108,33 @@ const ASPECT_RATIOS = [
   { id: '4:3', name: '4:3', description: 'Horizontal clásico' },
 ];
 
-const GENDER_OPTIONS = [
-  { id: 'masculine', name: 'Masculino' },
-  { id: 'feminine', name: 'Femenino' },
-  { id: 'neutral', name: 'Neutral' },
-];
+// ============================================================================
+// ✨ INFORMACIÓN DE PLATAFORMAS
+// ============================================================================
+const PLATFORM_INFO = {
+  'nano-banana': {
+    name: 'Nano-Banana (Google Gemini)',
+    description: 'Imagen.ia basado en Google Gemini',
+    features: [
+      'Un párrafo continuo y fluido',
+      '1200-1600 caracteres óptimo',
+      'Especificar orientación (vertical/horizontal)',
+      'NO soporta prompts negativos',
+    ],
+    tips: 'Genera cuadrado (1:1) por defecto. Especifica "vertical portrait format" o "wide horizontal".',
+  },
+  'midjourney': {
+    name: 'Midjourney V7',
+    description: 'Plataforma líder en generación artística',
+    features: [
+      'Parámetros al final (--ar, --v, --s, --q)',
+      'Soporta prompts negativos (--no)',
+      'Control total con seeds (--seed)',
+      'Stylize para fotorrealismo (--s 50-100)',
+    ],
+    tips: 'Usa --ar para aspect ratio, --q 2 para máxima calidad, --s bajo para fotorrealismo.',
+  },
+};
 
 export default function AdvancedGenerator() {
   const { user, profile, refreshProfile } = useAuth();
@@ -138,71 +143,34 @@ export default function AdvancedGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [referenceImage, setReferenceImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [selectedPreset, setSelectedPreset] = useState(null);
   const [qualityAnalysis, setQualityAnalysis] = useState(null);
   const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
   const [copied, setCopied] = useState(false);
   
   const [selectedPlatform, setSelectedPlatform] = useState('nano-banana');
+  const [showPlatformInfo, setShowPlatformInfo] = useState(false);
   const [validation, setValidation] = useState(null);
-
-  // ✨ Solo 1 característica rápida seleccionable
-  const [selectedQuickFeature, setSelectedQuickFeature] = useState(null);
-  
+  const [selectedFeature, setSelectedFeature] = useState(null);
   const [showProTools, setShowProTools] = useState(false);
 
-  // ✨ Estados para Herramientas PRO
   const [proSettings, setProSettings] = useState({
+    gender: 'neutral',
     lighting: null,
     lens: null,
     colorGrading: null,
     filter: null,
-    angle: null,
-    composition: null,
     aspectRatio: null,
-    gender: 'neutral',
-    shotType: null,
     outfit: null,
-    environment: null,
   });
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
-  const freePresets = getFreePresets();
+  const outfitStylesArray = OUTFIT_STYLES ? Object.values(OUTFIT_STYLES) : [];
 
-  // ✅ Convertir objetos a arrays
-  const shotTypesArray = Object.values(SHOT_TYPES);
-  const outfitStylesArray = Object.values(OUTFIT_STYLES);
-  const environmentsArray = Object.values(ENVIRONMENTS);
-
-  // ============================================================================
-  // Si abres PRO, limpias Quick Feature
-  // ============================================================================
-  const handleToggleProTools = () => {
-    if (!showProTools) {
-      // Al abrir PRO, limpia quick feature
-      setSelectedQuickFeature(null);
+  useEffect(() => {
+    if (showProTools) {
+      setSelectedFeature(null);
     }
-    setShowProTools(!showProTools);
-  };
-
-  // Si seleccionas Quick Feature, cierras PRO
-  const handleSelectQuickFeature = (featureId) => {
-    setSelectedQuickFeature(featureId === selectedQuickFeature ? null : featureId);
-    if (featureId !== null) {
-      setShowProTools(false);
-    }
-  };
-
-  const updateProSetting = (key, value) => {
-    setProSettings(prev => ({
-      ...prev,
-      [key]: prev[key] === value ? null : value
-    }));
-  };
-
-  // ============================================================================
-  // HANDLERS
-  // ============================================================================
+  }, [showProTools]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -225,6 +193,29 @@ export default function AdvancedGenerator() {
     setReferenceImage(null);
   };
 
+  const selectFeature = (featureId) => {
+    if (showProTools) {
+      setShowProTools(false);
+      setProSettings({
+        gender: 'neutral',
+        lighting: null,
+        lens: null,
+        colorGrading: null,
+        filter: null,
+        aspectRatio: null,
+        outfit: null,
+      });
+    }
+    setSelectedFeature(selectedFeature === featureId ? null : featureId);
+  };
+
+  const updateProSetting = (key, value) => {
+    setProSettings(prev => ({
+      ...prev,
+      [key]: prev[key] === value ? null : value
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -235,8 +226,8 @@ export default function AdvancedGenerator() {
     try {
       let enhancedPrompt = prompt;
       
-      if (selectedQuickFeature) {
-        const feature = QUICK_FEATURES.find(f => f.id === selectedQuickFeature);
+      if (selectedFeature) {
+        const feature = QUICK_FEATURES.find(f => f.id === selectedFeature);
         if (feature) {
           enhancedPrompt = `${prompt}. Apply: ${feature.description}`;
         }
@@ -246,9 +237,6 @@ export default function AdvancedGenerator() {
         prompt: enhancedPrompt,
         referenceImage,
         mimeType: "image/jpeg",
-        preset: selectedPreset
-          ? presetsData.find((p) => p.id === selectedPreset)?.prompt
-          : null,
         analyzeQuality: isPro,
         isPro,
         platform: selectedPlatform,
@@ -327,8 +315,8 @@ export default function AdvancedGenerator() {
       setResponse(data.prompt);
       setQualityAnalysis(null);
     } catch (error) {
-      console.error("Error al aplicar sugerencias:", error);
-      alert("Error al aplicar sugerencias: " + error.message);
+      console.error("Error:", error);
+      alert("Error: " + error.message);
     } finally {
       setIsApplyingSuggestions(false);
     }
@@ -348,21 +336,18 @@ export default function AdvancedGenerator() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ============================================================================ */}
-            {/* 1. INPUT + IMAGEN (80% + 20%) HORIZONTAL */}
-            {/* ============================================================================ */}
-            <div className="grid grid-cols-1 md:grid-cols-[80%_20%] gap-4">
-              {/* INPUT 80% */}
-              <div>
+            {/* INPUT + IMAGEN */}
+            <div className="flex gap-4">
+              <div className="flex-[0.8]">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Describe lo que quieres generar:
                 </label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  rows={6}
-                  placeholder="Ej: Retrato cinematográfico en un garaje abandonado"
-                  className="w-full px-4 py-3 bg-black/40 border border-[var(--border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition"
+                  rows={8}
+                  placeholder="Retrato cinematográfico en un garaje abandonado"
+                  className="w-full px-4 py-3 bg-black/40 border border-[var(--border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition resize-none"
                 />
                 {referenceImage && (
                   <p className="text-xs text-yellow-400 mt-2">
@@ -371,17 +356,18 @@ export default function AdvancedGenerator() {
                 )}
               </div>
 
-              {/* IMAGEN 20% */}
-              <div>
+              <div className="flex-[0.2]">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Imagen de Referencia:
                 </label>
+
                 {!imagePreview ? (
-                  <label className="flex flex-col items-center justify-center w-full h-[calc(100%-2rem)] border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--primary)] transition bg-black/20">
+                  <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--primary)] transition bg-black/20">
                     <Upload size={32} className="text-gray-400 mb-2" />
                     <span className="text-xs text-gray-400 text-center px-2">
-                      Sube imagen
+                      Sube una foto
                     </span>
+                    <span className="text-xs text-gray-500 mt-1">Max 4MB</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -390,7 +376,7 @@ export default function AdvancedGenerator() {
                     />
                   </label>
                 ) : (
-                  <div className="relative h-[calc(100%-2rem)]">
+                  <div className="relative w-full h-full">
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -408,15 +394,23 @@ export default function AdvancedGenerator() {
               </div>
             </div>
 
-            {/* ============================================================================ */}
-            {/* 2. PLATAFORMAS DE DESTINO (Sin emojis) */}
-            {/* ============================================================================ */}
+            {/* PLATAFORMA */}
             <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
-              <h3 className="font-semibold text-lg mb-4" style={{ color: 'var(--primary)' }}>
-                Plataforma de Destino
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg" style={{ color: 'var(--primary)' }}>
+                  Plataforma de Destino
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPlatformInfo(!showPlatformInfo)}
+                  className="text-sm text-[var(--primary)] hover:underline flex items-center space-x-1"
+                >
+                  <Info size={16} />
+                  <span>{showPlatformInfo ? 'Ocultar' : 'Más info'}</span>
+                </button>
+              </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <button
                   type="button"
                   onClick={() => setSelectedPlatform('nano-banana')}
@@ -427,10 +421,7 @@ export default function AdvancedGenerator() {
                   }`}
                 >
                   <div className="font-bold mb-1">Nano-Banana</div>
-                  <div className="text-xs text-gray-400">Google Gemini</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Imagen.ia • Párrafo continuo
-                  </div>
+                  <div className="text-xs text-gray-400">Google Gemini • Imagen.ia</div>
                 </button>
 
                 <button
@@ -442,18 +433,30 @@ export default function AdvancedGenerator() {
                       : 'border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/50'
                   }`}
                 >
-                  <div className="font-bold mb-1">Midjourney</div>
-                  <div className="text-xs text-gray-400">V7</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Parámetros • Control total
-                  </div>
+                  <div className="font-bold mb-1">Midjourney V7</div>
+                  <div className="text-xs text-gray-400">Control total • Parámetros</div>
                 </button>
               </div>
+
+              {showPlatformInfo && (
+                <div className="bg-black/30 border border-[var(--border)] rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">{PLATFORM_INFO[selectedPlatform].name}</h4>
+                  <p className="text-sm text-gray-400 mb-3">
+                    {PLATFORM_INFO[selectedPlatform].description}
+                  </p>
+                  <div className="space-y-1 text-sm text-gray-300">
+                    {PLATFORM_INFO[selectedPlatform].features.map((feature, idx) => (
+                      <div key={idx}>• {feature}</div>
+                    ))}
+                  </div>
+                  <div className="mt-3 p-2 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded text-xs text-gray-300">
+                    <strong>Tip:</strong> {PLATFORM_INFO[selectedPlatform].tips}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* ============================================================================ */}
-            {/* 3. CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable, sin emojis) */}
-            {/* ============================================================================ */}
+            {/* CARACTERÍSTICAS RÁPIDAS */}
             <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
               <h3 className="font-semibold text-lg mb-2" style={{ color: 'var(--primary)' }}>
                 Características Rápidas
@@ -463,23 +466,23 @@ export default function AdvancedGenerator() {
               </p>
 
               {showProTools && (
-                <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-sm text-yellow-400">
-                  Las Características Rápidas están desactivadas porque Herramientas PRO está abierto.
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-sm text-yellow-400 mb-4">
+                  ⚠️ Herramientas PRO está activo. Las características rápidas están desactivadas.
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {QUICK_FEATURES.map((feature) => (
                   <button
                     key={feature.id}
                     type="button"
-                    onClick={() => handleSelectQuickFeature(feature.id)}
+                    onClick={() => selectFeature(feature.id)}
                     disabled={showProTools}
                     className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedQuickFeature === feature.id && !showProTools
+                      selectedFeature === feature.id && !showProTools
                         ? 'border-[var(--primary)] bg-[var(--primary)]/10'
                         : 'border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/30'
-                    } ${showProTools ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${showProTools ? 'opacity-30 cursor-not-allowed' : ''}`}
                   >
                     <div className="font-semibold mb-1" style={{ color: 'var(--primary)' }}>
                       {feature.name}
@@ -492,39 +495,7 @@ export default function AdvancedGenerator() {
               </div>
             </div>
 
-            {/* ============================================================================ */}
-            {/* 4. PRESETS FREE */}
-            {/* ============================================================================ */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Presets Gratuitos ({freePresets.length}):
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                {freePresets.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() =>
-                      setSelectedPreset(
-                        selectedPreset === preset.id ? null : preset.id
-                      )
-                    }
-                    className={`px-2 py-2 rounded-lg text-center text-xs font-semibold transition-all ${
-                      selectedPreset === preset.id
-                        ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)] text-white"
-                        : "bg-white/5 border border-[var(--border)] text-gray-300 hover:bg-white/10 hover:border-[var(--primary)]/50"
-                    }`}
-                    title={preset.fullName}
-                  >
-                    {preset.shortName}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* ============================================================================ */}
-            {/* 5. BOTÓN GENERAR */}
-            {/* ============================================================================ */}
+            {/* BOTÓN GENERAR */}
             <div className="pt-2">
               <button
                 type="submit"
@@ -549,14 +520,12 @@ export default function AdvancedGenerator() {
                 <p className="text-xs text-center mt-2 opacity-60">
                   {profile.credits > 0 
                     ? `Tienes ${profile.credits} crédito${profile.credits !== 1 ? 's' : ''} disponible${profile.credits !== 1 ? 's' : ''}`
-                    : "No tienes créditos. Actualiza tu plan para continuar."}
+                    : "No tienes créditos. Actualiza tu plan."}
                 </p>
               )}
             </div>
 
-            {/* ============================================================================ */}
-            {/* 6. HERRAMIENTAS PRO (Desplegable al final) */}
-            {/* ============================================================================ */}
+            {/* HERRAMIENTAS PRO - 7 ELEMENTOS */}
             <div>
               {!isPro && (
                 <div className="mb-3 p-3 bg-[var(--primary)]/10 border border-[var(--primary)] rounded-lg flex items-center justify-between">
@@ -577,7 +546,7 @@ export default function AdvancedGenerator() {
 
               <button
                 type="button"
-                onClick={handleToggleProTools}
+                onClick={() => setShowProTools(!showProTools)}
                 disabled={!isPro}
                 className="w-full flex items-center justify-between p-3 bg-[var(--surface)]/30 border border-[var(--border)] rounded-lg hover:border-[var(--primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -595,10 +564,11 @@ export default function AdvancedGenerator() {
 
               {showProTools && isPro && (
                 <div className="mt-3 p-4 bg-black/30 border border-[var(--border)] rounded-lg space-y-6">
+                  
                   {/* GÉNERO */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Género (para outfit/maquillaje):
+                      Género:
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {GENDER_OPTIONS.map((gender) => (
@@ -616,9 +586,7 @@ export default function AdvancedGenerator() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      * NO aparece en el prompt, solo guía el tipo de outfit/maquillaje
-                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Guía el outfit/maquillaje</p>
                   </div>
 
                   {/* ILUMINACIÓN */}
@@ -696,7 +664,7 @@ export default function AdvancedGenerator() {
                   {/* FILTROS */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Filtros Cinematográficos:
+                      Filtros:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {FILTERS.map((filter) => (
@@ -712,54 +680,6 @@ export default function AdvancedGenerator() {
                         >
                           <div className="font-semibold">{filter.name}</div>
                           <div className="text-xs text-gray-400">{filter.description}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ÁNGULO */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Ángulo de Cámara:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {CAMERA_ANGLES.map((angle) => (
-                        <button
-                          key={angle.id}
-                          type="button"
-                          onClick={() => updateProSetting('angle', angle.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.angle === angle.id
-                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
-                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="font-semibold">{angle.name}</div>
-                          <div className="text-xs text-gray-400">{angle.description}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* COMPOSICIÓN */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Reglas de Composición:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {COMPOSITION_RULES.map((rule) => (
-                        <button
-                          key={rule.id}
-                          type="button"
-                          onClick={() => updateProSetting('composition', rule.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.composition === rule.id
-                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
-                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="font-semibold">{rule.name}</div>
-                          <div className="text-xs text-gray-400">{rule.description}</div>
                         </button>
                       ))}
                     </div>
@@ -789,83 +709,36 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* SHOT TYPE */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Shot Type:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {shotTypesArray.map((shot) => (
-                        <button
-                          key={shot.id}
-                          type="button"
-                          onClick={() => updateProSetting('shotType', shot.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.shotType === shot.id
-                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
-                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="font-semibold">{shot.nameEN}</div>
-                          <div className="text-xs text-gray-400">{shot.description}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* OUTFIT */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Outfit Style:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
-                      {outfitStylesArray.map((outfit) => (
-                        <button
-                          key={outfit.id}
-                          type="button"
-                          onClick={() => updateProSetting('outfit', outfit.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.outfit === outfit.id
-                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
-                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="font-semibold">{outfit.name}</div>
-                          <div className="text-xs text-gray-400">{outfit.description}</div>
-                        </button>
-                      ))}
+                  {outfitStylesArray.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                        Outfit:
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+                        {outfitStylesArray.map((outfit) => (
+                          <button
+                            key={outfit.id}
+                            type="button"
+                            onClick={() => updateProSetting('outfit', outfit.id)}
+                            className={`p-2 rounded-lg text-left text-sm transition-all ${
+                              proSettings.outfit === outfit.id
+                                ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                                : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                            }`}
+                          >
+                            <div className="font-semibold">{outfit.name}</div>
+                            <div className="text-xs text-gray-400">{outfit.description}</div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-
-                  {/* ENVIRONMENT */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Environment:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
-                      {environmentsArray.map((env) => (
-                        <button
-                          key={env.id}
-                          type="button"
-                          onClick={() => updateProSetting('environment', env.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.environment === env.id
-                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
-                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="font-semibold">{env.name}</div>
-                          <div className="text-xs text-gray-400">{env.category}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
           </form>
 
-          {/* ANÁLISIS DE CALIDAD */}
           <QualityAnalysis
             analysis={qualityAnalysis}
             isPro={isPro}
@@ -897,19 +770,7 @@ export default function AdvancedGenerator() {
               {response && (
                 <>
                   <div className="mt-4 p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg text-sm">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="font-semibold">Optimizado para {selectedPlatform === 'nano-banana' ? 'Nano-Banana (Google Gemini)' : 'Midjourney V7'}</span>
-                    </div>
-                    {selectedPlatform === 'midjourney' && (
-                      <div className="text-xs text-gray-400">
-                        Los parámetros están al final del prompt. Puedes ajustar --ar, --s, --q según necesites.
-                      </div>
-                    )}
-                    {selectedPlatform === 'nano-banana' && (
-                      <div className="text-xs text-gray-400">
-                        Este prompt está optimizado como párrafo continuo. Si no especificaste orientación, generará formato cuadrado (1:1).
-                      </div>
-                    )}
+                    <span className="font-semibold">Optimizado para {PLATFORM_INFO[selectedPlatform].name}</span>
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
