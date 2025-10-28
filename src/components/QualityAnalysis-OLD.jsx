@@ -101,7 +101,7 @@ export default function QualityAnalysis({
             {/* Botón aplicar sugerencias (solo PRO) */}
             {isPro && (
               <button
-                onClick={() => onApplySuggestions(suggestions)}
+                onClick={onApplySuggestions}
                 disabled={isApplying}
                 className="mt-4 w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-[var(--primary)] to-yellow-400 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
               >
