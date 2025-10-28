@@ -10,8 +10,6 @@ import {
   ChevronUp,
   Crown,
   Send,
-  Info,
-  Zap,
   Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -23,7 +21,6 @@ import QualityAnalysis from "./QualityAnalysis";
 import {
   presetsData,
   getFreePresets,
-  getProPresets,
 } from "../data/presetsData";
 
 import { SHOT_TYPES } from "../data/shotTypesData";
@@ -31,44 +28,38 @@ import { OUTFIT_STYLES } from "../data/outfitStylesData";
 import { ENVIRONMENTS } from "../data/environmentsData";
 
 // ============================================================================
-// ✨ CARACTERÍSTICAS RÁPIDAS (QUICK FEATURES)
+// ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
 // ============================================================================
 const QUICK_FEATURES = [
   {
     id: 'professional-lighting',
     name: 'Iluminación Profesional',
-    description: 'Rembrandt, Butterfly o Loop lighting',
-    icon: '💡',
+    description: 'Rembrandt, Butterfly o Loop lighting con ratio 3:1',
   },
   {
     id: 'bokeh',
     name: 'Fondo Desenfocado (Bokeh)',
-    description: 'Shallow depth of field con 85mm',
-    icon: '🎯',
+    description: 'Shallow depth of field con 85mm f/1.2',
   },
   {
     id: 'cinematic',
     name: 'Look Cinematográfico',
-    description: 'Black Pro-Mist effect',
-    icon: '🎬',
+    description: 'Black Pro-Mist filter effect para look de película',
   },
   {
     id: 'golden-hour',
     name: 'Golden Hour',
-    description: 'Luz cálida mágica de atardecer',
-    icon: '🌅',
+    description: 'Luz cálida mágica de atardecer, 5500K',
   },
   {
     id: 'smooth-skin',
     name: 'Piel Suave y Uniforme',
-    description: 'Skin tone uniformity',
-    icon: '✨',
+    description: 'Skin tone uniformity con textura preservada',
   },
   {
     id: 'teal-orange',
     name: 'Teal & Orange',
-    description: 'Color grading cinematográfico',
-    icon: '🎨',
+    description: 'Color grading cinematográfico estilo Hollywood',
   },
 ];
 
@@ -76,7 +67,6 @@ const QUICK_FEATURES = [
 // ✨ HERRAMIENTAS PRO - DATOS
 // ============================================================================
 
-// ILUMINACIÓN
 const LIGHTING_SCHEMES = [
   { id: 'rembrandt', name: 'Rembrandt', description: '45° con triángulo de luz' },
   { id: 'butterfly', name: 'Butterfly', description: 'Frontal elevada, sombra nariz' },
@@ -86,15 +76,13 @@ const LIGHTING_SCHEMES = [
   { id: 'short', name: 'Short', description: 'Lado alejado iluminado' },
 ];
 
-// LENTES
 const LENSES = [
   { id: '24-35mm', name: '24-35mm', description: 'Gran angular, contexto' },
   { id: '50mm', name: '50mm', description: 'Normal, versátil' },
-  { id: '85mm', name: '85mm ⭐', description: 'REY del retrato' },
+  { id: '85mm', name: '85mm', description: 'REY del retrato' },
   { id: '135-200mm', name: '135-200mm', description: 'Teleobjetivo, compresión' },
 ];
 
-// COLOR GRADING
 const COLOR_GRADING = [
   { id: 'teal-orange', name: 'Teal & Orange', description: 'Hollywood blockbuster' },
   { id: 'vintage', name: 'Vintage Film', description: 'Tonos pastel, contraste suave' },
@@ -104,15 +92,13 @@ const COLOR_GRADING = [
   { id: 'cool', name: 'Cool Tones', description: 'Tonos fríos' },
 ];
 
-// FILTROS
 const FILTERS = [
-  { id: 'black-pro-mist', name: 'Black Pro-Mist ⭐', description: 'Look cinematográfico' },
+  { id: 'black-pro-mist', name: 'Black Pro-Mist', description: 'Look cinematográfico' },
   { id: 'nd', name: 'ND Filter', description: 'Largas exposiciones, bokeh' },
   { id: 'polarizer', name: 'Polarizer (CPL)', description: 'Elimina reflejos, satura' },
   { id: 'anamorphic', name: 'Anamorphic Flare', description: 'Destello horizontal azul' },
 ];
 
-// ÁNGULOS DE CÁMARA
 const CAMERA_ANGLES = [
   { id: 'eye-level', name: 'Eye Level', description: 'Neutral, natural' },
   { id: 'high-angle', name: 'High Angle', description: 'Picado, desde arriba' },
@@ -122,7 +108,6 @@ const CAMERA_ANGLES = [
   { id: 'selfie', name: 'Selfie Angle', description: 'Brazo extendido, personal' },
 ];
 
-// COMPOSICIÓN
 const COMPOSITION_RULES = [
   { id: 'rule-thirds', name: 'Rule of Thirds', description: 'Clásica, equilibrada' },
   { id: 'golden-ratio', name: 'Golden Ratio', description: 'Proporción áurea' },
@@ -131,7 +116,6 @@ const COMPOSITION_RULES = [
   { id: 'negative-space', name: 'Negative Space', description: 'Espacio negativo' },
 ];
 
-// ASPECT RATIO
 const ASPECT_RATIOS = [
   { id: '1:1', name: '1:1', description: 'Cuadrado (Instagram)' },
   { id: '3:4', name: '3:4', description: 'Vertical retrato' },
@@ -141,42 +125,11 @@ const ASPECT_RATIOS = [
   { id: '4:3', name: '4:3', description: 'Horizontal clásico' },
 ];
 
-// GÉNERO (interno, no aparece en prompt)
 const GENDER_OPTIONS = [
-  { id: 'masculine', name: 'Masculino', icon: '👔' },
-  { id: 'feminine', name: 'Femenino', icon: '👗' },
-  { id: 'neutral', name: 'Neutral', icon: '⚪' },
+  { id: 'masculine', name: 'Masculino' },
+  { id: 'feminine', name: 'Femenino' },
+  { id: 'neutral', name: 'Neutral' },
 ];
-
-// ============================================================================
-// ✨ INFORMACIÓN DE PLATAFORMAS
-// ============================================================================
-const PLATFORM_INFO = {
-  'nano-banana': {
-    name: 'Nano-Banana (Google Gemini)',
-    icon: '🤖',
-    description: 'Imagen.ia basado en Google Gemini',
-    features: [
-      '✅ Un párrafo continuo y fluido',
-      '✅ 1200-1600 caracteres óptimo',
-      '✅ Especificar orientación (vertical/horizontal)',
-      '❌ NO soporta prompts negativos',
-    ],
-    tips: 'Genera cuadrado (1:1) por defecto. Especifica "vertical portrait format" o "wide horizontal".',
-  },
-  'midjourney': {
-    name: 'Midjourney V7',
-    icon: '🎨',
-    description: 'Plataforma líder en generación artística',
-    features: [
-      '✅ Parámetros al final (--ar, --v, --s, --q)',
-      '✅ Soporta prompts negativos (--no)',
-      '✅ Control total con seeds (--seed)',
-      '✅ Stylize para fotorrealismo (--s 50-100)',
-    ],
-    tips: 'Usa --ar para aspect ratio, --q 2 para máxima calidad, --s bajo para fotorrealismo.',
-  },
-};
 
 export default function AdvancedGenerator() {
   const { user, profile, refreshProfile } = useAuth();
@@ -190,14 +143,12 @@ export default function AdvancedGenerator() {
   const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
   const [copied, setCopied] = useState(false);
   
-  // Estados para plataforma
   const [selectedPlatform, setSelectedPlatform] = useState('nano-banana');
-  const [showPlatformInfo, setShowPlatformInfo] = useState(false);
   const [validation, setValidation] = useState(null);
 
-  // ✨ Estados para modo de trabajo (OPCIÓN A: Excluyentes)
-  const [workMode, setWorkMode] = useState('quick'); // 'quick' o 'pro'
-  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  // ✨ Solo 1 característica rápida seleccionable
+  const [selectedQuickFeature, setSelectedQuickFeature] = useState(null);
+  
   const [showProTools, setShowProTools] = useState(false);
 
   // ✨ Estados para Herramientas PRO
@@ -209,7 +160,7 @@ export default function AdvancedGenerator() {
     angle: null,
     composition: null,
     aspectRatio: null,
-    gender: 'neutral', // interno
+    gender: 'neutral',
     shotType: null,
     outfit: null,
     environment: null,
@@ -218,31 +169,36 @@ export default function AdvancedGenerator() {
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
   const freePresets = getFreePresets();
 
+  // ✅ Convertir objetos a arrays
+  const shotTypesArray = Object.values(SHOT_TYPES);
+  const outfitStylesArray = Object.values(OUTFIT_STYLES);
+  const environmentsArray = Object.values(ENVIRONMENTS);
+
   // ============================================================================
-  // EFECTO: Cuando cambias de modo, limpia el otro
+  // Si abres PRO, limpias Quick Feature
   // ============================================================================
-  useEffect(() => {
-    if (workMode === 'quick') {
-      // Si cambias a Quick, limpia PRO
-      setProSettings({
-        lighting: null,
-        lens: null,
-        colorGrading: null,
-        filter: null,
-        angle: null,
-        composition: null,
-        aspectRatio: null,
-        gender: 'neutral',
-        shotType: null,
-        outfit: null,
-        environment: null,
-      });
-      setShowProTools(false);
-    } else if (workMode === 'pro') {
-      // Si cambias a PRO, limpia Quick
-      setSelectedFeatures([]);
+  const handleToggleProTools = () => {
+    if (!showProTools) {
+      // Al abrir PRO, limpia quick feature
+      setSelectedQuickFeature(null);
     }
-  }, [workMode]);
+    setShowProTools(!showProTools);
+  };
+
+  // Si seleccionas Quick Feature, cierras PRO
+  const handleSelectQuickFeature = (featureId) => {
+    setSelectedQuickFeature(featureId === selectedQuickFeature ? null : featureId);
+    if (featureId !== null) {
+      setShowProTools(false);
+    }
+  };
+
+  const updateProSetting = (key, value) => {
+    setProSettings(prev => ({
+      ...prev,
+      [key]: prev[key] === value ? null : value
+    }));
+  };
 
   // ============================================================================
   // HANDLERS
@@ -269,30 +225,6 @@ export default function AdvancedGenerator() {
     setReferenceImage(null);
   };
 
-  const toggleFeature = (featureId) => {
-    setWorkMode('quick'); // Asegura que está en modo quick
-    setSelectedFeatures(prev => 
-      prev.includes(featureId) 
-        ? prev.filter(id => id !== featureId)
-        : [...prev, featureId]
-    );
-  };
-
-  const toggleProTools = () => {
-    if (!showProTools) {
-      setWorkMode('pro'); // Cambia a modo PRO
-    }
-    setShowProTools(!showProTools);
-  };
-
-  const updateProSetting = (key, value) => {
-    setWorkMode('pro'); // Asegura que está en modo PRO
-    setProSettings(prev => ({
-      ...prev,
-      [key]: prev[key] === value ? null : value
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -301,16 +233,13 @@ export default function AdvancedGenerator() {
     setValidation(null);
 
     try {
-      // Construir prompt con características
       let enhancedPrompt = prompt;
       
-      if (workMode === 'quick' && selectedFeatures.length > 0) {
-        const featureDescriptions = selectedFeatures.map(id => {
-          const feature = QUICK_FEATURES.find(f => f.id === id);
-          return feature ? feature.description : '';
-        }).filter(Boolean).join(', ');
-        
-        enhancedPrompt = `${prompt}. Apply these features: ${featureDescriptions}`;
+      if (selectedQuickFeature) {
+        const feature = QUICK_FEATURES.find(f => f.id === selectedQuickFeature);
+        if (feature) {
+          enhancedPrompt = `${prompt}. Apply: ${feature.description}`;
+        }
       }
 
       const payload = {
@@ -323,8 +252,7 @@ export default function AdvancedGenerator() {
         analyzeQuality: isPro,
         isPro,
         platform: selectedPlatform,
-        // Enviar configuración PRO
-        proSettings: workMode === 'pro' ? proSettings : null,
+        proSettings: showProTools ? proSettings : null,
       };
 
       const res = await fetch("/api/gemini-processor", {
@@ -372,7 +300,6 @@ export default function AdvancedGenerator() {
 
   const handleApplySuggestions = async (suggestions) => {
     if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) {
-      console.error("No hay sugerencias válidas para aplicar");
       return;
     }
 
@@ -422,25 +349,74 @@ export default function AdvancedGenerator() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* ============================================================================ */}
-            {/* SELECTOR DE PLATAFORMA */}
+            {/* 1. INPUT + IMAGEN (80% + 20%) HORIZONTAL */}
             {/* ============================================================================ */}
-            <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-lg flex items-center space-x-2">
-                  <Zap className="w-5 h-5 text-[var(--primary)]" />
-                  <span>Plataforma de Destino</span>
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowPlatformInfo(!showPlatformInfo)}
-                  className="text-sm text-[var(--primary)] hover:underline flex items-center space-x-1"
-                >
-                  <Info size={16} />
-                  <span>{showPlatformInfo ? 'Ocultar info' : 'Más info'}</span>
-                </button>
+            <div className="grid grid-cols-1 md:grid-cols-[80%_20%] gap-4">
+              {/* INPUT 80% */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Describe lo que quieres generar:
+                </label>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  rows={6}
+                  placeholder="Ej: Retrato cinematográfico en un garaje abandonado"
+                  className="w-full px-4 py-3 bg-black/40 border border-[var(--border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition"
+                />
+                {referenceImage && (
+                  <p className="text-xs text-yellow-400 mt-2">
+                    ⚠️ Con imagen: NO describas físicamente a la persona (edad, género, pelo). Solo pose, expresión y outfit.
+                  </p>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* IMAGEN 20% */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Imagen de Referencia:
+                </label>
+                {!imagePreview ? (
+                  <label className="flex flex-col items-center justify-center w-full h-[calc(100%-2rem)] border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--primary)] transition bg-black/20">
+                    <Upload size={32} className="text-gray-400 mb-2" />
+                    <span className="text-xs text-gray-400 text-center px-2">
+                      Sube imagen
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                ) : (
+                  <div className="relative h-[calc(100%-2rem)]">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover rounded-lg border border-[var(--border)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ============================================================================ */}
+            {/* 2. PLATAFORMAS DE DESTINO (Sin emojis) */}
+            {/* ============================================================================ */}
+            <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
+              <h3 className="font-semibold text-lg mb-4" style={{ color: 'var(--primary)' }}>
+                Plataforma de Destino
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => setSelectedPlatform('nano-banana')}
@@ -450,14 +426,9 @@ export default function AdvancedGenerator() {
                       : 'border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/50'
                   }`}
                 >
-                  <div className="flex items-center space-x-3 mb-2">
-                    <span className="text-2xl">🤖</span>
-                    <div>
-                      <div className="font-bold">Nano-Banana</div>
-                      <div className="text-xs text-gray-400">Google Gemini</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="font-bold mb-1">Nano-Banana</div>
+                  <div className="text-xs text-gray-400">Google Gemini</div>
+                  <div className="text-xs text-gray-500 mt-1">
                     Imagen.ia • Párrafo continuo
                   </div>
                 </button>
@@ -471,75 +442,47 @@ export default function AdvancedGenerator() {
                       : 'border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/50'
                   }`}
                 >
-                  <div className="flex items-center space-x-3 mb-2">
-                    <span className="text-2xl">🎨</span>
-                    <div>
-                      <div className="font-bold">Midjourney</div>
-                      <div className="text-xs text-gray-400">V7</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="font-bold mb-1">Midjourney</div>
+                  <div className="text-xs text-gray-400">V7</div>
+                  <div className="text-xs text-gray-500 mt-1">
                     Parámetros • Control total
                   </div>
                 </button>
               </div>
-
-              {showPlatformInfo && (
-                <div className="bg-black/30 border border-[var(--border)] rounded-lg p-4 space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <span className="text-2xl">{PLATFORM_INFO[selectedPlatform].icon}</span>
-                    <div className="flex-1">
-                      <h4 className="font-semibold mb-1">{PLATFORM_INFO[selectedPlatform].name}</h4>
-                      <p className="text-sm text-gray-400 mb-3">
-                        {PLATFORM_INFO[selectedPlatform].description}
-                      </p>
-                      <div className="space-y-1 text-sm">
-                        {PLATFORM_INFO[selectedPlatform].features.map((feature, idx) => (
-                          <div key={idx} className="text-gray-300">{feature}</div>
-                        ))}
-                      </div>
-                      <div className="mt-3 p-2 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded text-xs text-gray-300">
-                        💡 <strong>Tip:</strong> {PLATFORM_INFO[selectedPlatform].tips}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* ============================================================================ */}
-            {/* CARACTERÍSTICAS RÁPIDAS */}
+            {/* 3. CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable, sin emojis) */}
             {/* ============================================================================ */}
             <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
-              <h3 className="font-semibold text-lg mb-4 flex items-center space-x-2">
-                <Sparkles className="w-5 h-5 text-[var(--primary)]" />
-                <span>Características Rápidas</span>
-                {workMode === 'pro' && (
-                  <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
-                    Desactivadas (modo PRO activo)
-                  </span>
-                )}
+              <h3 className="font-semibold text-lg mb-2" style={{ color: 'var(--primary)' }}>
+                Características Rápidas
               </h3>
               <p className="text-sm text-gray-400 mb-4">
-                Selecciona efectos profesionales para aplicar automáticamente
+                Selecciona un efecto profesional (solo uno)
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {showProTools && (
+                <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-sm text-yellow-400">
+                  Las Características Rápidas están desactivadas porque Herramientas PRO está abierto.
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {QUICK_FEATURES.map((feature) => (
                   <button
                     key={feature.id}
                     type="button"
-                    onClick={() => toggleFeature(feature.id)}
-                    disabled={workMode === 'pro'}
-                    className={`p-3 rounded-lg border-2 transition-all text-left ${
-                      selectedFeatures.includes(feature.id) && workMode === 'quick'
+                    onClick={() => handleSelectQuickFeature(feature.id)}
+                    disabled={showProTools}
+                    className={`p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedQuickFeature === feature.id && !showProTools
                         ? 'border-[var(--primary)] bg-[var(--primary)]/10'
                         : 'border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/30'
-                    } ${workMode === 'pro' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${showProTools ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-xl">{feature.icon}</span>
-                      <span className="font-semibold text-sm">{feature.name}</span>
+                    <div className="font-semibold mb-1" style={{ color: 'var(--primary)' }}>
+                      {feature.name}
                     </div>
                     <div className="text-xs text-gray-400">
                       {feature.description}
@@ -549,69 +492,12 @@ export default function AdvancedGenerator() {
               </div>
             </div>
 
-            {/* INPUT PRINCIPAL */}
+            {/* ============================================================================ */}
+            {/* 4. PRESETS FREE */}
+            {/* ============================================================================ */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Describe lo que quieres generar:
-              </label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                rows={4}
-                placeholder="Ej: Retrato profesional, expresión confiada, traje elegante..."
-                className="w-full px-4 py-3 bg-black/40 border border-[var(--border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition"
-              />
-              {referenceImage && (
-                <p className="text-xs text-yellow-400 mt-2">
-                  ⚠️ Con imagen de referencia: NO describas físicamente a la persona (edad, género, pelo, etc.). Solo pose, expresión y outfit.
-                </p>
-              )}
-            </div>
-
-            {/* IMAGEN DE REFERENCIA */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Imagen de Referencia (Opcional):
-              </label>
-
-              {!imagePreview ? (
-                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--primary)] transition bg-black/20">
-                  <Upload size={40} className="text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-400">
-                    Sube una imagen de referencia
-                  </span>
-                  <span className="text-xs text-gray-500 mt-1">
-                    Máximo 4MB
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-              ) : (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-64 object-cover rounded-lg border border-[var(--border)]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* PRESETS FREE */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                🎨 Presets Gratuitos ({freePresets.length}):
+                Presets Gratuitos ({freePresets.length}):
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {freePresets.map((preset) => (
@@ -637,7 +523,39 @@ export default function AdvancedGenerator() {
             </div>
 
             {/* ============================================================================ */}
-            {/* HERRAMIENTAS PRO - REORGANIZADAS */}
+            {/* 5. BOTÓN GENERAR */}
+            {/* ============================================================================ */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isLoading || (!prompt && !referenceImage) || !profile || profile.credits <= 0}
+                className="w-full bg-[var(--primary)] text-black px-6 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all flex items-center justify-center space-x-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={20} />
+                    <span>Generando prompt profesional...</span>
+                  </>
+                ) : !profile || profile.credits <= 0 ? (
+                  <span>Sin créditos disponibles</span>
+                ) : (
+                  <>
+                    <Sparkles size={20} />
+                    <span>Generar Prompt ({profile.credits} créditos)</span>
+                  </>
+                )}
+              </button>
+              {profile && (
+                <p className="text-xs text-center mt-2 opacity-60">
+                  {profile.credits > 0 
+                    ? `Tienes ${profile.credits} crédito${profile.credits !== 1 ? 's' : ''} disponible${profile.credits !== 1 ? 's' : ''}`
+                    : "No tienes créditos. Actualiza tu plan para continuar."}
+                </p>
+              )}
+            </div>
+
+            {/* ============================================================================ */}
+            {/* 6. HERRAMIENTAS PRO (Desplegable al final) */}
             {/* ============================================================================ */}
             <div>
               {!isPro && (
@@ -659,14 +577,14 @@ export default function AdvancedGenerator() {
 
               <button
                 type="button"
-                onClick={toggleProTools}
+                onClick={handleToggleProTools}
                 disabled={!isPro}
                 className="w-full flex items-center justify-between p-3 bg-[var(--surface)]/30 border border-[var(--border)] rounded-lg hover:border-[var(--primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="font-semibold flex items-center space-x-2">
                   <Crown className="w-5 h-5 text-[var(--primary)]" />
                   <span>Herramientas PRO</span>
-                  {workMode === 'pro' && showProTools && (
+                  {showProTools && (
                     <span className="text-xs bg-[var(--primary)]/20 text-[var(--primary)] px-2 py-1 rounded">
                       ACTIVO
                     </span>
@@ -677,16 +595,10 @@ export default function AdvancedGenerator() {
 
               {showProTools && isPro && (
                 <div className="mt-3 p-4 bg-black/30 border border-[var(--border)] rounded-lg space-y-6">
-                  {workMode === 'quick' && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-sm text-yellow-400">
-                      ⚠️ Al usar Herramientas PRO, las Características Rápidas se desactivarán automáticamente.
-                    </div>
-                  )}
-
-                  {/* GÉNERO (interno) */}
+                  {/* GÉNERO */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      🚻 Género (para outfit/maquillaje):
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Género (para outfit/maquillaje):
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {GENDER_OPTIONS.map((gender) => (
@@ -700,20 +612,19 @@ export default function AdvancedGenerator() {
                               : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
                           }`}
                         >
-                          <span className="mr-2">{gender.icon}</span>
                           {gender.name}
                         </button>
                       ))}
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      * Este selector NO aparece en el prompt, solo guía el tipo de outfit/maquillaje
+                      * NO aparece en el prompt, solo guía el tipo de outfit/maquillaje
                     </p>
                   </div>
 
                   {/* ILUMINACIÓN */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      💡 Iluminación:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Iluminación:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {LIGHTING_SCHEMES.map((light) => (
@@ -736,8 +647,8 @@ export default function AdvancedGenerator() {
 
                   {/* LENTE */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      🎯 Lente:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Lente:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {LENSES.map((lens) => (
@@ -760,8 +671,8 @@ export default function AdvancedGenerator() {
 
                   {/* COLOR GRADING */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      🎨 Color Grading:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Color Grading:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {COLOR_GRADING.map((grade) => (
@@ -784,8 +695,8 @@ export default function AdvancedGenerator() {
 
                   {/* FILTROS */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      🎬 Filtros Cinematográficos:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Filtros Cinematográficos:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {FILTERS.map((filter) => (
@@ -806,10 +717,10 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* ÁNGULO DE CÁMARA */}
+                  {/* ÁNGULO */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      📐 Ángulo de Cámara:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Ángulo de Cámara:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {CAMERA_ANGLES.map((angle) => (
@@ -832,8 +743,8 @@ export default function AdvancedGenerator() {
 
                   {/* COMPOSICIÓN */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      🖼️ Reglas de Composición:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Reglas de Composición:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {COMPOSITION_RULES.map((rule) => (
@@ -856,8 +767,8 @@ export default function AdvancedGenerator() {
 
                   {/* ASPECT RATIO */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      📱 Aspect Ratio:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Aspect Ratio:
                     </label>
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                       {ASPECT_RATIOS.map((ratio) => (
@@ -880,11 +791,11 @@ export default function AdvancedGenerator() {
 
                   {/* SHOT TYPE */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      🎭 Shot Type:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Shot Type:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {SHOT_TYPES.map((shot) => (
+                      {shotTypesArray.map((shot) => (
                         <button
                           key={shot.id}
                           type="button"
@@ -904,11 +815,11 @@ export default function AdvancedGenerator() {
 
                   {/* OUTFIT */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      👔 Outfit Style:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Outfit Style:
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {OUTFIT_STYLES.map((outfit) => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                      {outfitStylesArray.map((outfit) => (
                         <button
                           key={outfit.id}
                           type="button"
@@ -928,11 +839,11 @@ export default function AdvancedGenerator() {
 
                   {/* ENVIRONMENT */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      🌍 Environment:
+                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
+                      Environment:
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {ENVIRONMENTS.map((env) => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                      {environmentsArray.map((env) => (
                         <button
                           key={env.id}
                           type="button"
@@ -952,36 +863,6 @@ export default function AdvancedGenerator() {
                 </div>
               )}
             </div>
-
-            {/* BOTÓN GENERAR */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isLoading || (!prompt && !referenceImage) || !profile || profile.credits <= 0}
-                className="w-full bg-[var(--primary)] text-black px-6 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all flex items-center justify-center space-x-2"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="animate-spin" size={20} />
-                    <span>Generando prompt profesional...</span>
-                  </>
-                ) : !profile || profile.credits <= 0 ? (
-                  <span>Sin créditos disponibles</span>
-                ) : (
-                  <>
-                    <Sparkles size={20} />
-                    <span>Generar Prompt para {PLATFORM_INFO[selectedPlatform].name} ({profile.credits} créditos)</span>
-                  </>
-                )}
-              </button>
-              {profile && (
-                <p className="text-xs text-center mt-2 opacity-60">
-                  {profile.credits > 0 
-                    ? `Tienes ${profile.credits} crédito${profile.credits !== 1 ? 's' : ''} disponible${profile.credits !== 1 ? 's' : ''}`
-                    : "No tienes créditos. Actualiza tu plan para continuar."}
-                </p>
-              )}
-            </div>
           </form>
 
           {/* ANÁLISIS DE CALIDAD */}
@@ -992,7 +873,7 @@ export default function AdvancedGenerator() {
             isApplying={isApplyingSuggestions}
           />
 
-          {/* RESULTADO CON VALIDACIÓN */}
+          {/* RESULTADO */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg">Prompt Generado:</h3>
@@ -1017,17 +898,16 @@ export default function AdvancedGenerator() {
                 <>
                   <div className="mt-4 p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg text-sm">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-xl">{PLATFORM_INFO[selectedPlatform].icon}</span>
-                      <span className="font-semibold">Optimizado para {PLATFORM_INFO[selectedPlatform].name}</span>
+                      <span className="font-semibold">Optimizado para {selectedPlatform === 'nano-banana' ? 'Nano-Banana (Google Gemini)' : 'Midjourney V7'}</span>
                     </div>
                     {selectedPlatform === 'midjourney' && (
                       <div className="text-xs text-gray-400">
-                        💡 Los parámetros están al final del prompt. Puedes ajustar --ar, --s, --q según necesites.
+                        Los parámetros están al final del prompt. Puedes ajustar --ar, --s, --q según necesites.
                       </div>
                     )}
                     {selectedPlatform === 'nano-banana' && (
                       <div className="text-xs text-gray-400">
-                        💡 Este prompt está optimizado como párrafo continuo. Si no especificaste orientación, generará formato cuadrado (1:1).
+                        Este prompt está optimizado como párrafo continuo. Si no especificaste orientación, generará formato cuadrado (1:1).
                       </div>
                     )}
                   </div>
