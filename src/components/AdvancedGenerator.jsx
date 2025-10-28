@@ -1,18 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Camera,
   Upload,
   Trash2,
   Sparkles,
   Copy,
   Check,
   Loader2,
-  Wand2,
-  Lightbulb,
   ChevronDown,
   ChevronUp,
   Crown,
-  Lock,
   Send,
   Info,
   Zap,
@@ -23,149 +19,19 @@ import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
-// ✅ IMPORTAR DATOS DE PRESETS ORGANIZADOS
+// ✅ IMPORTAR DATOS
 import {
   presetsData,
   getFreePresets,
   getProPresets,
-  PRESET_PLANS,
 } from "../data/presetsData";
 
-// ✅ IMPORTAR NUEVOS DATOS DE COMPOSICIÓN
-import { SHOT_TYPES, getRandomShotType } from "../data/shotTypesData";
-import { OUTFIT_STYLES, getRandomOutfit } from "../data/outfitStylesData";
-import { 
-  ENVIRONMENTS, 
-  ENVIRONMENT_CATEGORIES,
-  getEnvironmentsByCategory,
-  getRandomEnvironment 
-} from "../data/environmentsData";
-
-// SCENARIOS (8 escenarios) - Mantener igual por ahora
-const SCENARIOS = [
-  {
-    id: 1,
-    name: "Estudio Fondo Negro",
-    description: "Minimalista, dramático, fondo oscuro",
-    prompt:
-      "Professional studio with seamless black backdrop, controlled studio lighting, minimal distractions, dramatic atmosphere",
-  },
-  {
-    id: 2,
-    name: "Calle Europea Atardecer",
-    description: "Arquitectura clásica, luz dorada",
-    prompt:
-      "Narrow European street at golden hour, classic architecture, warm natural light, romantic urban setting",
-  },
-  {
-    id: 3,
-    name: "Playa Amanecer Contraluz",
-    description: "Costa, luz suave, horizonte marino",
-    prompt:
-      "Sandy beach at sunrise, soft backlight, ocean horizon, serene coastal atmosphere, natural elements",
-  },
-  {
-    id: 4,
-    name: "Urbano Nocturno Neones",
-    description: "Ciudad de noche, luces vibrantes",
-    prompt:
-      "Night city street with neon signs, urban nightlife, artificial lights, modern metropolitan atmosphere",
-  },
-  {
-    id: 5,
-    name: "Interior Ventana Natural",
-    description: "Luz de ventana lateral suave",
-    prompt:
-      "Indoor setting with large window as single light source, soft natural side lighting, minimal interior",
-  },
-  {
-    id: 6,
-    name: "Bosque Niebla Atmosférico",
-    description: "Naturaleza, bruma, luz filtrada",
-    prompt:
-      "Misty forest setting, atmospheric fog, filtered natural light, mysterious woodland ambiance",
-  },
-  {
-    id: 7,
-    name: "Azotea Ciudad Atardecer",
-    description: "Skyline urbano, golden hour",
-    prompt:
-      "Rooftop location at sunset, city skyline backdrop, elevated perspective, urban golden hour",
-  },
-  {
-    id: 8,
-    name: "Industrial Warehouse Oscuro",
-    description: "Grungy, luces prácticas, textura",
-    prompt:
-      "Dark industrial warehouse, grungy textures, practical lighting, raw urban aesthetic",
-  },
-];
-
-// IDEAS ALEATORIAS para generar (PRO feature) - 50 ideas variadas
-const RANDOM_IDEAS = [
-  // INTERIORES ELEGANTES (10)
-  "Retrato elegante en biblioteca antigua con luz de ventana natural suave",
-  "Fotografía editorial en museo de arte moderno con luz cenital controlada",
-  "Sesión íntima en café parisino vintage con luz cálida de atardecer",
-  "Retrato minimalista en galería de arte blanca con iluminación puntual",
-  "Fotografía conceptual en teatro abandonado con luz dramática filtrada",
-  "Sesión de moda en loft industrial con ventanales amplios y luz natural",
-  "Retrato cinematográfico en hotel boutique art déco con iluminación ambiente",
-  "Fotografía lifestyle en estudio de arquitecto con luz natural difusa",
-  "Retrato editorial en bar speakeasy con luces prácticas y neones sutiles",
-  "Sesión creativa en biblioteca pública con columnas clásicas y luz lateral",
-  
-  // URBANO EXTERIOR (10)
-  "Fotografía urbana nocturna con reflejos en charcos y luces de neón vibrantes",
-  "Retrato de calle en mercado callejero colorido al mediodía con sombras marcadas",
-  "Sesión editorial en azotea urbana al atardecer con skyline de fondo",
-  "Fotografía de moda en callejón de graffiti con luz natural contrastada",
-  "Retrato cinematográfico en estación de tren vintage con luz volumétrica",
-  "Sesión urbana en puente de acero al amanecer con niebla atmosférica",
-  "Fotografía lifestyle en plaza europea con arquitectura clásica y luz dorada",
-  "Retrato nocturno en Times Square con luces artificiales multicolor",
-  "Sesión de moda en parking subterráneo con luz de neón fría",
-  "Fotografía editorial en escaleras de metro con luz artificial dramática",
-  
-  // NATURALEZA Y EXTERIOR (10)
-  "Sesión lifestyle en campo de lavanda al atardecer con luz dorada suave",
-  "Retrato en bosque de niebla con luz filtrada entre árboles al amanecer",
-  "Fotografía editorial en playa desierta al sunrise con contraluz dramático",
-  "Sesión bohemia en jardín botánico con luz natural difusa de mediodía",
-  "Retrato en acantilado costero al golden hour con viento natural",
-  "Fotografía de moda en desierto al atardecer con luz cálida rasante",
-  "Sesión íntima en viñedo al amanecer con niebla baja y luz suave",
-  "Retrato en campo de trigo dorado con luz de tarde lateral",
-  "Fotografía lifestyle en lago de montaña con reflejo y luz azul",
-  "Sesión editorial en cañón rocoso con luz dramática de mediodía",
-  
-  // CONCEPTUAL Y CREATIVO (10)
-  "Retrato conceptual en museo de historia natural con iluminación direccional",
-  "Fotografía surrealista en estudio con fondos de colores vibrantes",
-  "Sesión creativa en invernadero tropical con luz natural filtrada por plantas",
-  "Retrato artístico en galería de espejos con reflejos múltiples",
-  "Fotografía experimental en túnel urbano con luz led multicolor",
-  "Sesión conceptual en escalera caracol minimalista con luz cenital",
-  "Retrato editorial en habitación victoriana con luz de velas y ambiente",
-  "Fotografía creativa en piscina cubierta con luz reflejada en agua",
-  "Sesión artística en iglesia gótica abandonada con luz de vitral",
-  "Retrato conceptual en sala de máquinas vintage con luz práctica",
-  
-  // MODA Y EDITORIAL (10)
-  "Sesión de alta moda en estudio minimalista con fondo infinito blanco",
-  "Fotografía editorial en showroom de diseño con luz arquitectónica",
-  "Retrato de moda en boutique de lujo con iluminación comercial suave",
-  "Sesión editorial en pasarela con luz de estudio profesional",
-  "Fotografía de moda en mansión clásica con luz de araña y ambiente",
-  "Retrato editorial en jardín francés con luz natural filtrada",
-  "Sesión de moda en warehouse moderno con luz industrial dura",
-  "Fotografía editorial en yate de lujo al sunset con luz dorada",
-  "Retrato de moda en penthouse con vista panorámica y luz de ciudad",
-  "Sesión editorial en estudio fotográfico con setup de tres puntos clásico",
-];
+import { SHOT_TYPES } from "../data/shotTypesData";
+import { OUTFIT_STYLES } from "../data/outfitStylesData";
+import { ENVIRONMENTS } from "../data/environmentsData";
 
 // ============================================================================
-// ✨ NUEVO: CARACTERÍSTICAS RÁPIDAS (QUICK FEATURES)
+// ✨ CARACTERÍSTICAS RÁPIDAS (QUICK FEATURES)
 // ============================================================================
 const QUICK_FEATURES = [
   {
@@ -207,7 +73,83 @@ const QUICK_FEATURES = [
 ];
 
 // ============================================================================
-// ✨ NUEVO: INFORMACIÓN DE PLATAFORMAS
+// ✨ HERRAMIENTAS PRO - DATOS
+// ============================================================================
+
+// ILUMINACIÓN
+const LIGHTING_SCHEMES = [
+  { id: 'rembrandt', name: 'Rembrandt', description: '45° con triángulo de luz' },
+  { id: 'butterfly', name: 'Butterfly', description: 'Frontal elevada, sombra nariz' },
+  { id: 'loop', name: 'Loop', description: '45° elevada, sombra bucle' },
+  { id: 'split', name: 'Split', description: 'Lateral 90°, mitad luz/sombra' },
+  { id: 'broad', name: 'Broad', description: 'Lado hacia cámara iluminado' },
+  { id: 'short', name: 'Short', description: 'Lado alejado iluminado' },
+];
+
+// LENTES
+const LENSES = [
+  { id: '24-35mm', name: '24-35mm', description: 'Gran angular, contexto' },
+  { id: '50mm', name: '50mm', description: 'Normal, versátil' },
+  { id: '85mm', name: '85mm ⭐', description: 'REY del retrato' },
+  { id: '135-200mm', name: '135-200mm', description: 'Teleobjetivo, compresión' },
+];
+
+// COLOR GRADING
+const COLOR_GRADING = [
+  { id: 'teal-orange', name: 'Teal & Orange', description: 'Hollywood blockbuster' },
+  { id: 'vintage', name: 'Vintage Film', description: 'Tonos pastel, contraste suave' },
+  { id: 'high-key', name: 'High-Key', description: 'Brillante, optimista' },
+  { id: 'low-key', name: 'Low-Key', description: 'Oscuro, dramático' },
+  { id: 'warm', name: 'Warm Tones', description: 'Tonos cálidos' },
+  { id: 'cool', name: 'Cool Tones', description: 'Tonos fríos' },
+];
+
+// FILTROS
+const FILTERS = [
+  { id: 'black-pro-mist', name: 'Black Pro-Mist ⭐', description: 'Look cinematográfico' },
+  { id: 'nd', name: 'ND Filter', description: 'Largas exposiciones, bokeh' },
+  { id: 'polarizer', name: 'Polarizer (CPL)', description: 'Elimina reflejos, satura' },
+  { id: 'anamorphic', name: 'Anamorphic Flare', description: 'Destello horizontal azul' },
+];
+
+// ÁNGULOS DE CÁMARA
+const CAMERA_ANGLES = [
+  { id: 'eye-level', name: 'Eye Level', description: 'Neutral, natural' },
+  { id: 'high-angle', name: 'High Angle', description: 'Picado, desde arriba' },
+  { id: 'low-angle', name: 'Low Angle', description: 'Contrapicado, heroico' },
+  { id: 'birds-eye', name: "Bird's Eye", description: 'Cenital, desde arriba' },
+  { id: 'dutch', name: 'Dutch Angle', description: 'Inclinado, dinámico' },
+  { id: 'selfie', name: 'Selfie Angle', description: 'Brazo extendido, personal' },
+];
+
+// COMPOSICIÓN
+const COMPOSITION_RULES = [
+  { id: 'rule-thirds', name: 'Rule of Thirds', description: 'Clásica, equilibrada' },
+  { id: 'golden-ratio', name: 'Golden Ratio', description: 'Proporción áurea' },
+  { id: 'centered', name: 'Centered', description: 'Centrado, simétrico' },
+  { id: 'leading-lines', name: 'Leading Lines', description: 'Líneas guía' },
+  { id: 'negative-space', name: 'Negative Space', description: 'Espacio negativo' },
+];
+
+// ASPECT RATIO
+const ASPECT_RATIOS = [
+  { id: '1:1', name: '1:1', description: 'Cuadrado (Instagram)' },
+  { id: '3:4', name: '3:4', description: 'Vertical retrato' },
+  { id: '4:5', name: '4:5', description: 'Vertical Instagram' },
+  { id: '9:16', name: '9:16', description: 'Vertical Stories/Reels' },
+  { id: '16:9', name: '16:9', description: 'Horizontal panorámico' },
+  { id: '4:3', name: '4:3', description: 'Horizontal clásico' },
+];
+
+// GÉNERO (interno, no aparece en prompt)
+const GENDER_OPTIONS = [
+  { id: 'masculine', name: 'Masculino', icon: '👔' },
+  { id: 'feminine', name: 'Femenino', icon: '👗' },
+  { id: 'neutral', name: 'Neutral', icon: '⚪' },
+];
+
+// ============================================================================
+// ✨ INFORMACIÓN DE PLATAFORMAS
 // ============================================================================
 const PLATFORM_INFO = {
   'nano-banana': {
@@ -244,37 +186,63 @@ export default function AdvancedGenerator() {
   const [referenceImage, setReferenceImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [selectedPreset, setSelectedPreset] = useState(null);
-  const [selectedScenario, setSelectedScenario] = useState(null);
-  const [showProTools, setShowProTools] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [qualityAnalysis, setQualityAnalysis] = useState(null);
   const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
   const [copied, setCopied] = useState(false);
   
-  // ✨ NUEVO: Estados para plataforma y características rápidas
+  // Estados para plataforma
   const [selectedPlatform, setSelectedPlatform] = useState('nano-banana');
-  const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [showPlatformInfo, setShowPlatformInfo] = useState(false);
   const [validation, setValidation] = useState(null);
 
-  const [sliders, setSliders] = useState({
-    aperture: 2.8,
-    focalLength: 85,
-    contrast: "medium",
-    grain: "subtle",
-    temperature: 5600,
+  // ✨ Estados para modo de trabajo (OPCIÓN A: Excluyentes)
+  const [workMode, setWorkMode] = useState('quick'); // 'quick' o 'pro'
+  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [showProTools, setShowProTools] = useState(false);
+
+  // ✨ Estados para Herramientas PRO
+  const [proSettings, setProSettings] = useState({
+    lighting: null,
+    lens: null,
+    colorGrading: null,
+    filter: null,
+    angle: null,
+    composition: null,
+    aspectRatio: null,
+    gender: 'neutral', // interno
+    shotType: null,
+    outfit: null,
+    environment: null,
   });
 
-  // ✅ NUEVOS ESTADOS para composición avanzada
-  const [selectedShotType, setSelectedShotType] = useState(null);
-  const [selectedOutfit, setSelectedOutfit] = useState(null);
-  const [selectedEnvironment, setSelectedEnvironment] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
-
   const freePresets = getFreePresets();
-  const proPresets = getProPresets();
+
+  // ============================================================================
+  // EFECTO: Cuando cambias de modo, limpia el otro
+  // ============================================================================
+  useEffect(() => {
+    if (workMode === 'quick') {
+      // Si cambias a Quick, limpia PRO
+      setProSettings({
+        lighting: null,
+        lens: null,
+        colorGrading: null,
+        filter: null,
+        angle: null,
+        composition: null,
+        aspectRatio: null,
+        gender: 'neutral',
+        shotType: null,
+        outfit: null,
+        environment: null,
+      });
+      setShowProTools(false);
+    } else if (workMode === 'pro') {
+      // Si cambias a PRO, limpia Quick
+      setSelectedFeatures([]);
+    }
+  }, [workMode]);
 
   // ============================================================================
   // HANDLERS
@@ -301,13 +269,28 @@ export default function AdvancedGenerator() {
     setReferenceImage(null);
   };
 
-  // ✨ NUEVO: Toggle de características rápidas
   const toggleFeature = (featureId) => {
+    setWorkMode('quick'); // Asegura que está en modo quick
     setSelectedFeatures(prev => 
       prev.includes(featureId) 
         ? prev.filter(id => id !== featureId)
         : [...prev, featureId]
     );
+  };
+
+  const toggleProTools = () => {
+    if (!showProTools) {
+      setWorkMode('pro'); // Cambia a modo PRO
+    }
+    setShowProTools(!showProTools);
+  };
+
+  const updateProSetting = (key, value) => {
+    setWorkMode('pro'); // Asegura que está en modo PRO
+    setProSettings(prev => ({
+      ...prev,
+      [key]: prev[key] === value ? null : value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -318,11 +301,10 @@ export default function AdvancedGenerator() {
     setValidation(null);
 
     try {
-      // ✨ CONSTRUIR PROMPT CON CARACTERÍSTICAS SELECCIONADAS
+      // Construir prompt con características
       let enhancedPrompt = prompt;
       
-      // Añadir características rápidas al contexto
-      if (selectedFeatures.length > 0) {
+      if (workMode === 'quick' && selectedFeatures.length > 0) {
         const featureDescriptions = selectedFeatures.map(id => {
           const feature = QUICK_FEATURES.find(f => f.id === id);
           return feature ? feature.description : '';
@@ -338,16 +320,11 @@ export default function AdvancedGenerator() {
         preset: selectedPreset
           ? presetsData.find((p) => p.id === selectedPreset)?.prompt
           : null,
-        scenario: selectedScenario
-          ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
-          : null,
-        sliders: showAdvanced ? sliders : null,
         analyzeQuality: isPro,
         isPro,
-        shotType: selectedShotType,
-        outfitStyle: selectedOutfit,
-        environment: selectedEnvironment,
-        platform: selectedPlatform, // ✨ NUEVO: Enviar plataforma seleccionada
+        platform: selectedPlatform,
+        // Enviar configuración PRO
+        proSettings: workMode === 'pro' ? proSettings : null,
       };
 
       const res = await fetch("/api/gemini-processor", {
@@ -364,7 +341,7 @@ export default function AdvancedGenerator() {
 
       setResponse(data.prompt);
       setQualityAnalysis(data.qualityAnalysis);
-      setValidation(data.validation); // ✨ NUEVO: Guardar validación
+      setValidation(data.validation);
 
       await supabase
         .from("profiles")
@@ -394,7 +371,10 @@ export default function AdvancedGenerator() {
   };
 
   const handleApplySuggestions = async (suggestions) => {
-    if (!suggestions || suggestions.length === 0) return;
+    if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) {
+      console.error("No hay sugerencias válidas para aplicar");
+      return;
+    }
 
     setIsApplyingSuggestions(true);
 
@@ -405,9 +385,9 @@ export default function AdvancedGenerator() {
         body: JSON.stringify({
           applySuggestions: true,
           currentPrompt: response,
-          suggestions,
+          suggestions: suggestions,
           isPro,
-          platform: selectedPlatform, // ✨ NUEVO
+          platform: selectedPlatform,
         }),
       });
 
@@ -420,23 +400,11 @@ export default function AdvancedGenerator() {
       setResponse(data.prompt);
       setQualityAnalysis(null);
     } catch (error) {
-      console.error("Error:", error);
-      alert(error.message);
+      console.error("Error al aplicar sugerencias:", error);
+      alert("Error al aplicar sugerencias: " + error.message);
     } finally {
       setIsApplyingSuggestions(false);
     }
-  };
-
-  const generateRandomIdea = () => {
-    const randomIdea = RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)];
-    const randomShotType = getRandomShotType();
-    const randomOutfit = getRandomOutfit();
-    const randomEnvironment = getRandomEnvironment();
-
-    setPrompt(randomIdea);
-    setSelectedShotType(randomShotType);
-    setSelectedOutfit(randomOutfit);
-    setSelectedEnvironment(randomEnvironment);
   };
 
   return (
@@ -454,7 +422,7 @@ export default function AdvancedGenerator() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* ============================================================================ */}
-            {/* ✨ NUEVO: SELECTOR DE PLATAFORMA */}
+            {/* SELECTOR DE PLATAFORMA */}
             {/* ============================================================================ */}
             <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
@@ -472,7 +440,6 @@ export default function AdvancedGenerator() {
                 </button>
               </div>
 
-              {/* Botones de selección de plataforma */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <button
                   type="button"
@@ -517,7 +484,6 @@ export default function AdvancedGenerator() {
                 </button>
               </div>
 
-              {/* Info detallada de plataforma */}
               {showPlatformInfo && (
                 <div className="bg-black/30 border border-[var(--border)] rounded-lg p-4 space-y-3">
                   <div className="flex items-start space-x-3">
@@ -542,12 +508,17 @@ export default function AdvancedGenerator() {
             </div>
 
             {/* ============================================================================ */}
-            {/* ✨ NUEVO: CARACTERÍSTICAS RÁPIDAS */}
+            {/* CARACTERÍSTICAS RÁPIDAS */}
             {/* ============================================================================ */}
             <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
               <h3 className="font-semibold text-lg mb-4 flex items-center space-x-2">
                 <Sparkles className="w-5 h-5 text-[var(--primary)]" />
                 <span>Características Rápidas</span>
+                {workMode === 'pro' && (
+                  <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                    Desactivadas (modo PRO activo)
+                  </span>
+                )}
               </h3>
               <p className="text-sm text-gray-400 mb-4">
                 Selecciona efectos profesionales para aplicar automáticamente
@@ -559,11 +530,12 @@ export default function AdvancedGenerator() {
                     key={feature.id}
                     type="button"
                     onClick={() => toggleFeature(feature.id)}
+                    disabled={workMode === 'pro'}
                     className={`p-3 rounded-lg border-2 transition-all text-left ${
-                      selectedFeatures.includes(feature.id)
+                      selectedFeatures.includes(feature.id) && workMode === 'quick'
                         ? 'border-[var(--primary)] bg-[var(--primary)]/10'
                         : 'border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/30'
-                    }`}
+                    } ${workMode === 'pro' ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-center space-x-2 mb-1">
                       <span className="text-xl">{feature.icon}</span>
@@ -586,9 +558,14 @@ export default function AdvancedGenerator() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={4}
-                placeholder="Ej: Mujer de 30 años, profesional, sonrisa confiada, traje elegante..."
+                placeholder="Ej: Retrato profesional, expresión confiada, traje elegante..."
                 className="w-full px-4 py-3 bg-black/40 border border-[var(--border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition"
               />
+              {referenceImage && (
+                <p className="text-xs text-yellow-400 mt-2">
+                  ⚠️ Con imagen de referencia: NO describas físicamente a la persona (edad, género, pelo, etc.). Solo pose, expresión y outfit.
+                </p>
+              )}
             </div>
 
             {/* IMAGEN DE REFERENCIA */}
@@ -659,7 +636,9 @@ export default function AdvancedGenerator() {
               </div>
             </div>
 
-            {/* HERRAMIENTAS PRO */}
+            {/* ============================================================================ */}
+            {/* HERRAMIENTAS PRO - REORGANIZADAS */}
+            {/* ============================================================================ */}
             <div>
               {!isPro && (
                 <div className="mb-3 p-3 bg-[var(--primary)]/10 border border-[var(--primary)] rounded-lg flex items-center justify-between">
@@ -680,91 +659,292 @@ export default function AdvancedGenerator() {
 
               <button
                 type="button"
-                onClick={() => setShowProTools(!showProTools)}
+                onClick={toggleProTools}
                 disabled={!isPro}
-                className="w-full flex items-center justify-between p-3 bg-[var(--surface)]/30 border border-[var(--border)] rounded-lg hover:border-[var(--primary)] transition-all"
+                className="w-full flex items-center justify-between p-3 bg-[var(--surface)]/30 border border-[var(--border)] rounded-lg hover:border-[var(--primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="font-semibold flex items-center space-x-2">
                   <Crown className="w-5 h-5 text-[var(--primary)]" />
                   <span>Herramientas PRO</span>
+                  {workMode === 'pro' && showProTools && (
+                    <span className="text-xs bg-[var(--primary)]/20 text-[var(--primary)] px-2 py-1 rounded">
+                      ACTIVO
+                    </span>
+                  )}
                 </span>
                 {showProTools ? <ChevronUp /> : <ChevronDown />}
               </button>
 
               {showProTools && isPro && (
-                <div className="mt-3 p-4 bg-black/30 border border-[var(--border)] rounded-lg space-y-4">
+                <div className="mt-3 p-4 bg-black/30 border border-[var(--border)] rounded-lg space-y-6">
+                  {workMode === 'quick' && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-sm text-yellow-400">
+                      ⚠️ Al usar Herramientas PRO, las Características Rápidas se desactivarán automáticamente.
+                    </div>
+                  )}
+
+                  {/* GÉNERO (interno) */}
                   <div>
-                    <button
-                      type="button"
-                      onClick={generateRandomIdea}
-                      className="w-full flex items-center justify-center space-x-2 bg-[var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition-all"
-                    >
-                      <Lightbulb size={18} />
-                      <span>💡 Generar Idea Aleatoria</span>
-                    </button>
-                    <p className="text-xs text-gray-400 mt-2 text-center">
-                      Genera ideas completas con estilo, escenario y vestuario
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      🚻 Género (para outfit/maquillaje):
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {GENDER_OPTIONS.map((gender) => (
+                        <button
+                          key={gender.id}
+                          type="button"
+                          onClick={() => updateProSetting('gender', gender.id)}
+                          className={`p-2 rounded-lg text-sm transition-all ${
+                            proSettings.gender === gender.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <span className="mr-2">{gender.icon}</span>
+                          {gender.name}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      * Este selector NO aparece en el prompt, solo guía el tipo de outfit/maquillaje
                     </p>
                   </div>
 
-                  <div className="border-t border-[var(--border)] my-2"></div>
-
-                  {/* ✅ PRESETS PRO - BOTONES COMPACTOS */}
+                  {/* ILUMINACIÓN */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      ✨ Presets PRO ({proPresets.length} adicionales):
+                      💡 Iluminación:
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                      {proPresets.map((preset) => (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {LIGHTING_SCHEMES.map((light) => (
                         <button
-                          key={preset.id}
+                          key={light.id}
                           type="button"
-                          onClick={() =>
-                            setSelectedPreset(
-                              selectedPreset === preset.id ? null : preset.id
-                            )
-                          }
-                          className={`px-2 py-2 rounded-lg text-center text-xs font-semibold transition-all ${
-                            selectedPreset === preset.id
-                              ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)] text-white"
-                              : "bg-white/5 border border-[var(--border)] text-gray-300 hover:bg-white/10 hover:border-[var(--primary)]/50"
+                          onClick={() => updateProSetting('lighting', light.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.lighting === light.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
                           }`}
-                          title={preset.fullName}
                         >
-                          {preset.shortName}
+                          <div className="font-semibold">{light.name}</div>
+                          <div className="text-xs text-gray-400">{light.description}</div>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="border-t border-[var(--border)] my-2"></div>
-
-                  {/* ESCENARIOS */}
+                  {/* LENTE */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      📍 Escenarios:
+                      🎯 Lente:
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {SCENARIOS.map((scenario) => (
+                      {LENSES.map((lens) => (
                         <button
-                          key={scenario.id}
+                          key={lens.id}
                           type="button"
-                          onClick={() =>
-                            setSelectedScenario(
-                              selectedScenario === scenario.id
-                                ? null
-                                : scenario.id
-                            )
-                          }
-                          className={`p-2 rounded-lg text-left text-xs transition-all ${
-                            selectedScenario === scenario.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                          onClick={() => updateProSetting('lens', lens.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.lens === lens.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
                           }`}
                         >
-                          <div className="text-xs font-semibold">
-                            {scenario.name}
-                          </div>
+                          <div className="font-semibold">{lens.name}</div>
+                          <div className="text-xs text-gray-400">{lens.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* COLOR GRADING */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      🎨 Color Grading:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {COLOR_GRADING.map((grade) => (
+                        <button
+                          key={grade.id}
+                          type="button"
+                          onClick={() => updateProSetting('colorGrading', grade.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.colorGrading === grade.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{grade.name}</div>
+                          <div className="text-xs text-gray-400">{grade.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* FILTROS */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      🎬 Filtros Cinematográficos:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {FILTERS.map((filter) => (
+                        <button
+                          key={filter.id}
+                          type="button"
+                          onClick={() => updateProSetting('filter', filter.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.filter === filter.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{filter.name}</div>
+                          <div className="text-xs text-gray-400">{filter.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ÁNGULO DE CÁMARA */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      📐 Ángulo de Cámara:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {CAMERA_ANGLES.map((angle) => (
+                        <button
+                          key={angle.id}
+                          type="button"
+                          onClick={() => updateProSetting('angle', angle.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.angle === angle.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{angle.name}</div>
+                          <div className="text-xs text-gray-400">{angle.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* COMPOSICIÓN */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      🖼️ Reglas de Composición:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {COMPOSITION_RULES.map((rule) => (
+                        <button
+                          key={rule.id}
+                          type="button"
+                          onClick={() => updateProSetting('composition', rule.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.composition === rule.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{rule.name}</div>
+                          <div className="text-xs text-gray-400">{rule.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ASPECT RATIO */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      📱 Aspect Ratio:
+                    </label>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      {ASPECT_RATIOS.map((ratio) => (
+                        <button
+                          key={ratio.id}
+                          type="button"
+                          onClick={() => updateProSetting('aspectRatio', ratio.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.aspectRatio === ratio.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{ratio.name}</div>
+                          <div className="text-xs text-gray-400">{ratio.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* SHOT TYPE */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      🎭 Shot Type:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {SHOT_TYPES.map((shot) => (
+                        <button
+                          key={shot.id}
+                          type="button"
+                          onClick={() => updateProSetting('shotType', shot.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.shotType === shot.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{shot.nameEN}</div>
+                          <div className="text-xs text-gray-400">{shot.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* OUTFIT */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      👔 Outfit Style:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {OUTFIT_STYLES.map((outfit) => (
+                        <button
+                          key={outfit.id}
+                          type="button"
+                          onClick={() => updateProSetting('outfit', outfit.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.outfit === outfit.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{outfit.name}</div>
+                          <div className="text-xs text-gray-400">{outfit.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ENVIRONMENT */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      🌍 Environment:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {ENVIRONMENTS.map((env) => (
+                        <button
+                          key={env.id}
+                          type="button"
+                          onClick={() => updateProSetting('environment', env.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.environment === env.id
+                              ? 'bg-[var(--primary)]/10 border-2 border-[var(--primary)]'
+                              : 'bg-white/5 border border-[var(--border)] hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold">{env.name}</div>
+                          <div className="text-xs text-gray-400">{env.category}</div>
                         </button>
                       ))}
                     </div>
@@ -812,9 +992,7 @@ export default function AdvancedGenerator() {
             isApplying={isApplyingSuggestions}
           />
 
-          {/* ============================================================================ */}
-          {/* ✨ NUEVO: RESULTADO CON VALIDACIÓN */}
-          {/* ============================================================================ */}
+          {/* RESULTADO CON VALIDACIÓN */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg">Prompt Generado:</h3>
@@ -837,7 +1015,6 @@ export default function AdvancedGenerator() {
               </pre>
               {response && (
                 <>
-                  {/* Info adicional de plataforma */}
                   <div className="mt-4 p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg text-sm">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="text-xl">{PLATFORM_INFO[selectedPlatform].icon}</span>
@@ -856,7 +1033,6 @@ export default function AdvancedGenerator() {
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Copiar */}
                     <button
                       type="button"
                       onClick={handleCopy}
@@ -875,7 +1051,6 @@ export default function AdvancedGenerator() {
                       )}
                     </button>
 
-                    {/* Usar en Gemini (solo para nano-banana) */}
                     {selectedPlatform === 'nano-banana' && (
                       <button
                         type="button"
@@ -887,7 +1062,6 @@ export default function AdvancedGenerator() {
                       </button>
                     )}
 
-                    {/* Info para Midjourney */}
                     {selectedPlatform === 'midjourney' && (
                       <button
                         type="button"

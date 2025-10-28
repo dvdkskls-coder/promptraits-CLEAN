@@ -19,7 +19,7 @@ const KNOWLEDGE_BASE = {
     nanoBanana: {
       name: "Nano-Banana (Google Gemini)",
       components: [
-        "1. Sujeto: Descripción detallada (edad, género, rasgos, expresión, vestimenta)",
+        "1. Sujeto: When NO image: describe person (age, gender, traits). When WITH image: ONLY pose, expression, outfit (NEVER physical traits)",
         "2. Estilo: Fotorrealista, cinematográfico, ilustración, etc.",
         "3. Detalles Técnicos: Cámara, lente (ej: Canon 85mm f/1.2), apertura",
         "4. Iluminación: Tipo (Rembrandt, Butterfly, etc.), dirección, calidad",
@@ -428,11 +428,19 @@ ${JSON.stringify(KNOWLEDGE_BASE, null, 2)}
 PROMPT STRUCTURE (8 Essential Components):
 You MUST integrate ALL 8 components seamlessly into ONE continuous paragraph:
 
-1. SUJETO: Detailed description
-   - Edad, género, rasgos físicos específicos
-   - Expresión facial (use KNOWLEDGE_BASE.emotions)
-   - Vestimenta detallada, accesorios
-   - Pose y lenguaje corporal
+1. SUJETO: Subject description
+   🚨 IF REFERENCE IMAGE PROVIDED:
+      - ONLY: Pose, body position, head angle
+      - ONLY: Facial expression (confident, seductive, friendly, etc.)
+      - ONLY: Gaze direction (direct, looking away, etc.)
+      - ONLY: Outfit details and accessories
+      - NEVER: Age, gender, hair, skin, facial features, body type
+   
+   IF NO REFERENCE IMAGE:
+      - Age, gender, physical traits
+      - Facial expression (use KNOWLEDGE_BASE.emotions)
+      - Detailed outfit and accessories
+      - Body pose and position
 
 2. ESTILO: Photography style
    - "Ultra-realistic portrait", "Editorial fashion", "Cinematic", etc.
@@ -492,8 +500,15 @@ OUTPUT FORMAT:
 Write a single continuous paragraph in ENGLISH that naturally integrates all 8 components.
 The prompt should read like a professional photography brief, not a list.
 
-EXAMPLE OF GOOD NANO-BANANA PROMPT:
+EXAMPLE WITHOUT REFERENCE IMAGE (you CAN describe the person):
 "Professional corporate headshot of confident young tech entrepreneur in early 30s with short dark hair and trimmed beard, wearing casual smart navy blazer over crisp white t-shirt, natural genuine smile showing warmth and approachability with direct eye contact. Shot with Canon 85mm f/1.2 lens at f/2 on full-frame sensor, ISO 400, 5600K white balance, creating extremely shallow depth of field with creamy bokeh. Soft window light from camera left positioned at 45-degree angle creates gentle Rembrandt lighting with subtle triangle of light on right cheek, fill light from right at 3:1 ratio maintaining detail in shadows. Medium close-up composition at eye level, following rule of thirds with eyes positioned at upper intersection point, 12% headroom above head. Modern minimalist office background with subtle bokeh separation, warm professional atmosphere with natural color grading and enhanced clarity using natural method. Vertical portrait format, 8K ultra detailed, sharp focus on eyes, editorial quality."
+
+🚨 EXAMPLE WITH REFERENCE IMAGE (you CANNOT describe the person's appearance):
+"Ultra-realistic portrait in an urban café with a melancholic, intimate mood, seen through subtle glass reflections that separate the subject from a warm, bustling background. Subject seated sideways at a dark table, torso slightly tilted right, gaze direct and subtly seductive, relaxed friendly expression, level shoulders. Forearms resting gently on the table, hands relaxed one over the other. Wearing dark charcoal chunky-knit crewneck sweater with minimalist wrist and finger accessories. Soft directional key light from front-left, high angle, forming modified Rembrandt/loop lighting with ~2:1 contrast, complemented by a large white reflector camera-right for fill. Warm ambient background lights create soft rim accents. WB ~5500K enhancing amber/orange bokeh. Full-frame camera with 85 mm lens at ~1.5 m, f/1.8, 1/160 s, ISO 200, Linear Response profile, single-point AF on nearest eye. Medium close-up vertical 4:5, rule-of-thirds composition with nearest eye on upper-left intersection and ~20% free space. Foreground includes subtle glass reflection + soft-focus cup, background deeply blurred with warm cinematic bokeh. Post: HDR (Highlights –25, Shadows +20), soft S-curve contrast, subtle film grain, cool-toned grading on subject balanced with warm background for gentle tonal split (blue/green vs orange). Natural vignette, moderate clarity and sharpening, skin texture preserved, no smoothing. Cinematic urban portrait, contemplative, realistic, soft lighting, window reflection, intimate modern aesthetic."
+
+☝️ NOTICE THE DIFFERENCE:
+- Without image: "young tech entrepreneur in early 30s with short dark hair and trimmed beard" ✅
+- With image: "Subject seated sideways... gaze direct... wearing charcoal sweater" (NO physical description) ✅
 
 `;
   }
@@ -583,8 +598,15 @@ COLOR GRADING TO MENTION:
 OUTPUT FORMAT:
 [Comprehensive prompt describing all visual elements] --ar [ratio] --v 7 --q 2 --s [value] [other parameters if needed]
 
-EXAMPLE OF GOOD MIDJOURNEY PROMPT:
+EXAMPLE WITHOUT REFERENCE IMAGE (you CAN describe the person):
 "Professional corporate headshot of confident business woman in her 40s, shoulder-length blonde hair, blue eyes, subtle warm smile, wearing elegant navy blazer with white shirt, direct eye contact with camera, neutral gray gradient background. Studio lighting setup with soft diffused key light from 45-degree angle creating gentle Rembrandt lighting, fill light from opposite side at 3:1 ratio, subtle rim light from behind for separation. Shot with Canon 85mm f/2.0 lens, extremely shallow depth of field with creamy bokeh, full-frame sensor, ISO 400. Medium close-up framing at eye level, rule of thirds composition with eyes at upper intersection point. Photorealistic style, natural color grading with enhanced clarity, editorial photography quality, sharp focus on eyes --ar 3:4 --v 7 --q 2 --s 75"
+
+🚨 EXAMPLE WITH REFERENCE IMAGE (you CANNOT describe the person's appearance):
+"Professional corporate portrait, confident expression with genuine warm smile, direct eye contact with camera. Subject wearing elegant navy business suit with crisp white shirt, professional styling. Studio lighting setup with soft diffused key light from 45-degree angle creating gentle Rembrandt lighting with subtle shadow transition, fill light from opposite side at 3:1 ratio maintaining shadow detail, subtle rim light from behind for subject separation. Neutral gray gradient background. Shot with Canon 85mm f/2.0 lens, extremely shallow depth of field with creamy smooth bokeh, full-frame sensor, ISO 400, 5600K white balance. Medium close-up framing at eye level, rule of thirds composition with eyes positioned at upper intersection point, 15% headroom. Photorealistic style, natural color grading with enhanced midtone clarity, editorial photography quality, sharp critical focus on eyes --ar 3:4 --v 7 --q 2 --s 75"
+
+☝️ NOTICE THE DIFFERENCE:
+- Without image: "business woman in her 40s, shoulder-length blonde hair, blue eyes" ✅
+- With image: "confident expression... wearing navy suit" (NO physical description) ✅
 
 `;
   }
@@ -639,18 +661,59 @@ ${scenario}`;
 
   // Reference Image Instructions
   if (referenceImage) {
-    systemPrompt += `\n\n📷 REFERENCE IMAGE PROVIDED:
-Analyze the reference image for:
-- Pose, body angle, and head tilt (NOT person's physical features)
-- Lighting setup and quality (soft/hard, direction, mood)
-- Composition and framing style
-- Background treatment and depth of field
-- Overall atmosphere and mood
-- Color grading style
+    systemPrompt += `\n\n
+╔═══════════════════════════════════════════════════════════════╗
+║          🚨 CRITICAL: REFERENCE IMAGE PROVIDED 🚨            ║
+╚═══════════════════════════════════════════════════════════════╝
 
-CRITICAL: DO NOT describe the person's appearance (face, hair, skin tone, age, gender).
-Focus ONLY on: technical photography elements, pose structure, lighting style, composition, and atmosphere.
-The output must be UNIVERSAL and work for ANY person's selfie.`;
+The user has uploaded a REFERENCE IMAGE of a person.
+
+YOUR ABSOLUTE PRIORITY: NEVER describe the person's physical appearance.
+The AI will automatically use the face from the reference image.
+
+🚫 NEVER MENTION IN THE PROMPT:
+❌ Gender (man, woman, male, female, businessman, lady, etc.)
+❌ Age (30 years old, young, mature, teenager, elderly, etc.)
+❌ Skin tone or ethnicity (pale, tan, dark, caucasian, asian, etc.)
+❌ Hair (blonde, short hair, long hair, curly, straight, bald, etc.)
+❌ Facial hair (beard, mustache, goatee, clean-shaven, stubble, etc.)
+❌ Facial features (blue eyes, sharp nose, full lips, high cheekbones, etc.)
+❌ Body type (slim, athletic, muscular, curvy, etc.)
+❌ Any physical description of the person
+
+✅ WHAT YOU MUST DESCRIBE IN DETAIL:
+✅ Body pose and position (seated sideways, torso tilted, leaning forward, etc.)
+✅ Head angle and direction (head tilted right, gazing directly, looking away, etc.)
+✅ Facial expression ONLY (confident, seductive, friendly, contemplative, serious, etc.)
+✅ Gaze direction (direct eye contact, looking away, gazing into distance, etc.)
+✅ Hand and arm position (arms crossed, hands on table, one hand in pocket, etc.)
+✅ Outfit description (charcoal sweater, navy suit, casual jeans, elegant dress, etc.)
+✅ Accessories (watch, ring, necklace, earrings, bracelet, etc.)
+✅ Complete technical photography setup (camera, lens, aperture, lighting, etc.)
+✅ Environment and background (urban café, studio, office, outdoor, etc.)
+✅ Lighting setup (Rembrandt, Butterfly, key light position, fill ratio, etc.)
+✅ Composition rules (rule of thirds, medium close-up, headroom, etc.)
+✅ Post-processing style (color grading, contrast, film grain, etc.)
+
+📸 REFERENCE EXAMPLE OF PERFECT PROMPT (Nano-banana):
+"Ultra-realistic portrait in an urban café with a melancholic, intimate mood, seen through subtle glass reflections that separate the subject from a warm, bustling background. Subject seated sideways at a dark table, torso slightly tilted right, gaze direct and subtly seductive, relaxed friendly expression, level shoulders. Forearms resting gently on the table, hands relaxed one over the other. Wearing dark charcoal chunky-knit crewneck sweater with minimalist wrist and finger accessories. Soft directional key light from front-left, high angle, forming modified Rembrandt/loop lighting with ~2:1 contrast, complemented by a large white reflector camera-right for fill. Warm ambient background lights create soft rim accents. WB ~5500K enhancing amber/orange bokeh. Full-frame camera with 85 mm lens at ~1.5 m, f/1.8, 1/160 s, ISO 200, Linear Response profile, single-point AF on nearest eye. Medium close-up vertical 4:5, rule-of-thirds composition with nearest eye on upper-left intersection and ~20% free space. Foreground includes subtle glass reflection + soft-focus cup, background deeply blurred with warm cinematic bokeh. Post: HDR (Highlights –25, Shadows +20), soft S-curve contrast, subtle film grain, cool-toned grading on subject balanced with warm background for gentle tonal split (blue/green vs orange). Natural vignette, moderate clarity and sharpening, skin texture preserved, no smoothing. Cinematic urban portrait, contemplative, realistic, soft lighting, window reflection, intimate modern aesthetic."
+
+☝️ NOTICE: This perfect example NEVER mentions gender, age, hair, skin color, or any physical traits.
+It focuses ENTIRELY on: pose, expression, outfit, technical setup, lighting, and composition.
+
+ANALYZE THE REFERENCE IMAGE FOR:
+- Body pose and angle structure
+- Facial expression type (NOT facial features)
+- Outfit style and colors
+- Lighting quality visible in the photo (soft/hard, direction)
+- Background treatment and environment type
+- Overall mood and atmosphere
+
+THEN CREATE A PROMPT FOLLOWING THE EXAMPLE STRUCTURE ABOVE.
+The AI will use the exact face from the reference photo - you don't need to describe it.
+
+CRITICAL REMINDER: The prompt must be COMPLETELY PERSON-AGNOSTIC.
+It must work perfectly whether the uploaded photo shows ANY person of ANY appearance.`;
   }
 
   // User's Custom Prompt
