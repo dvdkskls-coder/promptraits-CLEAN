@@ -59,105 +59,105 @@ const PRESETS = [
     subtitle: "Low-Key Rembrandt",
     free: true,
     promptBlock:
-      "Ultra-realistic editorial portrait, 85mm f/1.4, Rembrandt lighting...",
+      "Ultra-realistic editorial portrait with dramatic Rembrandt lighting setup. Key light at 45° creating signature triangle on shadow side cheek. 85mm f/1.4 lens on full-frame sensor, aperture at f/1.8 for shallow depth of field. ISO 400, shutter 1/160s, tungsten white balance 3200K. Dark moody background with subtle rim light separating subject. Low-key exposure with preserved detail in shadows. Cinematic color grading with crushed blacks and warm skin tones.",
   },
   {
     id: 2,
     name: "Golden Hour Lifestyle",
     subtitle: "Cálido atardecer",
     free: true,
-    promptBlock: "Warm golden hour portrait, 50mm f/1.8...",
+    promptBlock: "Natural lifestyle portrait during golden hour sunset. Soft warm backlight from sun creating natural rim light and hair highlights. 50mm f/1.8 lens at f/2.2 for dreamy background separation. Subject positioned with sun behind creating warm atmospheric glow. Reflector providing subtle fill from camera direction. Warm color temperature 5500K emphasizing golden tones. Lifestyle candid pose with natural expression.",
   },
   {
     id: 3,
     name: "Corporate Clean",
     subtitle: "High-Key profesional",
     free: true,
-    promptBlock: "High-key professional headshot...",
+    promptBlock: "High-key professional corporate headshot. Butterfly lighting setup with main light directly above camera creating subtle nose shadow. Bright even illumination, minimal shadows. Clean white or light gray background. 85mm lens at f/4 for optimal sharpness across face. Confident professional expression with direct eye contact. Smart business attire. High-key exposure maintaining detail in highlights. Clean modern professional aesthetic.",
   },
   {
     id: 4,
     name: "Environmental Portrait",
     subtitle: "Sujeto en su entorno",
     free: false,
-    promptBlock: "Environmental portrait...",
+    promptBlock: "Environmental portrait showing subject in meaningful location context. Wide aperture 35mm lens at f/2.8 balancing subject sharpness with contextual background. Natural available light supplemented with off-camera flash for subject illumination. Subject positioned using rule of thirds. Environmental elements telling story about subject's work or passion. Authentic candid interaction with environment.",
   },
   {
     id: 5,
     name: "Beauty Soft Front",
     subtitle: "Beauty homogéneo",
     free: false,
-    promptBlock: "Beauty portrait...",
+    promptBlock: "High-end beauty portrait with soft butterfly lighting. Large octabox directly in front and above creating wraparound illumination. Minimal shadows, even skin tone rendering. Beauty dish or ring light for catchlights. 85mm-100mm lens at f/4-f/5.6 for optimal sharpness. Neutral background. Focus on skin texture, makeup, and facial details. Clean professional beauty aesthetic.",
   },
   {
     id: 6,
     name: "B/N Clásico Film",
     subtitle: "Monocromo atemporal",
     free: false,
-    promptBlock: "Classic black and white portrait...",
+    promptBlock: "Classic black and white portrait with timeless film aesthetic. Modified Rembrandt or loop lighting for dimensional modeling. High contrast with preserved shadow detail. Grain structure mimicking Tri-X 400 film. Strong tonal separation. Dramatic side lighting emphasizing texture and form. Monochrome conversion optimized for skin tones. Timeless compositional approach.",
   },
   {
     id: 7,
     name: "Fotografía Urbana Street",
     subtitle: "Energía callejera",
     free: false,
-    promptBlock: "Urban street photography...",
+    promptBlock: "Urban street photography portrait in authentic city environment. Natural available light, possibly neon or artificial street lighting. 35mm-50mm lens capturing environmental context. Subject interacting naturally with urban setting. Candid or semi-posed moment. Street fashion aesthetic. Gritty urban textures and architectural elements. Documentary storytelling approach.",
   },
   {
     id: 8,
     name: "Ensueño Vintage 70s",
     subtitle: "Nostálgico y cálido",
     free: false,
-    promptBlock: "Vintage 70s dreamy portrait...",
+    promptBlock: "Dreamy 1970s vintage aesthetic portrait. Soft focus lens or diffusion filter creating ethereal quality. Warm peachy skin tones, muted pastels. Sun flare and light leaks reminiscent of vintage film. 70s fashion and styling elements. Nostalgic color palette with reduced contrast. Romantic soft lighting. Retro vignetting and grain structure.",
   },
   {
     id: 9,
     name: "Film Noir Clásico",
     subtitle: "Drama B/N años 40-50",
     free: false,
-    promptBlock: "Classic film noir portrait...",
+    promptBlock: "Classic film noir dramatic portrait. Hard side lighting at 90° creating deep shadows and high contrast. Strong directional light source. Mystery and drama emphasized through lighting. Venetian blind shadow patterns or environmental shadows. Low-key exposure. Black and white with rich blacks. 1940s-50s styling and composition. Dramatic mysterious mood.",
   },
   {
     id: 10,
     name: "Neón Cyberpunk",
     subtitle: "Futurista urbano nocturno",
     free: false,
-    promptBlock: "Cyberpunk neon portrait...",
+    promptBlock: "Futuristic cyberpunk portrait with neon lighting. Vibrant colored neon lights (cyan, magenta, purple) as key light sources. Urban night environment with neon signs. Shallow depth of field isolating subject from background bokeh of city lights. Cinematic color grading with teal and orange tones. Rain or wet surfaces reflecting neon. Futuristic fashion aesthetic. High contrast with bold colors.",
   },
   {
     id: 11,
     name: "Retrato íntimo Ventana",
     subtitle: "Luz natural pensativa",
     free: false,
-    promptBlock: "Intimate window light portrait...",
+    promptBlock: "Intimate window light portrait with contemplative mood. Large window as single soft light source from side. Subject positioned near window for soft wraparound illumination. Gentle falloff creating dimensional form. Natural contemplative pose, possibly looking toward or away from window. Interior setting with subtle environmental context. Soft natural color palette. Quiet introspective atmosphere.",
   },
   {
     id: 12,
     name: "Acción Deportiva Congelado",
     subtitle: "Movimiento nítido",
     free: false,
-    promptBlock: "Frozen sports action...",
+    promptBlock: "Dynamic sports action portrait with frozen motion. Fast shutter speed 1/1000s or higher freezing peak action moment. Powerful off-camera flash synchronizing with action. Wide aperture maintaining subject isolation. Decisive moment capturing athletic intensity. Sweat, determination visible. Dramatic lighting emphasizing muscular form. Dynamic composition with tension and energy.",
   },
   {
     id: 13,
     name: "Producto Minimalista Lujo",
     subtitle: "Elegante y limpio",
     free: false,
-    promptBlock: "Luxury minimalist product...",
+    promptBlock: "Minimalist luxury product photography aesthetic applied to portrait. Clean backgrounds, typically white or neutral. Precise controlled lighting with gradients. Emphasis on clean lines and sophisticated styling. Fashion-forward luxury brand aesthetic. Minimal but considered styling. High-end retouching maintaining natural texture. Sophisticated color palette. Editorial luxury magazine quality.",
   },
   {
     id: 14,
     name: "Fantasía Surrealista Etéreo",
     subtitle: "Onírico y de otro mundo",
     free: false,
-    promptBlock: "Surreal ethereal fantasy...",
+    promptBlock: "Surreal ethereal fantasy portrait with dreamlike quality. Multiple exposures or composite lighting for otherworldly effect. Unusual color grading - perhaps cool tones or unexpected color shifts. Atmospheric fog or haze. Fantastical or flowing wardrobe. Mysterious surreal props or environmental elements. Dreamy soft focus areas. Imaginative conceptual approach transcending reality.",
   },
   {
     id: 15,
     name: "Editorial Fashion",
     subtitle: "Alta moda dramática",
     free: false,
-    promptBlock: "Editorial fashion portrait...",
+    promptBlock: "High-fashion editorial portrait with dramatic styling. Bold dramatic lighting, possibly with hard light sources. Strong fashion-forward wardrobe and styling. Creative use of color or monochrome. Dynamic pose with strong lines. High contrast and bold compositional choices. Magazine editorial quality. Avant-garde creative direction. Professional hair, makeup, and wardrobe styling.",
   },
 ];
 
@@ -283,6 +283,8 @@ function AppContent() {
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
+  const isPro = profile?.plan === "pro" || profile?.plan === "premium";
+
   // Verificar query params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -327,12 +329,13 @@ function AppContent() {
     setView("home");
   };
 
-  // Menú de navegación
+  // ✅ Menú de navegación ACTUALIZADO
   const navItems = [
     { label: "Inicio", value: "home" },
     { label: "Galería", value: "gallery" },
     { label: "Generador IA", value: "generator" },
-    { label: "Precios", value: "pricing" },
+    { label: "Presets", value: "presets" },  // ✅ NUEVO
+    { label: "Planes", value: "pricing" },   // ✅ CAMBIADO de "Precios" a "Planes"
   ];
 
   if (user) {
@@ -600,7 +603,7 @@ function AppContent() {
               />
             </div>
 
-            {/* Presets */}
+            {/* Presets Preview en Home */}
             <AnimatedSection className="py-20 px-4">
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12">
@@ -611,28 +614,36 @@ function AppContent() {
                     Configuraciones optimizadas para diferentes estilos
                   </p>
                 </div>
-                <div className="grid md:grid-cols-3 gap-6">
-                  {[
-                    "Corporativo",
-                    "Creativo",
-                    "Natural",
-                    "Editorial",
-                    "Lifestyle",
-                    "Minimalista",
-                  ].map((preset) => (
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  {PRESETS.slice(0, 6).map((preset) => (
                     <div
-                      key={preset}
-                      className="bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all cursor-pointer"
+                      key={preset.id}
+                      onClick={() => setView("presets")}
+                      className="bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all cursor-pointer relative"
                     >
+                      {!preset.free && (
+                        <div className="absolute top-4 right-4">
+                          <Crown className="w-4 h-4 text-[color:var(--primary)]" />
+                        </div>
+                      )}
                       <div className="w-12 h-12 rounded-lg bg-[color:var(--primary)]/20 flex items-center justify-center mb-4">
                         <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">{preset}</h3>
-                      <p className="text-sm text-muted">
-                        Preset optimizado para fotografía {preset.toLowerCase()}
+                      <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
+                      <p className="text-sm text-[color:var(--primary)] mb-2">{preset.subtitle}</p>
+                      <p className="text-xs text-muted line-clamp-2">
+                        {preset.promptBlock}
                       </p>
                     </div>
                   ))}
+                </div>
+                <div className="text-center">
+                  <button
+                    onClick={() => setView("presets")}
+                    className="px-8 py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition"
+                  >
+                    Ver Todos los Presets
+                  </button>
                 </div>
               </div>
             </AnimatedSection>
@@ -700,10 +711,89 @@ function AppContent() {
         {/* GALERÍA */}
         {view === "gallery" && <Gallery />}
 
-        {/* GENERADOR - ✅ CAMBIADO A AdvancedGenerator */}
+        {/* GENERADOR */}
         {view === "generator" && <AdvancedGenerator />}
 
-        {/* PRECIOS */}
+        {/* ✅ PRESETS - NUEVA VISTA DEDICADA */}
+        {view === "presets" && (
+          <div className="min-h-screen py-20 px-4">
+            <AnimatedSection className="max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <h1 className="text-5xl font-bold mb-4">
+                  Presets Profesionales
+                </h1>
+                <p className="text-muted text-xl">
+                  Configuraciones optimizadas para diferentes estilos fotográficos
+                </p>
+              </div>
+              
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
+                {PRESETS.map((preset) => (
+                  <div
+                    key={preset.id}
+                    className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all cursor-pointer ${
+                      preset.free 
+                        ? 'border-[color:var(--border)] hover:border-[color:var(--primary)]' 
+                        : 'border-[color:var(--border)] hover:border-[color:var(--primary)] relative'
+                    }`}
+                    onClick={() => {
+                      if (!preset.free && !isPro) {
+                        setView('pricing');
+                      } else {
+                        setView('generator');
+                      }
+                    }}
+                  >
+                    {!preset.free && (
+                      <div className="absolute top-4 right-4">
+                        <Crown className="w-5 h-5 text-[color:var(--primary)]" />
+                      </div>
+                    )}
+                    
+                    <div className="w-12 h-12 rounded-lg bg-[color:var(--primary)]/20 flex items-center justify-center mb-4">
+                      <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
+                    </div>
+                    
+                    <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
+                    <p className="text-sm text-[color:var(--primary)] mb-3">{preset.subtitle}</p>
+                    <p className="text-sm text-muted line-clamp-3">
+                      {preset.promptBlock}
+                    </p>
+                    
+                    {preset.free ? (
+                      <div className="mt-4 inline-flex items-center text-xs text-green-400">
+                        <Check className="w-4 h-4 mr-1" />
+                        Gratis
+                      </div>
+                    ) : (
+                      <div className="mt-4 inline-flex items-center text-xs text-[color:var(--primary)]">
+                        <Lock className="w-4 h-4 mr-1" />
+                        Plan PRO
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {!isPro && (
+                <div className="mt-12 text-center">
+                  <p className="text-muted mb-4 text-lg">
+                    Desbloquea todos los presets con un plan PRO
+                  </p>
+                  <button
+                    onClick={() => setView('pricing')}
+                    className="px-8 py-4 bg-[color:var(--primary)] text-black font-bold rounded-full text-lg hover:opacity-90 transition inline-flex items-center"
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                    Ver Planes
+                  </button>
+                </div>
+              )}
+            </AnimatedSection>
+          </div>
+        )}
+
+        {/* PLANES (antes "PRECIOS") */}
         {view === "pricing" && (
           <Pricing
             onSelectPlan={handlePlanSelection}
