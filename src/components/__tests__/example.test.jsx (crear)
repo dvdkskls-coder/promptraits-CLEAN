@@ -1,9 +1,0 @@
-describe('Example Component Tests', () => {
-    it('should render correctly', () => {
-        expect(true).toBe(true);
-    });
-
-    it('should perform a basic function', () => {
-        expect(1 + 1).toBe(2);
-    });
-});
