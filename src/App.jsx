@@ -269,103 +269,6 @@ const SUBSCRIPTION_PLANS = [
   },
 ];
 
-// ============================================================================
-// 🎨 COMPONENTE: TEXTO CON EFECTO GLITCH (SOLO PARA PRESETS PRO BLOQUEADOS)
-// ============================================================================
-function GlitchText({ text }) {
-  return (
-    <div className="relative">
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes glitch-anim {
-          0% {
-            clip-path: inset(40% 0 61% 0);
-            transform: translate(-2px, 2px);
-          }
-          20% {
-            clip-path: inset(92% 0 1% 0);
-            transform: translate(2px, -2px);
-          }
-          40% {
-            clip-path: inset(43% 0 1% 0);
-            transform: translate(-2px, 2px);
-          }
-          60% {
-            clip-path: inset(25% 0 58% 0);
-            transform: translate(2px, -2px);
-          }
-          80% {
-            clip-path: inset(54% 0 7% 0);
-            transform: translate(-2px, 2px);
-          }
-          100% {
-            clip-path: inset(58% 0 43% 0);
-            transform: translate(0);
-          }
-        }
-        
-        @keyframes glitch-anim-2 {
-          0% {
-            clip-path: inset(65% 0 10% 0);
-            transform: translate(2px, -2px);
-          }
-          20% {
-            clip-path: inset(45% 0 40% 0);
-            transform: translate(-2px, 2px);
-          }
-          40% {
-            clip-path: inset(14% 0 71% 0);
-            transform: translate(2px, -2px);
-          }
-          60% {
-            clip-path: inset(89% 0 2% 0);
-            transform: translate(-2px, 2px);
-          }
-          80% {
-            clip-path: inset(33% 0 40% 0);
-            transform: translate(2px, -2px);
-          }
-          100% {
-            clip-path: inset(10% 0 80% 0);
-            transform: translate(0);
-          }
-        }
-        
-        .glitch-text {
-          position: relative;
-          filter: blur(0.8px);
-          user-select: none;
-          pointer-events: none;
-        }
-        
-        .glitch-text::before,
-        .glitch-text::after {
-          content: attr(data-text);
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-        }
-        
-        .glitch-text::before {
-          animation: glitch-anim 2s infinite linear alternate-reverse;
-          color: #ff00de;
-          opacity: 0.8;
-        }
-        
-        .glitch-text::after {
-          animation: glitch-anim-2 3s infinite linear alternate-reverse;
-          color: #00fff9;
-          opacity: 0.8;
-        }
-      `}} />
-      <span className="glitch-text text-sm text-muted/40" data-text={text}>
-        {text}
-      </span>
-    </div>
-  );
-}
-
 function AppContent() {
   const { user, profile, isLoading, refreshProfile } = useAuth();
 
@@ -424,15 +327,15 @@ function AppContent() {
     setView("home");
   };
 
-  // ✅ FUNCIÓN DE COPIA CORREGIDA
+  // Función de copia
   const handleCopyPreset = async (preset) => {
-    // ❌ Si es preset PRO y el usuario NO tiene plan PRO → NO hacer nada
+    // Solo copiar si es FREE o usuario tiene plan PRO
     if (!preset.free && !isPro) {
-      // Opcional: mostrar mensaje de que necesita plan PRO
+      // Si es PRO sin plan, redirigir a planes
+      setView('pricing');
       return;
     }
 
-    // ✅ Si llega aquí, puede copiar (es FREE o tiene plan PRO)
     try {
       await navigator.clipboard.writeText(preset.promptBlock);
       setShowCopyNotification(true);
@@ -733,15 +636,14 @@ function AppContent() {
                 </div>
                 <div className="grid md:grid-cols-3 gap-6 mb-8">
                   {PRESETS.slice(0, 6).map((preset) => {
-                    // ✅ Determinar si puede ver el preset (FREE siempre, PRO solo si tiene plan)
                     const canView = preset.free || isPro;
                     
                     return (
                       <div
                         key={preset.id}
-                        onClick={() => canView && handleCopyPreset(preset)}
+                        onClick={() => handleCopyPreset(preset)}
                         className={`bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all relative group ${
-                          canView ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'
+                          canView ? 'cursor-pointer' : 'cursor-pointer'
                         }`}
                       >
                         {!preset.free && (
@@ -757,29 +659,34 @@ function AppContent() {
                         <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
                         <p className="text-sm text-[color:var(--primary)] mb-3">{preset.subtitle}</p>
                         
-                        {/* ✅ LÓGICA: Texto normal si canView, glitch si no */}
-                        <div className="mb-4 min-h-[40px]">
+                        {/* ✅ Contenido: mostrar si canView, sino mensaje bloqueado */}
+                        <div className="mb-4 min-h-[60px]">
                           {canView ? (
-                            <p className="text-xs text-muted line-clamp-2">
+                            <p className="text-xs text-muted line-clamp-3">
                               {preset.promptBlock}
                             </p>
                           ) : (
-                            <GlitchText text={preset.promptBlock.substring(0, 80) + "..."} />
+                            <div className="flex flex-col items-center justify-center py-4 px-3 bg-black/20 rounded-lg border border-[color:var(--primary)]/30">
+                              <Lock className="w-8 h-8 text-[color:var(--primary)] mb-2" />
+                              <p className="text-xs text-center text-muted">
+                                Contenido exclusivo
+                              </p>
+                              <p className="text-xs text-center text-[color:var(--primary)] font-semibold">
+                                Plan PRO
+                              </p>
+                            </div>
                           )}
                         </div>
                         
-                        {/* Indicadores */}
-                        {canView && (
+                        {/* Footer */}
+                        {canView ? (
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
                             <Copy className="w-3 h-3 mr-1" />
                             Click para copiar
                           </div>
-                        )}
-                        
-                        {!canView && (
-                          <div className="flex items-center text-xs text-muted/50">
-                            <Lock className="w-3 h-3 mr-1" />
-                            Requiere plan PRO
+                        ) : (
+                          <div className="flex items-center text-xs text-muted justify-center">
+                            <span>Click para desbloquear</span>
                           </div>
                         )}
                       </div>
@@ -863,7 +770,7 @@ function AppContent() {
         {/* GENERADOR */}
         {view === "generator" && <AdvancedGenerator />}
 
-        {/* ✅ PRESETS - VISTA DEDICADA */}
+        {/* PRESETS - VISTA DEDICADA */}
         {view === "presets" && (
           <div className="min-h-screen py-20 px-4">
             <AnimatedSection className="max-w-6xl mx-auto">
@@ -884,7 +791,6 @@ function AppContent() {
               
               <div className="grid md:grid-cols-3 gap-6 mb-12">
                 {PRESETS.map((preset) => {
-                  // ✅ Determinar si puede ver el preset
                   const canView = preset.free || isPro;
                   
                   return (
@@ -893,9 +799,9 @@ function AppContent() {
                       className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all relative group ${
                         canView 
                           ? 'border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer' 
-                          : 'border-[color:var(--border)] cursor-not-allowed opacity-75'
+                          : 'border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer'
                       }`}
-                      onClick={() => canView && handleCopyPreset(preset)}
+                      onClick={() => handleCopyPreset(preset)}
                     >
                       {!preset.free && (
                         <div className="absolute top-4 right-4">
@@ -912,40 +818,54 @@ function AppContent() {
                       <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
                       <p className="text-sm text-[color:var(--primary)] mb-4">{preset.subtitle}</p>
                       
-                      {/* ✅ Contenido: normal o glitch */}
-                      <div className="mb-4 min-h-[80px]">
+                      {/* ✅ Contenido o mensaje bloqueado */}
+                      <div className="mb-4 min-h-[100px] flex items-center">
                         {canView ? (
                           <p className="text-sm text-muted">
                             {preset.promptBlock}
                           </p>
                         ) : (
-                          <GlitchText text={preset.promptBlock} />
+                          <div className="w-full flex flex-col items-center justify-center py-6 px-4 bg-black/30 rounded-lg border border-[color:var(--primary)]/40">
+                            <Lock className="w-10 h-10 text-[color:var(--primary)] mb-3" />
+                            <p className="text-sm text-center text-muted mb-1">
+                              Contenido bloqueado
+                            </p>
+                            <p className="text-xs text-center text-[color:var(--primary)] font-semibold">
+                              Actualiza a PRO para desbloquear
+                            </p>
+                          </div>
                         )}
                       </div>
                       
-                      {/* Footer con badges */}
-                      <div className="flex items-center justify-between">
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-2 border-t border-[color:var(--border)]">
                         {preset.free ? (
                           <>
                             <div className="inline-flex items-center text-xs text-green-400">
                               <Check className="w-4 h-4 mr-1" />
                               Gratis
                             </div>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-green-500">
-                              <Copy className="w-3 h-3 mr-1" />
-                              Copiar
-                            </div>
+                            {canView && (
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-green-500">
+                                <Copy className="w-3 h-3 mr-1" />
+                                Copiar
+                              </div>
+                            )}
                           </>
                         ) : (
                           <>
                             <div className="inline-flex items-center text-xs text-[color:var(--primary)]">
-                              <Lock className="w-4 h-4 mr-1" />
+                              <Crown className="w-4 h-4 mr-1" />
                               Plan PRO
                             </div>
-                            {canView && (
+                            {canView ? (
                               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
                                 <Copy className="w-3 h-3 mr-1" />
                                 Copiar
+                              </div>
+                            ) : (
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-muted">
+                                <span>Ver planes</span>
                               </div>
                             )}
                           </>
