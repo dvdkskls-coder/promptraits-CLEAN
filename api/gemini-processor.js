@@ -430,15 +430,38 @@ PROMPT STRUCTURE (8 Essential Components):
 You MUST integrate ALL 8 components seamlessly into ONE continuous paragraph:
 
 1. SUJETO: Subject description
-   🚨 IF REFERENCE IMAGE PROVIDED:
-      - ONLY: Pose, body position, head angle
-      - ONLY: Facial expression (confident, seductive, friendly, etc.)
-      - ONLY: Gaze direction (direct, looking away, etc.)
-      - ONLY: Outfit details and accessories
-      - NEVER: Age, gender, hair, skin, facial features, body type
+
+   🚨🚨🚨 CRITICAL RULE - REFERENCE IMAGE HANDLING 🚨🚨🚨
+   
+   IF REFERENCE IMAGE PROVIDED:
+   ════════════════════════════════════════════════════════════
+   THE USER HAS UPLOADED A PHOTO OF THE PERSON WHO WILL APPEAR IN THE FINAL IMAGE.
+   
+   YOUR PROMPT MUST BE COMPLETELY PERSON-AGNOSTIC.
+   The AI will use the EXACT FACE from the uploaded photo.
+   
+   ❌ ABSOLUTELY FORBIDDEN TO MENTION:
+      - Gender (man, woman, male, female, person, individual, guy, lady, businessman, etc.)
+      - Age (young, old, 30 years old, teenager, mature, elderly, etc.)
+      - Hair (blonde, short hair, long hair, curly, straight, bald, haircut, hairstyle, etc.)
+      - Facial hair (beard, mustache, goatee, clean-shaven, stubble, etc.)
+      - Skin (pale, tan, dark, fair, complexion, skin tone, etc.)
+      - Ethnicity or race (caucasian, asian, latino, etc.)
+      - Facial features (blue eyes, sharp nose, full lips, high cheekbones, etc.)
+      - Body type (slim, athletic, muscular, curvy, body build, physique, etc.)
+      - Physical descriptions of ANY kind
+   
+   ✅ WHAT YOU MUST DESCRIBE:
+      - Body pose ONLY (seated, standing, leaning, torso angle, etc.)
+      - Head position ONLY (head tilted, facing camera, turned left, etc.)
+      - Facial expression ONLY (confident, seductive, friendly, serious, etc.)
+      - Gaze direction ONLY (direct eye contact, looking away, gazing into distance, etc.)
+      - Hand/arm position (arms crossed, hands on table, etc.)
+      - Outfit and clothing (dark sweater, navy suit, elegant dress, etc.)
+      - Accessories (watch, ring, necklace, etc.)
    
    IF NO REFERENCE IMAGE:
-      - Age, gender, physical traits
+      - You may describe: age range, gender, basic physical traits
       - Facial expression (use KNOWLEDGE_BASE.emotions)
       - Detailed outfit and accessories
       - Body pose and position
@@ -665,7 +688,58 @@ ${scenario}`;
   // HERRAMIENTAS PRO (OPCIONAL) - SIMPLIFICADAS
   // ============================================================================
   if (proSettings) {
-    const gender = proSettings.gender || 'neutral';
+    // 0. GÉNERO (SOLO SI EL USUARIO LO SELECCIONÓ EXPLÍCITAMENTE)
+    // Si el usuario no selecciona género, el prompt debe ser completamente neutro
+    let gender = null;
+    let genderInstruction = '';
+    
+    if (proSettings.gender && proSettings.gender !== 'neutral') {
+      gender = proSettings.gender; // 'male' o 'female'
+      
+      genderInstruction = `\n\n
+╔═══════════════════════════════════════════════════════════════╗
+║               🚹🚺 GENDER SPECIFICATION ACTIVE                ║
+╚═══════════════════════════════════════════════════════════════╝
+
+The user has EXPLICITLY selected: ${gender.toUpperCase()}
+
+${gender === 'male' ? `
+FOR MALE AESTHETIC:
+- Poses: More structured, confident, powerful stances
+- Expressions: Strong, determined, assertive (or relaxed confidence)
+- Outfit context: Typically masculine clothing styles
+- Composition: Strong lines, bold framing
+` : `
+FOR FEMALE AESTHETIC:
+- Poses: Can include more fluid, graceful movements
+- Expressions: Range from soft elegance to powerful confidence
+- Outfit context: Typically feminine clothing styles  
+- Composition: Can use softer framing, elegant lines
+`}
+
+IMPORTANT: Even with gender specified, when there's a reference image:
+❌ Still NEVER mention "man", "woman", "male", "female" in the prompt
+✅ Instead, adapt pose style and composition to the selected aesthetic
+✅ The face comes from the photo - gender only guides the overall aesthetic`;
+      
+      systemPrompt += genderInstruction;
+    } else {
+      // Sin género seleccionado = prompt completamente neutro
+      systemPrompt += `\n\n
+╔═══════════════════════════════════════════════════════════════╗
+║                   🚫 NO GENDER SPECIFIED                     ║
+╚═══════════════════════════════════════════════════════════════╝
+
+The user has NOT selected a gender preference.
+
+YOUR PROMPT MUST BE COMPLETELY GENDER-NEUTRAL:
+❌ Never use: man, woman, male, female, guy, girl, lady, gentleman
+❌ Never imply gender through pose descriptions
+❌ Never use gendered clothing terms unless neutral (e.g. "suit" is OK)
+✅ Use neutral terms: subject, individual (only if NO reference image)
+✅ Describe pose, expression, outfit WITHOUT gender assumptions
+✅ The aesthetic should work for ANY person`;
+    }
     
     // 1. ILUMINACIÓN
     if (proSettings.lighting) {
@@ -754,70 +828,149 @@ Apply ${filterName} filter effect from KNOWLEDGE_BASE.filters`;
       
       const outfitDesc = outfitMap[proSettings.outfit] || `${proSettings.outfit} style clothing`;
       
-      systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
+      if (gender) {
+        systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
 Subject wearing ${outfitDesc}, appropriate for the ${gender} aesthetic`;
+      } else {
+        systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
+Subject wearing ${outfitDesc}`;
+      }
     } else if (!referenceImage) {
       // Si NO hay outfit seleccionado y NO hay imagen de referencia
-      // Gemini decide basándose en el género y contexto
-      systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
+      // Gemini decide basándose en el contexto (y género si fue seleccionado)
+      if (gender) {
+        systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
 Choose appropriate outfit that fits the ${gender} aesthetic and matches the scene context logically`;
+      } else {
+        systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
+Choose appropriate outfit that matches the scene context logically. Use neutral, versatile clothing that works for any person.`;
+      }
     }
   }
   // Reference Image Instructions
   if (referenceImage) {
     systemPrompt += `\n\n
-╔═══════════════════════════════════════════════════════════════╗
-║          🚨 CRITICAL: REFERENCE IMAGE PROVIDED 🚨            ║
-╚═══════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║     🚨🚨🚨 CRITICAL: REFERENCE IMAGE PROVIDED - FOLLOW STRICTLY 🚨🚨🚨        ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
 
-The user has uploaded a REFERENCE IMAGE of a person.
+The user has uploaded a REFERENCE PHOTO of a person.
 
-YOUR ABSOLUTE PRIORITY: NEVER describe the person's physical appearance.
-The AI will automatically use the face from the reference image.
+══════════════════════════════════════════════════════════════════════════════
+                            YOUR ABSOLUTE MISSION
+══════════════════════════════════════════════════════════════════════════════
 
-🚫 NEVER MENTION IN THE PROMPT:
-❌ Gender (man, woman, male, female, businessman, lady, etc.)
-❌ Age (30 years old, young, mature, teenager, elderly, etc.)
-❌ Skin tone or ethnicity (pale, tan, dark, caucasian, asian, etc.)
-❌ Hair (blonde, short hair, long hair, curly, straight, bald, etc.)
-❌ Facial hair (beard, mustache, goatee, clean-shaven, stubble, etc.)
-❌ Facial features (blue eyes, sharp nose, full lips, high cheekbones, etc.)
-❌ Body type (slim, athletic, muscular, curvy, etc.)
-❌ Any physical description of the person
+The AI image generator will take the EXACT FACE from the uploaded photo and place it
+in the scene you describe. Your prompt must NEVER interfere with this process.
 
-✅ WHAT YOU MUST DESCRIBE IN DETAIL:
-✅ Body pose and position (seated sideways, torso tilted, leaning forward, etc.)
-✅ Head angle and direction (head tilted right, gazing directly, looking away, etc.)
-✅ Facial expression ONLY (confident, seductive, friendly, contemplative, serious, etc.)
-✅ Gaze direction (direct eye contact, looking away, gazing into distance, etc.)
-✅ Hand and arm position (arms crossed, hands on table, one hand in pocket, etc.)
-✅ Outfit description (charcoal sweater, navy suit, casual jeans, elegant dress, etc.)
-✅ Accessories (watch, ring, necklace, earrings, bracelet, etc.)
-✅ Complete technical photography setup (camera, lens, aperture, lighting, etc.)
-✅ Environment and background (urban café, studio, office, outdoor, etc.)
-✅ Lighting setup (Rembrandt, Butterfly, key light position, fill ratio, etc.)
-✅ Composition rules (rule of thirds, medium close-up, headroom, etc.)
-✅ Post-processing style (color grading, contrast, film grain, etc.)
+THINK OF IT THIS WAY:
+You are NOT describing a person. You are describing a PHOTOGRAPHY SETUP where ANY
+person could stand. The person's identity comes from the photo, not from your words.
 
-📸 REFERENCE EXAMPLE OF PERFECT PROMPT (Nano-banana):
-"Ultra-realistic portrait in an urban café with a melancholic, intimate mood, seen through subtle glass reflections that separate the subject from a warm, bustling background. Subject seated sideways at a dark table, torso slightly tilted right, gaze direct and subtly seductive, relaxed friendly expression, level shoulders. Forearms resting gently on the table, hands relaxed one over the other. Wearing dark charcoal chunky-knit crewneck sweater with minimalist wrist and finger accessories. Soft directional key light from front-left, high angle, forming modified Rembrandt/loop lighting with ~2:1 contrast, complemented by a large white reflector camera-right for fill. Warm ambient background lights create soft rim accents. WB ~5500K enhancing amber/orange bokeh. Full-frame camera with 85 mm lens at ~1.5 m, f/1.8, 1/160 s, ISO 200, Linear Response profile, single-point AF on nearest eye. Medium close-up vertical 4:5, rule-of-thirds composition with nearest eye on upper-left intersection and ~20% free space. Foreground includes subtle glass reflection + soft-focus cup, background deeply blurred with warm cinematic bokeh. Post: HDR (Highlights –25, Shadows +20), soft S-curve contrast, subtle film grain, cool-toned grading on subject balanced with warm background for gentle tonal split (blue/green vs orange). Natural vignette, moderate clarity and sharpening, skin texture preserved, no smoothing. Cinematic urban portrait, contemplative, realistic, soft lighting, window reflection, intimate modern aesthetic."
+══════════════════════════════════════════════════════════════════════════════
+                      ❌ ABSOLUTELY FORBIDDEN WORDS ❌
+══════════════════════════════════════════════════════════════════════════════
 
-☝️ NOTICE: This perfect example NEVER mentions gender, age, hair, skin color, or any physical traits.
-It focuses ENTIRELY on: pose, expression, outfit, technical setup, lighting, and composition.
+NEVER use these words or their variations in your prompt:
+❌ Gender words: man, woman, male, female, guy, girl, lady, gentleman, person, individual
+❌ Age words: young, old, 25 years, teenager, mature, elderly, youth, adult
+❌ Hair words: blonde, brunette, short hair, long hair, curly, straight, bald, haircut
+❌ Facial hair: beard, mustache, goatee, clean-shaven, stubble, facial hair
+❌ Skin: pale, tan, dark, fair, complexion, skin tone, caucasian, asian, latino
+❌ Face: blue eyes, brown eyes, sharp nose, full lips, high cheekbones, facial features
+❌ Body: slim, athletic, muscular, curvy, body type, physique, build
+
+══════════════════════════════════════════════════════════════════════════════
+                        ✅ WHAT YOU MUST DESCRIBE ✅
+══════════════════════════════════════════════════════════════════════════════
+
+Focus ONLY on these elements:
+
+📍 POSE & POSITION:
+   - Body orientation (seated sideways, standing facing camera, leaning against wall)
+   - Torso angle (tilted right, straight, leaning forward)
+   - Shoulder position (relaxed, level, one raised)
+   - Head angle (tilted left, straight, chin up/down)
+
+😊 EXPRESSION & GAZE:
+   - Facial expression (confident, seductive, friendly, serious, contemplative)
+   - Gaze direction (direct eye contact, looking away, gazing into distance, eyes closed)
+   - Emotional tone (relaxed, intense, playful, mysterious)
+
+👔 CLOTHING & ACCESSORIES:
+   - Outfit description (dark charcoal sweater, navy tailored suit, casual denim jacket)
+   - Clothing details (turtleneck, v-neck, buttons, collar style, sleeves)
+   - Accessories (silver watch, leather bracelet, simple ring, necklace)
+   - Colors and textures (soft cashmere, rough denim, smooth silk)
+
+🤲 HAND & ARM POSITION:
+   - Arm placement (arms crossed, hands in pockets, one hand on hip)
+   - Hand position (resting on table, touching face, relaxed at sides)
+   - Gesture (pointing, open palm, fist, fingers interlaced)
+
+📸 TECHNICAL PHOTOGRAPHY SETUP (CRITICAL):
+   - Camera specs (Canon 85mm f/1.2, full-frame sensor, aperture)
+   - Lighting setup (Rembrandt lighting, soft key light from front-left)
+   - Composition (medium close-up, rule of thirds, vertical format)
+   - Background (blurred urban café, soft bokeh, minimalist studio)
+   - Color grading (cinematic teal & orange, warm tones, vintage film)
+
+══════════════════════════════════════════════════════════════════════════════
+                           📋 PERFECT PROMPT EXAMPLE
+══════════════════════════════════════════════════════════════════════════════
+
+✅ CORRECT PROMPT (Notice: NO gender, age, hair, face, skin mentioned):
+
+"Ultra-realistic portrait in an urban café setting with soft natural window light. 
+Subject seated at dark wooden table, torso angled 20° right, shoulders relaxed and 
+level. Head position straight with subtle tilt left, gaze directed at camera with 
+confident and slightly seductive expression. Both forearms resting gently on table 
+surface, hands relaxed one over the other. Wearing dark charcoal chunky-knit 
+crewneck sweater with minimalist silver wrist accessories. Soft diffused key light 
+from front-left at 45° creating modified Rembrandt lighting pattern with 2:1 fill 
+ratio. Warm ambient café lights in background creating subtle rim light accents. 
+Shot on full-frame sensor with 85mm f/1.8 lens at 1.5m distance, aperture f/1.8, 
+shutter 1/160s, ISO 200. Medium close-up vertical 4:5 composition following rule of 
+thirds. Background features warm bokeh from café lights with soft focus. Post-
+processing: subtle S-curve contrast, slight warm color grade, natural skin texture 
+preserved, cinematic film grain, soft vignette. Professional editorial portrait 
+style with intimate urban atmosphere."
+
+══════════════════════════════════════════════════════════════════════════════
+
+☝️ ANALYZE THIS PERFECT EXAMPLE:
+   ✅ Describes pose, expression, outfit, technical setup
+   ❌ Never mentions if subject is man/woman, young/old, or any physical traits
+   ✅ Works perfectly with ANY person's face from the uploaded photo
+
+══════════════════════════════════════════════════════════════════════════════
+                              🎯 YOUR TASK NOW
+══════════════════════════════════════════════════════════════════════════════
 
 ANALYZE THE REFERENCE IMAGE FOR:
-- Body pose and angle structure
-- Facial expression type (NOT facial features)
-- Outfit style and colors
-- Lighting quality visible in the photo (soft/hard, direction)
-- Background treatment and environment type
-- Overall mood and atmosphere
+- What is the body pose and angle?
+- What facial expression do you see? (NOT facial features)
+- What outfit and colors are visible?
+- What lighting quality is in the photo? (soft/hard, direction)
+- What is the background environment?
+- What mood does the photo convey?
 
-THEN CREATE A PROMPT FOLLOWING THE EXAMPLE STRUCTURE ABOVE.
-The AI will use the exact face from the reference photo - you don't need to describe it.
+THEN CREATE YOUR PROMPT:
+- Describe the pose, expression, outfit, and technical photography setup
+- NEVER describe the person's physical appearance
+- The prompt must work with ANY face transplanted into the scene
+- Focus on: photography technique, lighting, composition, atmosphere
 
-CRITICAL REMINDER: The prompt must be COMPLETELY PERSON-AGNOSTIC.
-It must work perfectly whether the uploaded photo shows ANY person of ANY appearance.`;
+CRITICAL FINAL CHECK:
+Before outputting your prompt, verify:
+❌ Does it mention gender? → DELETE IT
+❌ Does it mention age? → DELETE IT  
+❌ Does it mention hair? → DELETE IT
+❌ Does it mention facial features? → DELETE IT
+❌ Does it mention skin tone? → DELETE IT
+✅ Does it only describe pose, expression, outfit, and technical setup? → PERFECT!
+
+START GENERATING YOUR PROMPT NOW.`;
   }
 
   // User's Custom Prompt
@@ -842,7 +995,38 @@ ${platform === 'nano-banana' ?
 NO explanations, NO preamble, ONLY the prompt.
 Use professional photography terminology throughout.
 Be specific with technical values (angles, distances, temperatures, f-stops).
-`;
+
+${referenceImage ? `
+
+╔═══════════════════════════════════════════════════════════════╗
+║              🚨 FINAL VERIFICATION REQUIRED 🚨               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+BEFORE YOU OUTPUT YOUR PROMPT, CHECK:
+
+❌ Does your prompt mention: man, woman, male, female, guy, girl?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: age, young, old, 30 years, teenager?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: hair color, hairstyle, haircut, beard, mustache?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: skin tone, pale, tan, dark, ethnicity?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: facial features like eyes, nose, lips, cheekbones?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+✅ Does your prompt ONLY describe: pose, expression, outfit, camera, lighting, composition?
+   → If YES, YOU'RE READY TO OUTPUT
+
+The user uploaded a photo. The AI will use that EXACT face.
+Your prompt must NOT interfere with this process.
+DO NOT DESCRIBE THE PERSON. ONLY DESCRIBE THE SCENE AND PHOTOGRAPHY SETUP.
+
+` : ''}`;
 
   return systemPrompt;
 }
