@@ -270,7 +270,7 @@ const SUBSCRIPTION_PLANS = [
 ];
 
 // ============================================================================
-// 🎨 COMPONENTE: TEXTO CON EFECTO GLITCH (PARA PRESETS PRO)
+// 🎨 COMPONENTE: TEXTO CON EFECTO GLITCH (SOLO PARA PRESETS PRO BLOQUEADOS)
 // ============================================================================
 function GlitchText({ text }) {
   return (
@@ -332,7 +332,9 @@ function GlitchText({ text }) {
         
         .glitch-text {
           position: relative;
-          filter: blur(0.5px);
+          filter: blur(0.8px);
+          user-select: none;
+          pointer-events: none;
         }
         
         .glitch-text::before,
@@ -357,7 +359,7 @@ function GlitchText({ text }) {
           opacity: 0.8;
         }
       `}} />
-      <span className="glitch-text text-sm text-muted/50" data-text={text}>
+      <span className="glitch-text text-sm text-muted/40" data-text={text}>
         {text}
       </span>
     </div>
@@ -376,8 +378,6 @@ function AppContent() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-  
-  // ✅ NUEVO: Estado para notificación de copia
   const [showCopyNotification, setShowCopyNotification] = useState(false);
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
@@ -424,22 +424,18 @@ function AppContent() {
     setView("home");
   };
 
-  // ✅ NUEVO: Función para copiar preset al portapapeles
+  // ✅ FUNCIÓN DE COPIA CORREGIDA
   const handleCopyPreset = async (preset) => {
-    // Si es PRO y el usuario no tiene plan, redirigir a planes
+    // ❌ Si es preset PRO y el usuario NO tiene plan PRO → NO hacer nada
     if (!preset.free && !isPro) {
-      setView('pricing');
+      // Opcional: mostrar mensaje de que necesita plan PRO
       return;
     }
 
-    // Copiar al portapapeles
+    // ✅ Si llega aquí, puede copiar (es FREE o tiene plan PRO)
     try {
       await navigator.clipboard.writeText(preset.promptBlock);
-      
-      // Mostrar notificación
       setShowCopyNotification(true);
-      
-      // Ocultar después de 2 segundos
       setTimeout(() => {
         setShowCopyNotification(false);
       }, 2000);
@@ -514,9 +510,7 @@ function AppContent() {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="hidden lg:flex items-center space-x-2 px-4 py-2 bg-[color:var(--primary)] text-black rounded-full font-bold hover:opacity-90 transition"
                 >
-                  {profile?.plan === "pro" && (
-                    <Crown className="w-4 h-4" />
-                  )}
+                  {isPro && <Crown className="w-4 h-4" />}
                   <span>{user.email?.split("@")[0]}</span>
                 </button>
                 {showUserMenu && <UserMenu onLogout={handleLogout} />}
@@ -621,7 +615,7 @@ function AppContent() {
         )}
       </header>
 
-      {/* ✅ NOTIFICACIÓN DE COPIA */}
+      {/* NOTIFICACIÓN DE COPIA */}
       {showCopyNotification && (
         <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
           <div className="bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center space-x-2">
@@ -734,43 +728,63 @@ function AppContent() {
                     Presets Profesionales
                   </h2>
                   <p className="text-muted text-lg">
-                    Configuraciones optimizadas para diferentes estilos
+                    Click para copiar al portapapeles
                   </p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-6 mb-8">
-                  {PRESETS.slice(0, 6).map((preset) => (
-                    <div
-                      key={preset.id}
-                      onClick={() => handleCopyPreset(preset)}
-                      className="bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all cursor-pointer relative group"
-                    >
-                      {!preset.free && (
-                        <div className="absolute top-4 right-4">
-                          <Crown className="w-4 h-4 text-[color:var(--primary)]" />
+                  {PRESETS.slice(0, 6).map((preset) => {
+                    // ✅ Determinar si puede ver el preset (FREE siempre, PRO solo si tiene plan)
+                    const canView = preset.free || isPro;
+                    
+                    return (
+                      <div
+                        key={preset.id}
+                        onClick={() => canView && handleCopyPreset(preset)}
+                        className={`bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all relative group ${
+                          canView ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'
+                        }`}
+                      >
+                        {!preset.free && (
+                          <div className="absolute top-4 right-4">
+                            <Crown className="w-4 h-4 text-[color:var(--primary)]" />
+                          </div>
+                        )}
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+                          preset.free ? 'bg-green-500/20' : 'bg-[color:var(--primary)]/20'
+                        }`}>
+                          <Sparkles className={`w-6 h-6 ${preset.free ? 'text-green-500' : 'text-[color:var(--primary)]'}`} />
                         </div>
-                      )}
-                      <div className="w-12 h-12 rounded-lg bg-[color:var(--primary)]/20 flex items-center justify-center mb-4">
-                        <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
+                        <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
+                        <p className="text-sm text-[color:var(--primary)] mb-3">{preset.subtitle}</p>
+                        
+                        {/* ✅ LÓGICA: Texto normal si canView, glitch si no */}
+                        <div className="mb-4 min-h-[40px]">
+                          {canView ? (
+                            <p className="text-xs text-muted line-clamp-2">
+                              {preset.promptBlock}
+                            </p>
+                          ) : (
+                            <GlitchText text={preset.promptBlock.substring(0, 80) + "..."} />
+                          )}
+                        </div>
+                        
+                        {/* Indicadores */}
+                        {canView && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
+                            <Copy className="w-3 h-3 mr-1" />
+                            Click para copiar
+                          </div>
+                        )}
+                        
+                        {!canView && (
+                          <div className="flex items-center text-xs text-muted/50">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Requiere plan PRO
+                          </div>
+                        )}
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
-                      <p className="text-sm text-[color:var(--primary)] mb-3">{preset.subtitle}</p>
-                      
-                      {/* ✅ TEXTO NORMAL PARA FREE, GLITCH PARA PRO */}
-                      {preset.free ? (
-                        <p className="text-xs text-muted line-clamp-2">
-                          {preset.promptBlock}
-                        </p>
-                      ) : (
-                        <GlitchText text={preset.promptBlock.substring(0, 100) + "..."} />
-                      )}
-                      
-                      {/* Icono de copiar al hover */}
-                      <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
-                        <Copy className="w-3 h-3 mr-1" />
-                        Click para copiar
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className="text-center">
                   <button
@@ -849,7 +863,7 @@ function AppContent() {
         {/* GENERADOR */}
         {view === "generator" && <AdvancedGenerator />}
 
-        {/* ✅ PRESETS - VISTA DEDICADA CON EFECTO GLITCH */}
+        {/* ✅ PRESETS - VISTA DEDICADA */}
         {view === "presets" && (
           <div className="min-h-screen py-20 px-4">
             <AnimatedSection className="max-w-6xl mx-auto">
@@ -857,84 +871,99 @@ function AppContent() {
                 <h1 className="text-5xl font-bold mb-4">
                   Presets Profesionales
                 </h1>
-                <p className="text-muted text-xl mb-4">
-                  Click en cualquier preset para copiarlo al portapapeles
+                <p className="text-muted text-xl mb-2">
+                  Click en cualquier preset para copiarlo
                 </p>
                 <p className="text-sm text-muted">
-                  Los presets PRO requieren plan PRO para ver el contenido completo
+                  {isPro 
+                    ? "Tienes acceso completo a todos los presets" 
+                    : "Los presets PRO requieren suscripción PRO o PREMIUM"
+                  }
                 </p>
               </div>
               
               <div className="grid md:grid-cols-3 gap-6 mb-12">
-                {PRESETS.map((preset) => (
-                  <div
-                    key={preset.id}
-                    className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all cursor-pointer group ${
-                      preset.free 
-                        ? 'border-[color:var(--border)] hover:border-green-500' 
-                        : 'border-[color:var(--border)] hover:border-[color:var(--primary)] relative'
-                    }`}
-                    onClick={() => handleCopyPreset(preset)}
-                  >
-                    {!preset.free && (
-                      <div className="absolute top-4 right-4">
-                        <Crown className="w-5 h-5 text-[color:var(--primary)]" />
-                      </div>
-                    )}
-                    
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
-                      preset.free ? 'bg-green-500/20' : 'bg-[color:var(--primary)]/20'
-                    }`}>
-                      <Sparkles className={`w-6 h-6 ${preset.free ? 'text-green-500' : 'text-[color:var(--primary)]'}`} />
-                    </div>
-                    
-                    <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
-                    <p className="text-sm text-[color:var(--primary)] mb-4">{preset.subtitle}</p>
-                    
-                    {/* ✅ TEXTO COMPLETO PARA FREE, GLITCH PARA PRO */}
-                    <div className="mb-4 min-h-[60px]">
-                      {preset.free ? (
-                        <p className="text-sm text-muted">
-                          {preset.promptBlock}
-                        </p>
-                      ) : (
-                        <GlitchText text={preset.promptBlock} />
+                {PRESETS.map((preset) => {
+                  // ✅ Determinar si puede ver el preset
+                  const canView = preset.free || isPro;
+                  
+                  return (
+                    <div
+                      key={preset.id}
+                      className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all relative group ${
+                        canView 
+                          ? 'border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer' 
+                          : 'border-[color:var(--border)] cursor-not-allowed opacity-75'
+                      }`}
+                      onClick={() => canView && handleCopyPreset(preset)}
+                    >
+                      {!preset.free && (
+                        <div className="absolute top-4 right-4">
+                          <Crown className="w-5 h-5 text-[color:var(--primary)]" />
+                        </div>
                       )}
-                    </div>
-                    
-                    {preset.free ? (
-                      <div className="flex items-center justify-between">
-                        <div className="inline-flex items-center text-xs text-green-400">
-                          <Check className="w-4 h-4 mr-1" />
-                          Gratis
-                        </div>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-green-500">
-                          <Copy className="w-3 h-3 mr-1" />
-                          Copiar
-                        </div>
+                      
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+                        preset.free ? 'bg-green-500/20' : 'bg-[color:var(--primary)]/20'
+                      }`}>
+                        <Sparkles className={`w-6 h-6 ${preset.free ? 'text-green-500' : 'text-[color:var(--primary)]'}`} />
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="inline-flex items-center text-xs text-[color:var(--primary)]">
-                          <Lock className="w-4 h-4 mr-1" />
-                          Plan PRO
-                        </div>
-                        {isPro && (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
-                            <Copy className="w-3 h-3 mr-1" />
-                            Copiar
-                          </div>
+                      
+                      <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
+                      <p className="text-sm text-[color:var(--primary)] mb-4">{preset.subtitle}</p>
+                      
+                      {/* ✅ Contenido: normal o glitch */}
+                      <div className="mb-4 min-h-[80px]">
+                        {canView ? (
+                          <p className="text-sm text-muted">
+                            {preset.promptBlock}
+                          </p>
+                        ) : (
+                          <GlitchText text={preset.promptBlock} />
                         )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      
+                      {/* Footer con badges */}
+                      <div className="flex items-center justify-between">
+                        {preset.free ? (
+                          <>
+                            <div className="inline-flex items-center text-xs text-green-400">
+                              <Check className="w-4 h-4 mr-1" />
+                              Gratis
+                            </div>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-green-500">
+                              <Copy className="w-3 h-3 mr-1" />
+                              Copiar
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="inline-flex items-center text-xs text-[color:var(--primary)]">
+                              <Lock className="w-4 h-4 mr-1" />
+                              Plan PRO
+                            </div>
+                            {canView && (
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
+                                <Copy className="w-3 h-3 mr-1" />
+                                Copiar
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
               
               {!isPro && (
-                <div className="mt-12 text-center">
-                  <p className="text-muted mb-4 text-lg">
-                    Desbloquea todos los presets con un plan PRO
+                <div className="mt-12 text-center bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl p-8">
+                  <Crown className="w-16 h-16 text-[color:var(--primary)] mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold mb-2">
+                    Desbloquea todos los presets
+                  </h3>
+                  <p className="text-muted mb-6 text-lg">
+                    Obtén acceso completo a los 12 presets profesionales con un plan PRO
                   </p>
                   <button
                     onClick={() => setView('pricing')}
