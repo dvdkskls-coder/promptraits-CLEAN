@@ -32,7 +32,6 @@ import Profile from "./components/Auth/Profile.jsx";
 import Checkout from "./components/Auth/Checkout.jsx";
 import Pricing from "./components/Pricing.jsx";
 
-// ✅ IMPORTS CORREGIDOS - Usar AdvancedGenerator en lugar de Generator
 import Gallery from "./components/Gallery.jsx";
 import AdvancedGenerator from "./components/AdvancedGenerator.jsx";
 import History from "./components/History.jsx";
@@ -219,7 +218,7 @@ const CREDIT_PACKS = [
   { credits: 100, price: "15.99" },
 ];
 
-// Planes y créditos (según tu especificación)
+// Planes y créditos
 const SUBSCRIPTION_PLANS = [
   {
     name: "FREE",
@@ -270,6 +269,101 @@ const SUBSCRIPTION_PLANS = [
   },
 ];
 
+// ============================================================================
+// 🎨 COMPONENTE: TEXTO CON EFECTO GLITCH (PARA PRESETS PRO)
+// ============================================================================
+function GlitchText({ text }) {
+  return (
+    <div className="relative">
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes glitch-anim {
+          0% {
+            clip-path: inset(40% 0 61% 0);
+            transform: translate(-2px, 2px);
+          }
+          20% {
+            clip-path: inset(92% 0 1% 0);
+            transform: translate(2px, -2px);
+          }
+          40% {
+            clip-path: inset(43% 0 1% 0);
+            transform: translate(-2px, 2px);
+          }
+          60% {
+            clip-path: inset(25% 0 58% 0);
+            transform: translate(2px, -2px);
+          }
+          80% {
+            clip-path: inset(54% 0 7% 0);
+            transform: translate(-2px, 2px);
+          }
+          100% {
+            clip-path: inset(58% 0 43% 0);
+            transform: translate(0);
+          }
+        }
+        
+        @keyframes glitch-anim-2 {
+          0% {
+            clip-path: inset(65% 0 10% 0);
+            transform: translate(2px, -2px);
+          }
+          20% {
+            clip-path: inset(45% 0 40% 0);
+            transform: translate(-2px, 2px);
+          }
+          40% {
+            clip-path: inset(14% 0 71% 0);
+            transform: translate(2px, -2px);
+          }
+          60% {
+            clip-path: inset(89% 0 2% 0);
+            transform: translate(-2px, 2px);
+          }
+          80% {
+            clip-path: inset(33% 0 40% 0);
+            transform: translate(2px, -2px);
+          }
+          100% {
+            clip-path: inset(10% 0 80% 0);
+            transform: translate(0);
+          }
+        }
+        
+        .glitch-text {
+          position: relative;
+          filter: blur(0.5px);
+        }
+        
+        .glitch-text::before,
+        .glitch-text::after {
+          content: attr(data-text);
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+        }
+        
+        .glitch-text::before {
+          animation: glitch-anim 2s infinite linear alternate-reverse;
+          color: #ff00de;
+          opacity: 0.8;
+        }
+        
+        .glitch-text::after {
+          animation: glitch-anim-2 3s infinite linear alternate-reverse;
+          color: #00fff9;
+          opacity: 0.8;
+        }
+      `}} />
+      <span className="glitch-text text-sm text-muted/50" data-text={text}>
+        {text}
+      </span>
+    </div>
+  );
+}
+
 function AppContent() {
   const { user, profile, isLoading, refreshProfile } = useAuth();
 
@@ -282,6 +376,9 @@ function AppContent() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  
+  // ✅ NUEVO: Estado para notificación de copia
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
@@ -312,12 +409,10 @@ function AppContent() {
       return;
     }
 
-    // Si es FREE
     if (plan.name === "FREE") {
       return;
     }
 
-    // Guardar plan seleccionado y abrir checkout
     setSelectedPlan(plan);
     setShowCheckout(true);
   };
@@ -329,13 +424,38 @@ function AppContent() {
     setView("home");
   };
 
-  // ✅ Menú de navegación ACTUALIZADO
+  // ✅ NUEVO: Función para copiar preset al portapapeles
+  const handleCopyPreset = async (preset) => {
+    // Si es PRO y el usuario no tiene plan, redirigir a planes
+    if (!preset.free && !isPro) {
+      setView('pricing');
+      return;
+    }
+
+    // Copiar al portapapeles
+    try {
+      await navigator.clipboard.writeText(preset.promptBlock);
+      
+      // Mostrar notificación
+      setShowCopyNotification(true);
+      
+      // Ocultar después de 2 segundos
+      setTimeout(() => {
+        setShowCopyNotification(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error al copiar:', error);
+      alert('Error al copiar el preset');
+    }
+  };
+
+  // Menú de navegación
   const navItems = [
     { label: "Inicio", value: "home" },
     { label: "Galería", value: "gallery" },
     { label: "Generador IA", value: "generator" },
-    { label: "Presets", value: "presets" },  // ✅ NUEVO
-    { label: "Planes", value: "pricing" },   // ✅ CAMBIADO de "Precios" a "Planes"
+    { label: "Presets", value: "presets" },
+    { label: "Planes", value: "pricing" },
   ];
 
   if (user) {
@@ -350,7 +470,6 @@ function AppContent() {
       {/* HEADER */}
       <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-xl border-b border-[color:var(--border)]">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          {/* Logo */}
           <button
             type="button"
             onClick={() => setView("home")}
@@ -379,7 +498,6 @@ function AppContent() {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            {/* Créditos disponibles */}
             {user && (
               <div className="hidden lg:flex items-center px-3 py-1.5 bg-[color:var(--surface)] rounded-full border border-[color:var(--border)]">
                 <Gift className="w-4 h-4 text-[color:var(--primary)] mr-1.5" />
@@ -389,7 +507,6 @@ function AppContent() {
               </div>
             )}
 
-            {/* CTA / User Menu */}
             {user ? (
               <div className="relative">
                 <button
@@ -429,7 +546,6 @@ function AppContent() {
               </>
             )}
 
-            {/* Mobile menu toggle */}
             <button
               type="button"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -462,7 +578,6 @@ function AppContent() {
                 </button>
               ))}
 
-              {/* Auth buttons mobile */}
               {!user && (
                 <div className="pt-3 border-t border-[color:var(--border)] flex flex-col space-y-2">
                   <button
@@ -490,7 +605,6 @@ function AppContent() {
                 </div>
               )}
 
-              {/* Créditos en mobile */}
               {user && (
                 <div className="pt-3 border-t border-[color:var(--border)] flex items-center justify-between px-3 py-2 bg-[color:var(--surface)] rounded-lg">
                   <span className="text-sm text-muted">Créditos</span>
@@ -506,6 +620,16 @@ function AppContent() {
           </div>
         )}
       </header>
+
+      {/* ✅ NOTIFICACIÓN DE COPIA */}
+      {showCopyNotification && (
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
+          <div className="bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center space-x-2">
+            <Check className="w-5 h-5" />
+            <span className="font-semibold">Preset copiado</span>
+          </div>
+        </div>
+      )}
 
       {/* MAIN CONTENT */}
       <main>
@@ -579,7 +703,6 @@ function AppContent() {
                             "https://via.placeholder.com/400x500?text=No+disponible";
                         }}
                       />
-                      {/* Overlay sutil al hover */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
                     </div>
                   ))}
@@ -595,7 +718,7 @@ function AppContent() {
               </div>
             </AnimatedSection>
 
-            {/* PLANES - Reutilizar componente Pricing */}
+            {/* PLANES */}
             <div className="py-20 px-4">
               <Pricing
                 onSelectPlan={handlePlanSelection}
@@ -618,8 +741,8 @@ function AppContent() {
                   {PRESETS.slice(0, 6).map((preset) => (
                     <div
                       key={preset.id}
-                      onClick={() => setView("presets")}
-                      className="bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all cursor-pointer relative"
+                      onClick={() => handleCopyPreset(preset)}
+                      className="bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all cursor-pointer relative group"
                     >
                       {!preset.free && (
                         <div className="absolute top-4 right-4">
@@ -630,10 +753,22 @@ function AppContent() {
                         <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
                       </div>
                       <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
-                      <p className="text-sm text-[color:var(--primary)] mb-2">{preset.subtitle}</p>
-                      <p className="text-xs text-muted line-clamp-2">
-                        {preset.promptBlock}
-                      </p>
+                      <p className="text-sm text-[color:var(--primary)] mb-3">{preset.subtitle}</p>
+                      
+                      {/* ✅ TEXTO NORMAL PARA FREE, GLITCH PARA PRO */}
+                      {preset.free ? (
+                        <p className="text-xs text-muted line-clamp-2">
+                          {preset.promptBlock}
+                        </p>
+                      ) : (
+                        <GlitchText text={preset.promptBlock.substring(0, 100) + "..."} />
+                      )}
+                      
+                      {/* Icono de copiar al hover */}
+                      <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
+                        <Copy className="w-3 h-3 mr-1" />
+                        Click para copiar
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -714,7 +849,7 @@ function AppContent() {
         {/* GENERADOR */}
         {view === "generator" && <AdvancedGenerator />}
 
-        {/* ✅ PRESETS - NUEVA VISTA DEDICADA */}
+        {/* ✅ PRESETS - VISTA DEDICADA CON EFECTO GLITCH */}
         {view === "presets" && (
           <div className="min-h-screen py-20 px-4">
             <AnimatedSection className="max-w-6xl mx-auto">
@@ -722,8 +857,11 @@ function AppContent() {
                 <h1 className="text-5xl font-bold mb-4">
                   Presets Profesionales
                 </h1>
-                <p className="text-muted text-xl">
-                  Configuraciones optimizadas para diferentes estilos fotográficos
+                <p className="text-muted text-xl mb-4">
+                  Click en cualquier preset para copiarlo al portapapeles
+                </p>
+                <p className="text-sm text-muted">
+                  Los presets PRO requieren plan PRO para ver el contenido completo
                 </p>
               </div>
               
@@ -731,18 +869,12 @@ function AppContent() {
                 {PRESETS.map((preset) => (
                   <div
                     key={preset.id}
-                    className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all cursor-pointer ${
+                    className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all cursor-pointer group ${
                       preset.free 
-                        ? 'border-[color:var(--border)] hover:border-[color:var(--primary)]' 
+                        ? 'border-[color:var(--border)] hover:border-green-500' 
                         : 'border-[color:var(--border)] hover:border-[color:var(--primary)] relative'
                     }`}
-                    onClick={() => {
-                      if (!preset.free && !isPro) {
-                        setView('pricing');
-                      } else {
-                        setView('generator');
-                      }
-                    }}
+                    onClick={() => handleCopyPreset(preset)}
                   >
                     {!preset.free && (
                       <div className="absolute top-4 right-4">
@@ -750,25 +882,49 @@ function AppContent() {
                       </div>
                     )}
                     
-                    <div className="w-12 h-12 rounded-lg bg-[color:var(--primary)]/20 flex items-center justify-center mb-4">
-                      <Sparkles className="w-6 h-6 text-[color:var(--primary)]" />
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+                      preset.free ? 'bg-green-500/20' : 'bg-[color:var(--primary)]/20'
+                    }`}>
+                      <Sparkles className={`w-6 h-6 ${preset.free ? 'text-green-500' : 'text-[color:var(--primary)]'}`} />
                     </div>
                     
                     <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
-                    <p className="text-sm text-[color:var(--primary)] mb-3">{preset.subtitle}</p>
-                    <p className="text-sm text-muted line-clamp-3">
-                      {preset.promptBlock}
-                    </p>
+                    <p className="text-sm text-[color:var(--primary)] mb-4">{preset.subtitle}</p>
+                    
+                    {/* ✅ TEXTO COMPLETO PARA FREE, GLITCH PARA PRO */}
+                    <div className="mb-4 min-h-[60px]">
+                      {preset.free ? (
+                        <p className="text-sm text-muted">
+                          {preset.promptBlock}
+                        </p>
+                      ) : (
+                        <GlitchText text={preset.promptBlock} />
+                      )}
+                    </div>
                     
                     {preset.free ? (
-                      <div className="mt-4 inline-flex items-center text-xs text-green-400">
-                        <Check className="w-4 h-4 mr-1" />
-                        Gratis
+                      <div className="flex items-center justify-between">
+                        <div className="inline-flex items-center text-xs text-green-400">
+                          <Check className="w-4 h-4 mr-1" />
+                          Gratis
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-green-500">
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copiar
+                        </div>
                       </div>
                     ) : (
-                      <div className="mt-4 inline-flex items-center text-xs text-[color:var(--primary)]">
-                        <Lock className="w-4 h-4 mr-1" />
-                        Plan PRO
+                      <div className="flex items-center justify-between">
+                        <div className="inline-flex items-center text-xs text-[color:var(--primary)]">
+                          <Lock className="w-4 h-4 mr-1" />
+                          Plan PRO
+                        </div>
+                        {isPro && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
+                            <Copy className="w-3 h-3 mr-1" />
+                            Copiar
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -793,7 +949,7 @@ function AppContent() {
           </div>
         )}
 
-        {/* PLANES (antes "PRECIOS") */}
+        {/* PLANES */}
         {view === "pricing" && (
           <Pricing
             onSelectPlan={handlePlanSelection}
