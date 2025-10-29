@@ -32,9 +32,9 @@ import Profile from "./components/Auth/Profile.jsx";
 import Checkout from "./components/Auth/Checkout.jsx";
 import Pricing from "./components/Pricing.jsx";
 
-// ✓ AÑADIR ESTOS IMPORTS
+// ✅ IMPORTS CORREGIDOS - Usar AdvancedGenerator en lugar de Generator
 import Gallery from "./components/Gallery.jsx";
-import Generator from "./components/Generator.jsx";
+import AdvancedGenerator from "./components/AdvancedGenerator.jsx";
 import History from "./components/History.jsx";
 
 import QualityAnalysis from "./components/QualityAnalysis.jsx";
@@ -244,972 +244,319 @@ const SUBSCRIPTION_PLANS = [
     features: [
       "60 créditos/mes",
       "3 prompts personalizados (24–48h)",
-      "Revisiones incluidas",
-      "8 prompts exclusivos al mes",
+      "12 Presets y 8 Escenarios avanzados",
+      "Descarga directa y copia rápida de prompts",
+      "Acceso a la galería completa",
+      "Análisis de calidad PRO",
+      "Cancelar cuando quieras",
     ],
   },
   {
     name: "PREMIUM",
-    price: "19.99",
-    priceLabel: "19.99€",
+    price: "13.99",
+    priceLabel: "13.99€",
     period: "/mes",
     popular: false,
-    credits: 300,
+    credits: 150,
     features: [
-      "300 créditos/mes",
-      "Acceso al agente personalizado",
-      "Asesoría 1 a 1",
-      "5 prompts personalizados",
+      "150 créditos/mes",
+      "10 prompts personalizados (12–24h)",
+      "Presets + Escenarios ilimitados",
+      "Soporte prioritario vía Telegram",
+      "Acceso anticipado a nuevas funciones",
+      "Análisis de calidad PREMIUM",
+      "Cancelar cuando quieras",
     ],
   },
 ];
 
-// GEMINI ASSISTANT VIEW
-const GeminiAssistantView = ({ onCopy, isPro }) => {
-  const { user, profile } = useAuth();
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [referenceImage, setReferenceImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
-  const [selectedPreset, setSelectedPreset] = useState(null);
-  const [selectedScenario, setSelectedScenario] = useState(null);
-  const [showProTools, setShowProTools] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [qualityAnalysis, setQualityAnalysis] = useState(null);
-  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
-  const [sliders, setSliders] = useState({
-    aperture: 2.8,
-    focalLength: 85,
-    contrast: "medium",
-    grain: "subtle",
-    temperature: 5500,
-  });
+function AppContent() {
+  const { user, profile, isLoading, refreshProfile } = useAuth();
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setReferenceImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
+  const [view, setView] = useState("home");
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+
+  // Verificar query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success") {
+      setShowPaymentSuccess(true);
+      setTimeout(() => {
+        setShowPaymentSuccess(false);
+        window.location.href = window.location.pathname;
+      }, 3000);
     }
-  };
+  }, []);
 
-  const removeImage = () => {
-    setReferenceImage(null);
-    setImagePreview("");
-  };
-
-  // helper: convertir File -> base64 (solo la parte base64)
-  const fileToBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        try {
-          const parts = String(reader.result).split(",");
-          resolve(parts[1] || null); // solo base64
-        } catch (err) {
-          resolve(null);
-        }
-      };
-      reader.onerror = (err) => reject(err);
-    });
-
-  // Generación real: llamada al endpoint /api/gemini-processor
-  const handleGenerate = async (e) => {
-    e && e.preventDefault();
-
-    if (!user) {
-      setResponse("Inicia sesión para generar.");
-      window.App_showToast?.("Inicia sesión para generar.");
-      return;
-    }
-    if (profile?.credits <= 0) {
-      setResponse(
-        "No tienes créditos disponibles. Compra créditos o suscríbete."
-      );
-      window.App_showToast?.("No tienes créditos.");
-      return;
-    }
-
-    setIsLoading(true);
-    setResponse("Generando prompt con IA... por favor, espera.");
-    setQualityAnalysis(null);
-
-    try {
-      let imageBase64 = null;
-      if (referenceImage) {
-        imageBase64 = await fileToBase64(referenceImage);
-      }
-
-      const res = await fetch("/api/gemini-processor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt,
-          referenceImage: imageBase64, // base64 puro
-          mimeType: referenceImage ? referenceImage.type : null,
-          preset: selectedPreset
-            ? PRESETS.find((p) => p.id === selectedPreset)?.promptBlock
-            : null,
-          scenario: selectedScenario
-            ? SCENARIOS.find((s) => s.id === selectedScenario)?.prompt
-            : null,
-          sliders: isPro && showAdvanced ? sliders : null,
-          analyzeQuality: isPro,
-          isPro,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res
-          .json()
-          .catch(() => ({ error: `Error del servidor: ${res.status}` }));
-        throw new Error(err.error || "Fallo en el generador");
-      }
-
-      const data = await res.json();
-      setResponse(data.prompt || "No se recibió respuesta del generador.");
-      if (data.qualityAnalysis) setQualityAnalysis(data.qualityAnalysis);
-      window.App_showToast?.("Prompt generado.");
-    } catch (err) {
-      console.error(err);
-      setResponse("Hubo un error generando el prompt. Intenta de nuevo.");
-      window.App_showToast?.("Error generando prompt.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Aplicar sugerencias (llama al mismo endpoint pidiendo aplicar sugerencias)
-  const handleApplySuggestions = async () => {
-    if (!qualityAnalysis || !qualityAnalysis.suggestions?.length) return;
-
-    setIsApplyingSuggestions(true);
-    try {
-      const res = await fetch("/api/gemini-processor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applySuggestions: true,
-          currentPrompt: response,
-          suggestions: qualityAnalysis.suggestions,
-          isPro,
-        }),
-      });
-      if (!res.ok) {
-        const err = await res
-          .json()
-          .catch(() => ({ error: `Error del servidor: ${res.status}` }));
-        throw new Error(err.error || "Fallo aplicando sugerencias");
-      }
-      const data = await res.json();
-      setResponse(data.prompt || response);
-      setQualityAnalysis(null);
-      window.App_showToast?.("Sugerencias aplicadas.");
-    } catch (e) {
-      console.error(e);
-      alert(`Error: ${e.message || "Fallo aplicando sugerencias"}`);
-    } finally {
-      setIsApplyingSuggestions(false);
-    }
-  };
-  return (
-    <section id="prompt-generator" className="py-24 px-4 bg-black/20">
-      <div className="max-w-6xl mx-auto">
-        {/* ALERTA DE CRÉDITOS */}
-        {user && profile && profile.credits <= 3 && (
-          <div
-            className={`mb-6 p-4 rounded-lg border ${
-              profile.credits === 0
-                ? "bg-red-500/10 border-red-500/30"
-                : "bg-[color:var(--primary)]/10 border-[color:var(--primary)]/30"
-            }`}
-          >
-            <p
-              className={`font-bold ${
-                profile.credits === 0
-                  ? "text-red-400"
-                  : "text-[color:var(--primary)]"
-              }`}
-            >
-              {profile.credits === 0
-                ? "⚠️ No tienes créditos. Actualiza tu plan para continuar."
-                : `⚠️ Te quedan ${profile.credits} crédito${
-                    profile.credits === 1 ? "" : "s"
-                  }.`}
-            </p>
-            {profile.plan === "free" && (
-              <a
-                href="#planes"
-                className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold mt-2 inline-block"
-              >
-                Ver planes →
-              </a>
-            )}
-          </div>
-        )}
-
-        <AnimatedSection className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-heading mb-4">
-            Generador de Prompts{" "}
-            <span className="text-[color:var(--primary)]">PROMPTRAITS</span>
-          </h2>
-          <p className="text-gray-400 text-lg">
-            Describe tu idea o sube una imagen de referencia para generar un
-            prompt profesional.
-          </p>
-        </AnimatedSection>
-
-        <div className="bg-white/5 border border-[color:var(--border)] rounded-2xl p-6">
-          <form onSubmit={handleGenerate} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <label
-                  htmlFor="inputText"
-                  className="block text-sm font-medium text-gray-300 mb-2"
-                >
-                  Describe tu idea:
-                </label>
-                <textarea
-                  id="inputText"
-                  rows="8"
-                  className="w-full h-full bg-black/50 border border-[color:var(--border)] rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-[color:var(--primary)] resize-none"
-                  placeholder="Ej: un retrato cinematográfico en una calle europea al atardecer..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                ></textarea>
-              </div>
-
-              <div className="flex flex-col">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Imagen de referencia:
-                </label>
-                {!imagePreview ? (
-                  <label
-                    htmlFor="referenceImagePrompt-Gen"
-                    className="flex-1 flex flex-col items-center justify-center bg-[color:var(--surface)]/30 border-2 border-dashed border-[color:var(--border)] rounded-lg cursor-pointer hover:bg-[color:var(--surface)]/40 transition-all p-4"
-                  >
-                    <Upload className="w-8 h-8 text-[color:var(--primary)] mb-2" />
-                    <span className="text-sm font-semibold text-center">
-                      Subir imagen
-                    </span>
-                    <span className="text-xs text-muted mt-1 text-center">
-                      Opcional
-                    </span>
-                  </label>
-                ) : (
-                  <div className="relative flex-1 rounded-lg overflow-hidden border border-[color:var(--border)]">
-                    <img
-                      src={imagePreview}
-                      alt="Referencia"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-all shadow-lg"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                )}
-                <input
-                  id="referenceImagePrompt-Gen"
-                  type="file"
-                  className="hidden"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                />
-              </div>
-            </div>
-
-            {/* PRESETS FREE (compactos) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">
-                🎨 Estilos Básicos (GRATIS):
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {PRESETS.filter((p) => p.free).map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() =>
-                      setSelectedPreset(
-                        selectedPreset === preset.id ? null : preset.id
-                      )
-                    }
-                    className={`p-3 rounded-lg text-left transition-all text-sm ${
-                      selectedPreset === preset.id
-                        ? "bg-[color:var(--primary)]/10 border-2 border-[color:var(--primary)] shadow-sm"
-                        : "bg-white/5 border border-[color:var(--border)] hover:bg-white/10"
-                    }`}
-                  >
-                    <div className="text-sm font-semibold">{preset.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {preset.subtitle}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* HERRAMIENTAS PRO (bloqueo/estilo + generar idea) */}
-            <div className="relative mt-4">
-              {!isPro && (
-                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-10 p-4 text-center">
-                  <Lock className="w-10 h-10 text-[color:var(--primary)] mx-auto mb-4" />
-                  <p className="text-white font-bold text-lg mb-2">
-                    Herramientas PRO
-                  </p>
-                  <a
-                    href="#planes"
-                    className="text-[color:var(--primary)] hover:opacity-90 text-sm font-semibold"
-                  >
-                    Actualizar a PRO →
-                  </a>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setShowProTools(!showProTools)}
-                disabled={!isPro}
-                className="w-full flex items-center justify-between p-3 bg-[color:var(--surface)]/30 border border-[color:var(--border)] rounded-lg hover:border-[color:var(--primary)] transition-all"
-              >
-                <span className="font-semibold flex items-center space-x-2">
-                  <Crown className="w-5 h-5 text-[color:var(--primary)]" />
-                  <span>Herramientas PRO</span>
-                </span>
-                {showProTools ? <ChevronUp /> : <ChevronDown />}
-              </button>
-
-              {showProTools && isPro && (
-                <div className="mt-3 p-4 bg-black/30 border border-[color:var(--border)] rounded-lg space-y-4">
-                  <div>
-                    <button
-                      type="button"
-                      onClick={generateRandomIdea}
-                      className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition-all"
-                    >
-                      <Lightbulb size={18} />
-                      <span>💡 Generar Idea Aleatoria</span>
-                    </button>
-                    <p className="text-xs text-muted mt-2 text-center">
-                      Genera ideas completas con estilo, escenario y vestuario
-                    </p>
-                  </div>
-
-                  <div className="border-t border-[color:var(--border)] my-2"></div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      ✨ Presets PRO (12 adicionales):
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {PRESETS.filter((p) => !p.free).map((preset) => (
-                        <button
-                          key={preset.id}
-                          type="button"
-                          onClick={() =>
-                            setSelectedPreset(
-                              selectedPreset === preset.id ? null : preset.id
-                            )
-                          }
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            selectedPreset === preset.id
-                              ? "bg-[color:var(--primary)]/10 border-2 border-[color:var(--primary)]"
-                              : "bg-white/5 border border-[color:var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="text-sm font-semibold">
-                            {preset.name}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {preset.subtitle}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* BOTÓN GENERAR */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isLoading || (!prompt && !referenceImage)}
-                className="w-full bg-[color:var(--primary)] text-black px-6 py-3 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
-              >
-                {isLoading ? "Generando..." : "Generar Prompt"}
-              </button>
-            </div>
-          </form>
-
-          {/* ANÁLISIS DE CALIDAD */}
-          <QualityAnalysis
-            analysis={qualityAnalysis}
-            isPro={isPro}
-            onApplySuggestions={handleApplySuggestions}
-            isApplying={isApplyingSuggestions}
-          />
-          {/* PROMPT GENERADO */}
-          <div className="mt-6">
-            <h3 className="font-semibold text-lg mb-3">Prompt Generado:</h3>
-            <div className="bg-black/40 border border-[color:var(--border)] rounded-lg p-4">
-              <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">
-                {response || "Aqué aparecerá el prompt generado..."}
-              </pre>
-              {response && (
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Copiar */}
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(response);
-                      if (window.App_showToast)
-                        window.App_showToast("Prompt copiado.");
-                    }}
-                    className="w-full flex items-center justify-center space-x-2 bg-[color:var(--surface)] text-[color:var(--fg)] px-4 py-3 rounded-lg font-bold hover:bg-[color:var(--surface)]/80 transition"
-                  >
-                    <Copy size={18} />
-                    <span>Copiar Prompt</span>
-                  </button>
-
-                  {/* Usar en Gemini: copia + abre pestaña */}
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(response);
-                      window.open(
-                        "https://gemini.google.com/app",
-                        "_blank",
-                        "noopener,noreferrer"
-                      );
-                      if (window.App_showToast)
-                        window.App_showToast(
-                          "Prompt copiado. Abriendo Gemini…"
-                        );
-                    }}
-                    className="w-full flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition"
-                  >
-                    <Send size={18} />
-                    <span>Usar en Gemini</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// HISTORIAL DE PROMPTS
-function PromptHistory() {
-  const { user, profile } = useAuth();
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  // Refrescar si el usuario está logueado
   useEffect(() => {
     if (user) {
-      fetchHistory();
+      refreshProfile();
     }
-  }, [user]);
+  }, [user, refreshProfile]);
 
-  const fetchHistory = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("prompt_history")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setHistory(data || []);
-    } catch (err) {
-      console.error("Error fetching history:", err);
-    } finally {
-      setLoading(false);
+  // Manejo de plan
+  const handlePlanSelection = async (plan) => {
+    if (!user) {
+      setShowAuth(true);
+      setAuthMode("login");
+      return;
     }
+
+    // Si es FREE
+    if (plan.name === "FREE") {
+      return;
+    }
+
+    // Guardar plan seleccionado y abrir checkout
+    setSelectedPlan(plan);
+    setShowCheckout(true);
   };
 
-  const deletePrompt = async (id) => {
-    try {
-      const { error } = await supabase
-        .from("prompt_history")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-      setHistory(history.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error("Error deleting prompt:", err);
-    }
+  // Cerrar sesión
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setShowUserMenu(false);
+    setView("home");
   };
 
-  if (loading) {
-    return <div className="text-center py-8">Cargando historial...</div>;
-  }
+  // Menú de navegación
+  const navItems = [
+    { label: "Inicio", value: "home" },
+    { label: "Galería", value: "gallery" },
+    { label: "Generador IA", value: "generator" },
+    { label: "Precios", value: "pricing" },
+  ];
 
-  if (history.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-400">
-        No tienes prompts guardados aún.
-        {profile.plan === "free" && (
-          <p className="mt-2 text-sm">
-            Los usuarios Free guardan solo los últimos 3 prompts.
-          </p>
-        )}
-      </div>
+  if (user) {
+    navItems.push(
+      { label: "Mi Perfil", value: "profile" },
+      { label: "Historial", value: "history" }
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">
-          Historial de Prompts
-          {profile.plan === "free" && (
-            <span className="text-sm text-gray-400 ml-2">(últimos 3)</span>
-          )}
-        </h3>
-        <span className="text-sm text-gray-400">
-          {history.length} prompt{history.length !== 1 ? "s" : ""}
-        </span>
-      </div>
-
-      <div className="space-y-3">
-        {history.map((prompt) => (
-          <div
-            key={prompt.id}
-            className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition"
+    <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--fg)]">
+      {/* HEADER */}
+      <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-xl border-b border-[color:var(--border)]">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <button
+            type="button"
+            onClick={() => setView("home")}
+            className="flex items-center"
           >
-            <div className="flex justify-between items-start gap-4">
-              <div className="flex-1">
-                <p className="text-white mb-2">{prompt.prompt_text}</p>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <Calendar className="w-3 h-3" />
-                  {new Date(prompt.created_at).toLocaleString("es-ES", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
+            <img src="/logo.svg" alt="Logo" className="w-40 h-auto" />
+          </button>
+
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setView(item.value)}
+                className={`text-sm font-medium transition ${
+                  view === item.value
+                    ? "text-[color:var(--primary)]"
+                    : "text-muted hover:text-[color:var(--fg)]"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center space-x-4">
+            {/* Créditos disponibles */}
+            {user && (
+              <div className="hidden lg:flex items-center px-3 py-1.5 bg-[color:var(--surface)] rounded-full border border-[color:var(--border)]">
+                <Gift className="w-4 h-4 text-[color:var(--primary)] mr-1.5" />
+                <span className="text-sm font-semibold">
+                  {profile?.credits ?? 0}
+                </span>
               </div>
+            )}
 
-              {prompt.image_url && (
-                <img
-                  src={prompt.image_url}
-                  alt="Prompt result"
-                  className="w-20 h-20 object-cover rounded"
-                />
-              )}
-
-              <button
-                onClick={() => deletePrompt(prompt.id)}
-                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded transition"
-                title="Eliminar"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// APP principal (UI final ajustada)
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-}
-
-function AppContent() {
-  const { user, profile, signOut } = useAuth();
-  const [view, setView] = useState("home");
-  const [showAuth, setShowAuth] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-
-  // Detectar retorno de Stripe
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const payment = params.get("payment");
-    const sessionId = params.get("session_id");
-
-    if (payment === "success" && sessionId) {
-      console.log("✓ Pago exitoso detectado");
-
-      // Mostrar mensaje de éxito
-      setShowPaymentSuccess(true);
-
-      // Limpiar URL inmediatamente
-      window.history.replaceState({}, "", "/");
-
-      // Esperar 3 segundos y RECARGAR PÁGINA COMPLETA
-      setTimeout(() => {
-        console.log("✓ Recargando página para actualizar datos...");
-        window.location.reload();
-      }, 3000);
-    } else if (payment === "cancelled") {
-      console.log("✓ Pago cancelado");
-      setView("pricing");
-      window.history.replaceState({}, "", "/");
-    }
-  }, []);
-
-  const handleNavigation = async (action) => {
-    console.log("✓ handleNavigation:", action);
-
-    if (action === "logout") {
-      console.log("✓ CERRANDO SESIÓN - Inicio");
-      try {
-        const { error } = await signOut();
-        if (error) {
-          console.error("✓ Error en signOut:", error);
-          throw error;
-        }
-        console.log("✓ signOut() ejecutado");
-        console.log("✓ Recargando página...");
-        window.location.reload();
-      } catch (error) {
-        console.error("✓ Error al cerrar sesión:", error);
-      }
-      return;
-    }
-
-    if (
-      !user &&
-      action !== "home" &&
-      action !== "gallery" &&
-      action !== "pricing"
-    ) {
-      setShowAuth(true);
-      setAuthMode("login");
-      return;
-    }
-
-    setView(action);
-    setMobileMenuOpen(false);
-  };
-
-  const handlePlanSelection = async (planId) => {
-    console.log("✓ Plan seleccionado:", planId);
-
-    if (planId === "free") {
-      if (!user) {
-        setShowAuth(true);
-        setAuthMode("register");
-      } else {
-        console.log("✓ Ya tienes el plan FREE");
-      }
-      return;
-    }
-
-    if (!user) {
-      console.log("✓ Usuario no logueado - Mostrando modal de login");
-      setShowAuth(true);
-      setAuthMode("login");
-      return;
-    }
-
-    console.log("✓ Usuario logueado - Iniciando checkout...");
-    setIsProcessingCheckout(true);
-
-    try {
-      const response = await fetch("/api/create-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          planId,
-          userId: user.id,
-          userEmail: user.email,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al crear sesión de checkout");
-      }
-
-      const { url } = await response.json();
-
-      console.log("✓ Sesión creada - Redirigiendo a Stripe...");
-
-      // Redirigir a Stripe Checkout
-      window.location.href = url;
-    } catch (error) {
-      console.error("✓ Error en checkout:", error);
-      alert(
-        `Error al procesar el pago: ${error.message}\n\nPor favor, intenta de nuevo.`
-      );
-      setIsProcessingCheckout(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-black/50 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Botón Hamburguesa (solo móvil) */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-white" />
-              ) : (
-                <Menu className="w-6 h-6 text-white" />
-              )}
-            </button>
-
-            {/* Logo - Centrado en móvil, izquierda en desktop */}
-            <div className="flex-1 md:flex-initial flex justify-center md:justify-start">
-              <div
-                onClick={() => {
-                  setView("home");
-                  setMobileMenuOpen(false);
-                }}
-                className="cursor-pointer"
-              >
-                <img
-                  src="/logo.svg"
-                  alt="PROMPTRAITS"
-                  className="h-12 w-auto"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.parentElement.innerHTML =
-                      '<span class="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">PROMPTRAITS</span>';
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Spacer para balance en móvil */}
-            <div className="w-10 md:hidden"></div>
-
-            {/* Navigation Desktop */}
-            <nav className="hidden md:flex space-x-8">
-              <button
-                onClick={() => setView("gallery")}
-                className={`transition duration-300 ${
-                  view === "gallery"
-                    ? "text-[var(--primary)]"
-                    : "text-gray-300 hover:text-white"
-                }`}
-              >
-                Galería
-              </button>
-              <button
-                onClick={() => handleNavigation("generator")}
-                className={`transition duration-300 ${
-                  view === "generator"
-                    ? "text-[var(--primary)]"
-                    : "text-gray-300 hover:text-white"
-                }`}
-              >
-                Generador IA
-              </button>
-              <button
-                onClick={() => setView("pricing")}
-                className={`transition duration-300 ${
-                  view === "pricing"
-                    ? "text-[var(--primary)]"
-                    : "text-gray-300 hover:text-white"
-                }`}
-              >
-                Precios
-              </button>
-            </nav>
-
-            {/* User Menu / Auth Button Desktop */}
-            <div className="hidden md:block">
-              {user ? (
-                <UserMenu
-                  credits={profile?.credits || 0}
-                  plan={profile?.plan || "free"}
-                  onNavigate={handleNavigation}
-                />
-              ) : (
+            {/* CTA / User Menu */}
+            {user ? (
+              <div className="relative">
                 <button
-                  onClick={() => {
-                    setShowAuth(true);
-                    setAuthMode("login");
-                  }}
-                  className="px-6 py-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-semibold hover:opacity-90 transition duration-300"
+                  type="button"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="hidden lg:flex items-center space-x-2 px-4 py-2 bg-[color:var(--primary)] text-black rounded-full font-bold hover:opacity-90 transition"
                 >
-                  Iniciar sesión
+                  {profile?.plan === "pro" && (
+                    <Crown className="w-4 h-4" />
+                  )}
+                  <span>{user.email?.split("@")[0]}</span>
                 </button>
-              )}
-            </div>
+                {showUserMenu && <UserMenu onLogout={handleLogout} />}
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("login");
+                    setShowAuth(true);
+                  }}
+                  className="hidden lg:block px-4 py-2 text-sm font-medium text-muted hover:text-[color:var(--fg)] transition"
+                >
+                  Iniciar Sesión
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("register");
+                    setShowAuth(true);
+                  }}
+                  className="hidden lg:block px-6 py-2 bg-[color:var(--primary)] text-black rounded-full font-bold hover:opacity-90 transition"
+                >
+                  Registrarse
+                </button>
+              </>
+            )}
+
+            {/* Mobile menu toggle */}
+            <button
+              type="button"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="lg:hidden p-2 rounded-lg hover:bg-[color:var(--surface)] transition"
+            >
+              {showMobileMenu ? <X /> : <Menu />}
+            </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-black/95 border-t border-white/10">
-            <div className="px-4 py-6 space-y-4">
-              {/* Navigation Links */}
-              <button
-                onClick={() => {
-                  setView("gallery");
-                  setMobileMenuOpen(false);
-                }}
-                className={`block w-full text-left px-4 py-3 rounded-lg transition ${
-                  view === "gallery"
-                    ? "bg-[var(--primary)]/20 text-[var(--primary)]"
-                    : "text-gray-300 hover:bg-white/10"
-                }`}
-              >
-                Galería
-              </button>
+        {showMobileMenu && (
+          <div className="lg:hidden border-t border-[color:var(--border)] bg-black/95 backdrop-blur-xl">
+            <nav className="container mx-auto px-4 py-4 flex flex-col space-y-3">
+              {navItems.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => {
+                    setView(item.value);
+                    setShowMobileMenu(false);
+                  }}
+                  className={`text-left py-2 px-3 rounded-lg transition ${
+                    view === item.value
+                      ? "bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
+                      : "text-muted hover:bg-[color:var(--surface)]"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
 
-              <button
-                onClick={() => {
-                  handleNavigation("generator");
-                }}
-                className={`block w-full text-left px-4 py-3 rounded-lg transition ${
-                  view === "generator"
-                    ? "bg-[var(--primary)]/20 text-[var(--primary)]"
-                    : "text-gray-300 hover:bg-white/10"
-                }`}
-              >
-                Generador IA
-              </button>
-
-              <button
-                onClick={() => {
-                  setView("pricing");
-                  setMobileMenuOpen(false);
-                }}
-                className={`block w-full text-left px-4 py-3 rounded-lg transition ${
-                  view === "pricing"
-                    ? "bg-[var(--primary)]/20 text-[var(--primary)]"
-                    : "text-gray-300 hover:bg-white/10"
-                }`}
-              >
-                Precios
-              </button>
-
-              <div className="border-t border-white/10 my-4"></div>
-
-              {/* User Section */}
-              {user ? (
-                <div className="space-y-3">
-                  <div className="px-4 py-3 bg-white/5 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-400">Créditos</span>
-                      <span className="text-lg font-bold text-[var(--primary)]">
-                        {profile?.credits || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Crown className="w-4 h-4 text-[var(--primary)]" />
-                      <span className="text-sm font-semibold uppercase text-[var(--primary)]">
-                        {profile?.plan || "free"}
-                      </span>
-                    </div>
-                  </div>
-
+              {/* Auth buttons mobile */}
+              {!user && (
+                <div className="pt-3 border-t border-[color:var(--border)] flex flex-col space-y-2">
                   <button
+                    type="button"
                     onClick={() => {
-                      handleNavigation("profile");
+                      setAuthMode("login");
+                      setShowAuth(true);
+                      setShowMobileMenu(false);
                     }}
-                    className="block w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-white/10 transition"
+                    className="py-2 px-4 text-center border border-[color:var(--border)] rounded-lg hover:bg-[color:var(--surface)] transition"
                   >
-                    Mi Perfil
+                    Iniciar Sesión
                   </button>
-
                   <button
+                    type="button"
                     onClick={() => {
-                      handleNavigation("history");
+                      setAuthMode("register");
+                      setShowAuth(true);
+                      setShowMobileMenu(false);
                     }}
-                    className="block w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-white/10 transition"
+                    className="py-2 px-4 text-center bg-[color:var(--primary)] text-black rounded-lg font-bold hover:opacity-90 transition"
                   >
-                    Historial
-                  </button>
-
-                  <button
-                    onClick={() => handleNavigation("logout")}
-                    className="block w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition"
-                  >
-                    Cerrar Sesión
+                    Registrarse
                   </button>
                 </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setShowAuth(true);
-                    setAuthMode("login");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full px-6 py-3 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-semibold hover:opacity-90 transition"
-                >
-                  Iniciar sesión
-                </button>
               )}
-            </div>
+
+              {/* Créditos en mobile */}
+              {user && (
+                <div className="pt-3 border-t border-[color:var(--border)] flex items-center justify-between px-3 py-2 bg-[color:var(--surface)] rounded-lg">
+                  <span className="text-sm text-muted">Créditos</span>
+                  <div className="flex items-center">
+                    <Gift className="w-4 h-4 text-[color:var(--primary)] mr-1.5" />
+                    <span className="text-sm font-semibold">
+                      {profile?.credits ?? 0}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </nav>
           </div>
         )}
       </header>
 
-      {/* Main Content */}
-      <main className="pt-16">
+      {/* MAIN CONTENT */}
+      <main>
         {/* HOME */}
         {view === "home" && (
           <>
-            {/* Hero Section */}
-            <section className="relative pt-40 pb-12 px-4 overflow-hidden text-center">
-              <AnimatedSection className="max-w-5xl mx-auto relative z-10">
-                <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 leading-tight tracking-tighter">
-                  Convierte tus Selfies en
-                  <span className="block text-[color:var(--primary)] mt-2">
-                    Retratos Profesionales
-                  </span>
-                </h1>
-                <p className="text-lg text-muted mb-8">
-                  Crea prompts ultra detallados para conseguir la mayor
-                  consistencia en tus retratos y fotos
-                </p>
-                <button
-                  onClick={() => setView("generator")}
-                  className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-[color:var(--primary)] text-black font-semibold hover:opacity-90 transition"
-                >
-                  Ir al Generador de Prompts
-                </button>
-              </AnimatedSection>
+            {/* HERO */}
+            <section className="relative overflow-hidden py-20 px-4">
+              <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--primary)]/5 to-transparent pointer-events-none"></div>
+              <div className="container mx-auto max-w-6xl relative z-10">
+                <div className="text-center mb-12">
+                  <div className="inline-flex items-center px-4 py-2 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-full text-sm mb-6">
+                    <Sparkles className="w-4 h-4 mr-2 text-[color:var(--primary)]" />
+                    <span className="text-muted">
+                      Prompts profesionales para IA
+                    </span>
+                  </div>
+                  <h1 className="text-5xl md:text-7xl font-heading font-black mb-6 bg-gradient-to-r from-white via-white to-[color:var(--primary)] bg-clip-text text-transparent">
+                    Retratos profesionales con IA
+                  </h1>
+                  <p className="text-xl text-muted max-w-2xl mx-auto mb-8">
+                    Genera prompts cinematográficos y profesionales para crear
+                    retratos de calidad editorial con IA.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setView("generator")}
+                      className="px-8 py-4 bg-[color:var(--primary)] text-black rounded-full font-bold text-lg hover:shadow-lg transition-all inline-flex items-center justify-center"
+                    >
+                      <Camera className="w-5 h-5 mr-2" />
+                      Empezar ahora
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView("gallery")}
+                      className="px-8 py-4 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-full font-bold text-lg hover:bg-[color:var(--surface)]/80 transition"
+                    >
+                      Ver ejemplos
+                    </button>
+                  </div>
+                </div>
+              </div>
             </section>
 
-            {/* Galería Preview */}
-            <AnimatedSection className="py-20 px-4">
+            {/* GALERÍA DESTACADA */}
+            <AnimatedSection className="py-20 px-4 bg-black/20">
               <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-12">
                   <h2 className="text-4xl font-bold mb-4">
-                    Galería de Prompts Profesionales
+                    Galería de Retratos
                   </h2>
                   <p className="text-muted text-lg">
-                    Explora nuestra colección de prompts optimizados
+                    Explora nuestros mejores prompts generados
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -1353,8 +700,8 @@ function AppContent() {
         {/* GALERÍA */}
         {view === "gallery" && <Gallery />}
 
-        {/* GENERADOR */}
-        {view === "generator" && <Generator />}
+        {/* GENERADOR - ✅ CAMBIADO A AdvancedGenerator */}
+        {view === "generator" && <AdvancedGenerator />}
 
         {/* PRECIOS */}
         {view === "pricing" && (
@@ -1453,5 +800,13 @@ function AppContent() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
