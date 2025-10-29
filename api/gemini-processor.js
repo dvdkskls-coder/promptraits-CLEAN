@@ -396,7 +396,8 @@ function generateSystemPrompt(platform, userData) {
     sliders,
     shotType,
     outfitStyle,
-    environment
+    environment,
+    proSettings // ✅ AGREGADO: Extraer proSettings
   } = userData;
 
   // BASE COMÚN PARA AMBAS PLATAFORMAS
@@ -887,6 +888,7 @@ export default async function handler(req, res) {
       shotType,
       outfitStyle,
       environment,
+      proSettings, // ✅ AGREGADO: Configuración PRO del usuario
       platform = 'nano-banana' // ✅ NUEVO: Plataforma seleccionada
     } = req.body;
 
@@ -965,7 +967,8 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       sliders,
       shotType,
       outfitStyle,
-      environment
+      environment,
+      proSettings // ✅ AGREGADO: Pasar configuración PRO
     });
 
     // Construir body para Gemini
