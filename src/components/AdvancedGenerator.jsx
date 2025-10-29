@@ -147,12 +147,16 @@ export default function AdvancedGenerator() {
   const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
   const [copied, setCopied] = useState(false);
   
+  // Estados para plataforma
   const [selectedPlatform, setSelectedPlatform] = useState('nano-banana');
   const [showPlatformInfo, setShowPlatformInfo] = useState(false);
   const [validation, setValidation] = useState(null);
+
+  // Estados para características rápidas (solo 1)
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [showProTools, setShowProTools] = useState(false);
 
+  // ✨ Estados para Herramientas PRO (SIMPLIFICADAS - 7 elementos)
   const [proSettings, setProSettings] = useState({
     gender: 'neutral',
     lighting: null,
@@ -164,13 +168,22 @@ export default function AdvancedGenerator() {
   });
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
+
+  // ✅ Convertir OUTFIT_STYLES a array
   const outfitStylesArray = OUTFIT_STYLES ? Object.values(OUTFIT_STYLES) : [];
 
+  // ============================================================================
+  // EFECTO: Cuando se abre PRO, limpia características rápidas
+  // ============================================================================
   useEffect(() => {
     if (showProTools) {
       setSelectedFeature(null);
     }
   }, [showProTools]);
+
+  // ============================================================================
+  // HANDLERS
+  // ============================================================================
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -195,6 +208,7 @@ export default function AdvancedGenerator() {
 
   const selectFeature = (featureId) => {
     if (showProTools) {
+      // Si PRO está abierto, cerrar PRO y limpiar
       setShowProTools(false);
       setProSettings({
         gender: 'neutral',
@@ -206,6 +220,7 @@ export default function AdvancedGenerator() {
         outfit: null,
       });
     }
+    // Toggle de la característica (solo 1 puede estar activa)
     setSelectedFeature(selectedFeature === featureId ? null : featureId);
   };
 
@@ -226,6 +241,7 @@ export default function AdvancedGenerator() {
     try {
       let enhancedPrompt = prompt;
       
+      // Si hay característica rápida seleccionada
       if (selectedFeature) {
         const feature = QUICK_FEATURES.find(f => f.id === selectedFeature);
         if (feature) {
@@ -240,6 +256,7 @@ export default function AdvancedGenerator() {
         analyzeQuality: isPro,
         isPro,
         platform: selectedPlatform,
+        // Enviar solo si PRO está activo, sino null
         proSettings: showProTools ? proSettings : null,
       };
 
@@ -288,6 +305,7 @@ export default function AdvancedGenerator() {
 
   const handleApplySuggestions = async (suggestions) => {
     if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) {
+      console.error("No hay sugerencias válidas para aplicar");
       return;
     }
 
@@ -315,8 +333,8 @@ export default function AdvancedGenerator() {
       setResponse(data.prompt);
       setQualityAnalysis(null);
     } catch (error) {
-      console.error("Error:", error);
-      alert("Error: " + error.message);
+      console.error("Error al aplicar sugerencias:", error);
+      alert("Error al aplicar sugerencias: " + error.message);
     } finally {
       setIsApplyingSuggestions(false);
     }
@@ -336,8 +354,11 @@ export default function AdvancedGenerator() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* INPUT + IMAGEN */}
+            {/* ============================================================================ */}
+            {/* 1. INPUT (80%) + IMAGEN (20%) */}
+            {/* ============================================================================ */}
             <div className="flex gap-4">
+              {/* INPUT */}
               <div className="flex-[0.8]">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Describe lo que quieres generar:
@@ -356,6 +377,7 @@ export default function AdvancedGenerator() {
                 )}
               </div>
 
+              {/* IMAGEN */}
               <div className="flex-[0.2]">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Imagen de Referencia:
@@ -367,7 +389,9 @@ export default function AdvancedGenerator() {
                     <span className="text-xs text-gray-400 text-center px-2">
                       Sube una foto
                     </span>
-                    <span className="text-xs text-gray-500 mt-1">Max 4MB</span>
+                    <span className="text-xs text-gray-500 mt-1">
+                      Max 4MB
+                    </span>
                     <input
                       type="file"
                       accept="image/*"
@@ -394,7 +418,9 @@ export default function AdvancedGenerator() {
               </div>
             </div>
 
-            {/* PLATAFORMA */}
+            {/* ============================================================================ */}
+            {/* 2. PLATAFORMA */}
+            {/* ============================================================================ */}
             <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-lg" style={{ color: 'var(--primary)' }}>
@@ -456,7 +482,9 @@ export default function AdvancedGenerator() {
               )}
             </div>
 
-            {/* CARACTERÍSTICAS RÁPIDAS */}
+            {/* ============================================================================ */}
+            {/* 3. CARACTERÍSTICAS RÁPIDAS */}
+            {/* ============================================================================ */}
             <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
               <h3 className="font-semibold text-lg mb-2" style={{ color: 'var(--primary)' }}>
                 Características Rápidas
@@ -495,7 +523,9 @@ export default function AdvancedGenerator() {
               </div>
             </div>
 
-            {/* BOTÓN GENERAR */}
+            {/* ============================================================================ */}
+            {/* 4. BOTÓN GENERAR */}
+            {/* ============================================================================ */}
             <div className="pt-2">
               <button
                 type="submit"
@@ -520,12 +550,14 @@ export default function AdvancedGenerator() {
                 <p className="text-xs text-center mt-2 opacity-60">
                   {profile.credits > 0 
                     ? `Tienes ${profile.credits} crédito${profile.credits !== 1 ? 's' : ''} disponible${profile.credits !== 1 ? 's' : ''}`
-                    : "No tienes créditos. Actualiza tu plan."}
+                    : "No tienes créditos. Actualiza tu plan para continuar."}
                 </p>
               )}
             </div>
 
-            {/* HERRAMIENTAS PRO - 7 ELEMENTOS */}
+            {/* ============================================================================ */}
+            {/* 5. HERRAMIENTAS PRO - SIMPLIFICADAS (7 elementos) */}
+            {/* ============================================================================ */}
             <div>
               {!isPro && (
                 <div className="mb-3 p-3 bg-[var(--primary)]/10 border border-[var(--primary)] rounded-lg flex items-center justify-between">
@@ -565,10 +597,10 @@ export default function AdvancedGenerator() {
               {showProTools && isPro && (
                 <div className="mt-3 p-4 bg-black/30 border border-[var(--border)] rounded-lg space-y-6">
                   
-                  {/* GÉNERO */}
+                  {/* 1. GÉNERO */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                      Género:
+                      Género (para outfit/maquillaje):
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {GENDER_OPTIONS.map((gender) => (
@@ -586,10 +618,12 @@ export default function AdvancedGenerator() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Guía el outfit/maquillaje</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      * NO aparece en el prompt, solo guía el outfit/maquillaje
+                    </p>
                   </div>
 
-                  {/* ILUMINACIÓN */}
+                  {/* 2. ILUMINACIÓN */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
                       Iluminación:
@@ -613,7 +647,7 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* LENTE */}
+                  {/* 3. LENTE */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
                       Lente:
@@ -637,7 +671,7 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* COLOR GRADING */}
+                  {/* 4. COLOR GRADING */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
                       Color Grading:
@@ -661,7 +695,7 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* FILTROS */}
+                  {/* 5. FILTROS */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
                       Filtros:
@@ -685,7 +719,7 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* ASPECT RATIO */}
+                  {/* 6. ASPECT RATIO */}
                   <div>
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
                       Aspect Ratio:
@@ -709,11 +743,11 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* OUTFIT */}
+                  {/* 7. OUTFIT */}
                   {outfitStylesArray.length > 0 && (
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: 'var(--primary)' }}>
-                        Outfit:
+                        Outfit Style:
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
                         {outfitStylesArray.map((outfit) => (
@@ -739,6 +773,7 @@ export default function AdvancedGenerator() {
             </div>
           </form>
 
+          {/* ANÁLISIS DE CALIDAD */}
           <QualityAnalysis
             analysis={qualityAnalysis}
             isPro={isPro}
@@ -770,7 +805,19 @@ export default function AdvancedGenerator() {
               {response && (
                 <>
                   <div className="mt-4 p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg text-sm">
-                    <span className="font-semibold">Optimizado para {PLATFORM_INFO[selectedPlatform].name}</span>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="font-semibold">Optimizado para {PLATFORM_INFO[selectedPlatform].name}</span>
+                    </div>
+                    {selectedPlatform === 'midjourney' && (
+                      <div className="text-xs text-gray-400">
+                        Los parámetros están al final del prompt. Puedes ajustar --ar, --s, --q según necesites.
+                      </div>
+                    )}
+                    {selectedPlatform === 'nano-banana' && (
+                      <div className="text-xs text-gray-400">
+                        Este prompt está optimizado como párrafo continuo.
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
