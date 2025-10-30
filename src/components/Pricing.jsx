@@ -220,7 +220,7 @@ export default function Pricing({ onSelectPlan, currentPlan = 'free' }) {
                 </div>
 
                 <button
-                  onClick={() => onSelectPlan(`credits-${pack.credits}`)}
+                  onClick={() => onSelectPlan(`pack_${pack.credits}`)}
                   className="w-full py-3 rounded-lg font-bold bg-[color:var(--primary)] text-black hover:opacity-90 transition-all"
                 >
                   {user ? 'Comprar Ahora' : 'Regístrate para Comprar'}
