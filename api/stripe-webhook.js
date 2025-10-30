@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   try {
     // Construir evento verificando firma
     event = stripe.webhooks.constructEvent(
-      body.toString('utf8'), // ← Convertir a string UTF-8
+      body.toString('utf8'),
       signature,
       webhookSecret
     );
@@ -77,11 +77,12 @@ export default async function handler(req, res) {
 
         console.log('💳 Checkout completado');
         console.log('   Mode:', session.mode);
-        console.log('   User ID:', session.client_reference_id);
+        console.log('   User ID:', session.metadata?.userId);
         console.log('   Plan ID:', session.metadata?.planId);
 
         if (session.mode === 'payment') {
-          const userId = session.client_reference_id;
+          // CORREGIDO: Leer userId de metadata
+          const userId = session.metadata?.userId;
           const planId = session.metadata?.planId;
 
           if (!userId || !planId) {
@@ -89,11 +90,11 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Missing metadata' });
           }
 
-          // Determinar créditos
+          // CORREGIDO: Determinar créditos con pack_ en lugar de credits-
           let creditsToAdd = 0;
-          if (planId === 'credits-20') creditsToAdd = 20;
-          else if (planId === 'credits-50') creditsToAdd = 50;
-          else if (planId === 'credits-100') creditsToAdd = 100;
+          if (planId === 'pack_20') creditsToAdd = 20;
+          else if (planId === 'pack_50') creditsToAdd = 50;
+          else if (planId === 'pack_100') creditsToAdd = 100;
 
           if (creditsToAdd === 0) {
             console.error('❌ planId desconocido:', planId);
@@ -186,7 +187,7 @@ export default async function handler(req, res) {
           .from('profiles')
           .update({
             plan: newPlan,
-            credits: newCredits, // ← SUMAR, no reemplazar
+            credits: newCredits,
             subscription_id: subscription.id,
             subscription_status: subscription.status,
           })
