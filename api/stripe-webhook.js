@@ -78,30 +78,32 @@ export default async function handler(req, res) {
         console.log('💳 Checkout completado');
         console.log('   Mode:', session.mode);
         console.log('   User ID:', session.metadata?.userId);
-        console.log('   Plan ID:', session.metadata?.planId);
+        console.log('   Price ID:', session.metadata?.priceId);
 
         if (session.mode === 'payment') {
-          // CORREGIDO: Leer userId de metadata
+          // Leer userId y priceId de metadata
           const userId = session.metadata?.userId;
-          const planId = session.metadata?.planId;
+          const priceId = session.metadata?.priceId;
 
-          if (!userId || !planId) {
+          if (!userId || !priceId) {
             console.error('❌ Faltan metadatos');
+            console.error('   userId:', userId);
+            console.error('   priceId:', priceId);
             return res.status(400).json({ error: 'Missing metadata' });
           }
 
-          // CORREGIDO: Determinar créditos con pack_ en lugar de credits-
+          // Mapear priceId directamente a créditos
           let creditsToAdd = 0;
-          if (planId === 'pack_20') creditsToAdd = 20;
-          else if (planId === 'pack_50') creditsToAdd = 50;
-          else if (planId === 'pack_100') creditsToAdd = 100;
+          if (priceId === 'price_1SIP97IO8cBGyY9CLmnYtOwl') creditsToAdd = 20;      // pack_20
+          else if (priceId === 'price_1SIP9TIO8cBGyY9CBW1j64eb') creditsToAdd = 50;  // pack_50
+          else if (priceId === 'price_1SIP9yIO8cBGyY9CrndCyvTO') creditsToAdd = 100; // pack_100
 
           if (creditsToAdd === 0) {
-            console.error('❌ planId desconocido:', planId);
-            return res.status(400).json({ error: 'Unknown plan' });
+            console.error('❌ priceId desconocido:', priceId);
+            return res.status(400).json({ error: 'Unknown priceId' });
           }
 
-          console.log('💰 Añadiendo', creditsToAdd, 'créditos');
+          console.log('💰 Añadiendo', creditsToAdd, 'créditos para priceId:', priceId);
 
           // Obtener créditos actuales
           const { data: profile, error: fetchError } = await supabase
