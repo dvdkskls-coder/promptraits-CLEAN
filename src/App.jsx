@@ -39,12 +39,12 @@ import History from "./components/History.jsx";
 
 import QualityAnalysis from "./components/QualityAnalysis.jsx";
 
-// Sistema Legal
-import Footer from "./components/Footer.jsx";
-import CookieBanner from "./components/CookieBanner.jsx";
-import LegalPages from "./pages/LegalPages.jsx";
-import FAQ from "./pages/FAQ.jsx";
-import Contacto from "./pages/Contacto.jsx";
+// Sistema Legal - TEMPORALMENTE COMENTADO HASTA SUBIR LOS ARCHIVOS
+// import Footer from "./components/Footer.jsx";
+// import CookieBanner from "./components/CookieBanner.jsx";
+// import LegalPages from "./pages/LegalPages.jsx";
+// import FAQ from "./pages/FAQ.jsx";
+// import Contacto from "./pages/Contacto.jsx";
 
 // prompts externos
 import { ALL_PROMPTS } from "./data/prompts.js";
@@ -1016,11 +1016,11 @@ function AppContent() {
         </div>
       )}
       
-      {/* Footer en todas las páginas */}
-      <Footer />
+      {/* Footer en todas las páginas - TEMPORALMENTE DESACTIVADO */}
+      {/* <Footer /> */}
       
-      {/* Banner de Cookies */}
-      <CookieBanner />
+      {/* Banner de Cookies - TEMPORALMENTE DESACTIVADO */}
+      {/* <CookieBanner /> */}
     </div>
   );
 }
@@ -1033,10 +1033,10 @@ export default function App() {
           {/* Ruta principal de la aplicación */}
           <Route path="/" element={<AppContent />} />
           
-          {/* Rutas del sistema legal */}
-          <Route path="/legal/:page" element={<LegalPages />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/contacto" element={<Contacto />} />
+          {/* Rutas del sistema legal - TEMPORALMENTE DESACTIVADAS */}
+          {/* <Route path="/legal/:page" element={<LegalPages />} /> */}
+          {/* <Route path="/faq" element={<FAQ />} /> */}
+          {/* <Route path="/contacto" element={<Contacto />} /> */}
         </Routes>
       </Router>
     </AuthProvider>
