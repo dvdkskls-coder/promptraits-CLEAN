@@ -39,12 +39,12 @@ import History from "./components/History.jsx";
 
 import QualityAnalysis from "./components/QualityAnalysis.jsx";
 
-// Sistema Legal - TEMPORALMENTE COMENTADO HASTA SUBIR LOS ARCHIVOS
-// import Footer from "./components/Footer.jsx";
-// import CookieBanner from "./components/CookieBanner.jsx";
-// import LegalPages from "./pages/LegalPages.jsx";
-// import FAQ from "./pages/FAQ.jsx";
-// import Contacto from "./pages/Contacto.jsx";
+// Sistema Legal
+import Footer from "./components/Footer.jsx";
+import CookieBanner from "./components/CookieBanner.jsx";
+import LegalPages from "./pages/LegalPages.jsx";
+import FAQ from "./pages/FAQ.jsx";
+import Contacto from "./pages/Contacto.jsx";
 
 // prompts externos
 import { ALL_PROMPTS } from "./data/prompts.js";
@@ -73,98 +73,112 @@ const PRESETS = [
     name: "Golden Hour Lifestyle",
     subtitle: "Cálido atardecer",
     free: true,
-    promptBlock: "Natural lifestyle portrait during golden hour sunset. Soft warm backlight from sun creating natural rim light and hair highlights. 50mm f/1.8 lens at f/2.2 for dreamy background separation. Subject positioned with sun behind creating warm atmospheric glow. Reflector providing subtle fill from camera direction. Warm color temperature 5500K emphasizing golden tones. Lifestyle candid pose with natural expression.",
+    promptBlock:
+      "Natural lifestyle portrait during golden hour sunset. Soft warm backlight from sun creating natural rim light and hair highlights. 50mm f/1.8 lens at f/2.2 for dreamy background separation. Subject positioned with sun behind creating warm atmospheric glow. Reflector providing subtle fill from camera direction. Warm color temperature 5500K emphasizing golden tones. Lifestyle candid pose with natural expression.",
   },
   {
     id: 3,
     name: "Corporate Clean",
     subtitle: "High-Key profesional",
     free: true,
-    promptBlock: "High-key professional corporate headshot. Butterfly lighting setup with main light directly above camera creating subtle nose shadow. Bright even illumination, minimal shadows. Clean white or light gray background. 85mm lens at f/4 for optimal sharpness across face. Confident professional expression with direct eye contact. Smart business attire. High-key exposure maintaining detail in highlights. Clean modern professional aesthetic.",
+    promptBlock:
+      "High-key professional corporate headshot. Butterfly lighting setup with main light directly above camera creating subtle nose shadow. Bright even illumination, minimal shadows. Clean white or light gray background. 85mm lens at f/4 for optimal sharpness across face. Confident professional expression with direct eye contact. Smart business attire. High-key exposure maintaining detail in highlights. Clean modern professional aesthetic.",
   },
   {
     id: 4,
     name: "Environmental Portrait",
     subtitle: "Sujeto en su entorno",
     free: false,
-    promptBlock: "Environmental portrait showing subject in meaningful location context. Wide aperture 35mm lens at f/2.8 balancing subject sharpness with contextual background. Natural available light supplemented with off-camera flash for subject illumination. Subject positioned using rule of thirds. Environmental elements telling story about subject's work or passion. Authentic candid interaction with environment.",
+    promptBlock:
+      "Environmental portrait showing subject in meaningful location context. Wide aperture 35mm lens at f/2.8 balancing subject sharpness with contextual background. Natural available light supplemented with off-camera flash for subject illumination. Subject positioned using rule of thirds. Environmental elements telling story about subject's work or passion. Authentic candid interaction with environment.",
   },
   {
     id: 5,
     name: "Beauty Soft Front",
     subtitle: "Beauty homogéneo",
     free: false,
-    promptBlock: "High-end beauty portrait with soft butterfly lighting. Large octabox directly in front and above creating wraparound illumination. Minimal shadows, even skin tone rendering. Beauty dish or ring light for catchlights. 85mm-100mm lens at f/4-f/5.6 for optimal sharpness. Neutral background. Focus on skin texture, makeup, and facial details. Clean professional beauty aesthetic.",
+    promptBlock:
+      "High-end beauty portrait with soft butterfly lighting. Large octabox directly in front and above creating wraparound illumination. Minimal shadows, even skin tone rendering. Beauty dish or ring light for catchlights. 85mm-100mm lens at f/4-f/5.6 for optimal sharpness. Neutral background. Focus on skin texture, makeup, and facial details. Clean professional beauty aesthetic.",
   },
   {
     id: 6,
     name: "B/N Clásico Film",
     subtitle: "Monocromo atemporal",
     free: false,
-    promptBlock: "Classic black and white portrait with timeless film aesthetic. Modified Rembrandt or loop lighting for dimensional modeling. High contrast with preserved shadow detail. Grain structure mimicking Tri-X 400 film. Strong tonal separation. Dramatic side lighting emphasizing texture and form. Monochrome conversion optimized for skin tones. Timeless compositional approach.",
+    promptBlock:
+      "Classic black and white portrait with timeless film aesthetic. Modified Rembrandt or loop lighting for dimensional modeling. High contrast with preserved shadow detail. Grain structure mimicking Tri-X 400 film. Strong tonal separation. Dramatic side lighting emphasizing texture and form. Monochrome conversion optimized for skin tones. Timeless compositional approach.",
   },
   {
     id: 7,
     name: "Fotografía Urbana Street",
     subtitle: "Energía callejera",
     free: false,
-    promptBlock: "Urban street photography portrait in authentic city environment. Natural available light, possibly neon or artificial street lighting. 35mm-50mm lens capturing environmental context. Subject interacting naturally with urban setting. Candid or semi-posed moment. Street fashion aesthetic. Gritty urban textures and architectural elements. Documentary storytelling approach.",
+    promptBlock:
+      "Urban street photography portrait in authentic city environment. Natural available light, possibly neon or artificial street lighting. 35mm-50mm lens capturing environmental context. Subject interacting naturally with urban setting. Candid or semi-posed moment. Street fashion aesthetic. Gritty urban textures and architectural elements. Documentary storytelling approach.",
   },
   {
     id: 8,
     name: "Ensueño Vintage 70s",
     subtitle: "Nostálgico y cálido",
     free: false,
-    promptBlock: "Dreamy 1970s vintage aesthetic portrait. Soft focus lens or diffusion filter creating ethereal quality. Warm peachy skin tones, muted pastels. Sun flare and light leaks reminiscent of vintage film. 70s fashion and styling elements. Nostalgic color palette with reduced contrast. Romantic soft lighting. Retro vignetting and grain structure.",
+    promptBlock:
+      "Dreamy 1970s vintage aesthetic portrait. Soft focus lens or diffusion filter creating ethereal quality. Warm peachy skin tones, muted pastels. Sun flare and light leaks reminiscent of vintage film. 70s fashion and styling elements. Nostalgic color palette with reduced contrast. Romantic soft lighting. Retro vignetting and grain structure.",
   },
   {
     id: 9,
     name: "Film Noir Clásico",
     subtitle: "Drama B/N años 40-50",
     free: false,
-    promptBlock: "Classic film noir dramatic portrait. Hard side lighting at 90° creating deep shadows and high contrast. Strong directional light source. Mystery and drama emphasized through lighting. Venetian blind shadow patterns or environmental shadows. Low-key exposure. Black and white with rich blacks. 1940s-50s styling and composition. Dramatic mysterious mood.",
+    promptBlock:
+      "Classic film noir dramatic portrait. Hard side lighting at 90° creating deep shadows and high contrast. Strong directional light source. Mystery and drama emphasized through lighting. Venetian blind shadow patterns or environmental shadows. Low-key exposure. Black and white with rich blacks. 1940s-50s styling and composition. Dramatic mysterious mood.",
   },
   {
     id: 10,
     name: "Neón Cyberpunk",
     subtitle: "Futurista urbano nocturno",
     free: false,
-    promptBlock: "Futuristic cyberpunk portrait with neon lighting. Vibrant colored neon lights (cyan, magenta, purple) as key light sources. Urban night environment with neon signs. Shallow depth of field isolating subject from background bokeh of city lights. Cinematic color grading with teal and orange tones. Rain or wet surfaces reflecting neon. Futuristic fashion aesthetic. High contrast with bold colors.",
+    promptBlock:
+      "Futuristic cyberpunk portrait with neon lighting. Vibrant colored neon lights (cyan, magenta, purple) as key light sources. Urban night environment with neon signs. Shallow depth of field isolating subject from background bokeh of city lights. Cinematic color grading with teal and orange tones. Rain or wet surfaces reflecting neon. Futuristic fashion aesthetic. High contrast with bold colors.",
   },
   {
     id: 11,
     name: "Retrato íntimo Ventana",
     subtitle: "Luz natural pensativa",
     free: false,
-    promptBlock: "Intimate window light portrait with contemplative mood. Large window as single soft light source from side. Subject positioned near window for soft wraparound illumination. Gentle falloff creating dimensional form. Natural contemplative pose, possibly looking toward or away from window. Interior setting with subtle environmental context. Soft natural color palette. Quiet introspective atmosphere.",
+    promptBlock:
+      "Intimate window light portrait with contemplative mood. Large window as single soft light source from side. Subject positioned near window for soft wraparound illumination. Gentle falloff creating dimensional form. Natural contemplative pose, possibly looking toward or away from window. Interior setting with subtle environmental context. Soft natural color palette. Quiet introspective atmosphere.",
   },
   {
     id: 12,
     name: "Acción Deportiva Congelado",
     subtitle: "Movimiento nítido",
     free: false,
-    promptBlock: "Dynamic sports action portrait with frozen motion. Fast shutter speed 1/1000s or higher freezing peak action moment. Powerful off-camera flash synchronizing with action. Wide aperture maintaining subject isolation. Decisive moment capturing athletic intensity. Sweat, determination visible. Dramatic lighting emphasizing muscular form. Dynamic composition with tension and energy.",
+    promptBlock:
+      "Dynamic sports action portrait with frozen motion. Fast shutter speed 1/1000s or higher freezing peak action moment. Powerful off-camera flash synchronizing with action. Wide aperture maintaining subject isolation. Decisive moment capturing athletic intensity. Sweat, determination visible. Dramatic lighting emphasizing muscular form. Dynamic composition with tension and energy.",
   },
   {
     id: 13,
     name: "Producto Minimalista Lujo",
     subtitle: "Elegante y limpio",
     free: false,
-    promptBlock: "Minimalist luxury product photography aesthetic applied to portrait. Clean backgrounds, typically white or neutral. Precise controlled lighting with gradients. Emphasis on clean lines and sophisticated styling. Fashion-forward luxury brand aesthetic. Minimal but considered styling. High-end retouching maintaining natural texture. Sophisticated color palette. Editorial luxury magazine quality.",
+    promptBlock:
+      "Minimalist luxury product photography aesthetic applied to portrait. Clean backgrounds, typically white or neutral. Precise controlled lighting with gradients. Emphasis on clean lines and sophisticated styling. Fashion-forward luxury brand aesthetic. Minimal but considered styling. High-end retouching maintaining natural texture. Sophisticated color palette. Editorial luxury magazine quality.",
   },
   {
     id: 14,
     name: "Fantasía Surrealista Etéreo",
     subtitle: "Onírico y de otro mundo",
     free: false,
-    promptBlock: "Surreal ethereal fantasy portrait with dreamlike quality. Multiple exposures or composite lighting for otherworldly effect. Unusual color grading - perhaps cool tones or unexpected color shifts. Atmospheric fog or haze. Fantastical or flowing wardrobe. Mysterious surreal props or environmental elements. Dreamy soft focus areas. Imaginative conceptual approach transcending reality.",
+    promptBlock:
+      "Surreal ethereal fantasy portrait with dreamlike quality. Multiple exposures or composite lighting for otherworldly effect. Unusual color grading - perhaps cool tones or unexpected color shifts. Atmospheric fog or haze. Fantastical or flowing wardrobe. Mysterious surreal props or environmental elements. Dreamy soft focus areas. Imaginative conceptual approach transcending reality.",
   },
   {
     id: 15,
     name: "Editorial Fashion",
     subtitle: "Alta moda dramática",
     free: false,
-    promptBlock: "High-fashion editorial portrait with dramatic styling. Bold dramatic lighting, possibly with hard light sources. Strong fashion-forward wardrobe and styling. Creative use of color or monochrome. Dynamic pose with strong lines. High contrast and bold compositional choices. Magazine editorial quality. Avant-garde creative direction. Professional hair, makeup, and wardrobe styling.",
+    promptBlock:
+      "High-fashion editorial portrait with dramatic styling. Bold dramatic lighting, possibly with hard light sources. Strong fashion-forward wardrobe and styling. Creative use of color or monochrome. Dynamic pose with strong lines. High contrast and bold compositional choices. Magazine editorial quality. Avant-garde creative direction. Professional hair, makeup, and wardrobe styling.",
   },
 ];
 
@@ -340,7 +354,7 @@ function AppContent() {
     // Solo copiar si es FREE o usuario tiene plan PRO
     if (!preset.free && !isPro) {
       // Si es PRO sin plan, redirigir a planes
-      setView('pricing');
+      setView("pricing");
       return;
     }
 
@@ -351,8 +365,8 @@ function AppContent() {
         setShowCopyNotification(false);
       }, 2000);
     } catch (error) {
-      console.error('Error al copiar:', error);
-      alert('Error al copiar el preset');
+      console.error("Error al copiar:", error);
+      alert("Error al copiar el preset");
     }
   };
 
@@ -421,7 +435,7 @@ function AppContent() {
                   <span>{user.email?.split("@")[0]}</span>
                 </button>
                 {showUserMenu && (
-                  <UserMenu 
+                  <UserMenu
                     onLogout={handleLogout}
                     profile={profile}
                     onNavigate={(viewName) => {
@@ -650,13 +664,13 @@ function AppContent() {
                 <div className="grid md:grid-cols-3 gap-6 mb-8">
                   {PRESETS.slice(0, 6).map((preset) => {
                     const canView = preset.free || isPro;
-                    
+
                     return (
                       <div
                         key={preset.id}
                         onClick={() => handleCopyPreset(preset)}
                         className={`bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all relative group ${
-                          canView ? 'cursor-pointer' : 'cursor-pointer'
+                          canView ? "cursor-pointer" : "cursor-pointer"
                         }`}
                       >
                         {!preset.free && (
@@ -664,14 +678,28 @@ function AppContent() {
                             <Crown className="w-4 h-4 text-[color:var(--primary)]" />
                           </div>
                         )}
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
-                          preset.free ? 'bg-green-500/20' : 'bg-[color:var(--primary)]/20'
-                        }`}>
-                          <Sparkles className={`w-6 h-6 ${preset.free ? 'text-green-500' : 'text-[color:var(--primary)]'}`} />
+                        <div
+                          className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+                            preset.free
+                              ? "bg-green-500/20"
+                              : "bg-[color:var(--primary)]/20"
+                          }`}
+                        >
+                          <Sparkles
+                            className={`w-6 h-6 ${
+                              preset.free
+                                ? "text-green-500"
+                                : "text-[color:var(--primary)]"
+                            }`}
+                          />
                         </div>
-                        <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
-                        <p className="text-sm text-[color:var(--primary)] mb-3">{preset.subtitle}</p>
-                        
+                        <h3 className="text-xl font-semibold mb-2">
+                          {preset.name}
+                        </h3>
+                        <p className="text-sm text-[color:var(--primary)] mb-3">
+                          {preset.subtitle}
+                        </p>
+
                         {/* ✅ Contenido: mostrar si canView, sino mensaje bloqueado */}
                         <div className="mb-4 min-h-[60px]">
                           {canView ? (
@@ -690,7 +718,7 @@ function AppContent() {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Footer */}
                         {canView ? (
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
@@ -795,24 +823,23 @@ function AppContent() {
                   Click en cualquier preset para copiarlo
                 </p>
                 <p className="text-sm text-muted">
-                  {isPro 
-                    ? "Tienes acceso completo a todos los presets" 
-                    : "Los presets PRO requieren suscripción PRO o PREMIUM"
-                  }
+                  {isPro
+                    ? "Tienes acceso completo a todos los presets"
+                    : "Los presets PRO requieren suscripción PRO o PREMIUM"}
                 </p>
               </div>
-              
+
               <div className="grid md:grid-cols-3 gap-6 mb-12">
                 {PRESETS.map((preset) => {
                   const canView = preset.free || isPro;
-                  
+
                   return (
                     <div
                       key={preset.id}
                       className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all relative group ${
-                        canView 
-                          ? 'border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer' 
-                          : 'border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer'
+                        canView
+                          ? "border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer"
+                          : "border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer"
                       }`}
                       onClick={() => handleCopyPreset(preset)}
                     >
@@ -821,16 +848,30 @@ function AppContent() {
                           <Crown className="w-5 h-5 text-[color:var(--primary)]" />
                         </div>
                       )}
-                      
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
-                        preset.free ? 'bg-green-500/20' : 'bg-[color:var(--primary)]/20'
-                      }`}>
-                        <Sparkles className={`w-6 h-6 ${preset.free ? 'text-green-500' : 'text-[color:var(--primary)]'}`} />
+
+                      <div
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+                          preset.free
+                            ? "bg-green-500/20"
+                            : "bg-[color:var(--primary)]/20"
+                        }`}
+                      >
+                        <Sparkles
+                          className={`w-6 h-6 ${
+                            preset.free
+                              ? "text-green-500"
+                              : "text-[color:var(--primary)]"
+                          }`}
+                        />
                       </div>
-                      
-                      <h3 className="text-xl font-semibold mb-2">{preset.name}</h3>
-                      <p className="text-sm text-[color:var(--primary)] mb-4">{preset.subtitle}</p>
-                      
+
+                      <h3 className="text-xl font-semibold mb-2">
+                        {preset.name}
+                      </h3>
+                      <p className="text-sm text-[color:var(--primary)] mb-4">
+                        {preset.subtitle}
+                      </p>
+
                       {/* ✅ Contenido o mensaje bloqueado */}
                       <div className="mb-4 min-h-[100px] flex items-center">
                         {canView ? (
@@ -849,7 +890,7 @@ function AppContent() {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-2 border-t border-[color:var(--border)]">
                         {preset.free ? (
@@ -888,7 +929,7 @@ function AppContent() {
                   );
                 })}
               </div>
-              
+
               {!isPro && (
                 <div className="mt-12 text-center bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl p-8">
                   <Crown className="w-16 h-16 text-[color:var(--primary)] mx-auto mb-4" />
@@ -896,10 +937,11 @@ function AppContent() {
                     Desbloquea todos los presets
                   </h3>
                   <p className="text-muted mb-6 text-lg">
-                    Obtén acceso completo a los 12 presets profesionales con un plan PRO
+                    Obtén acceso completo a los 12 presets profesionales con un
+                    plan PRO
                   </p>
                   <button
-                    onClick={() => setView('pricing')}
+                    onClick={() => setView("pricing")}
                     className="px-8 py-4 bg-[color:var(--primary)] text-black font-bold rounded-full text-lg hover:opacity-90 transition inline-flex items-center"
                   >
                     <Crown className="w-5 h-5 mr-2" />
@@ -921,7 +963,7 @@ function AppContent() {
 
         {/* PERFIL */}
         {view === "profile" && (
-          <Profile 
+          <Profile
             onNavigate={(viewName) => setView(viewName)}
             onAccountDeleted={() => {
               // Refrescar la página automáticamente al eliminar cuenta
@@ -1015,12 +1057,12 @@ function AppContent() {
           </div>
         </div>
       )}
-      
-      {/* Footer en todas las páginas - TEMPORALMENTE DESACTIVADO */}
-      {/* <Footer /> */}
-      
-      {/* Banner de Cookies - TEMPORALMENTE DESACTIVADO */}
-      {/* <CookieBanner /> */}
+
+      {/* Footer en todas las páginas */}
+      <Footer />
+
+      {/* Banner de Cookies */}
+      <CookieBanner />
     </div>
   );
 }
@@ -1032,11 +1074,11 @@ export default function App() {
         <Routes>
           {/* Ruta principal de la aplicación */}
           <Route path="/" element={<AppContent />} />
-          
-          {/* Rutas del sistema legal - TEMPORALMENTE DESACTIVADAS */}
-          {/* <Route path="/legal/:page" element={<LegalPages />} /> */}
-          {/* <Route path="/faq" element={<FAQ />} /> */}
-          {/* <Route path="/contacto" element={<Contacto />} /> */}
+
+          {/* Rutas del sistema legal */}
+          <Route path="/legal/:page" element={<LegalPages />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/contacto" element={<Contacto />} />
         </Routes>
       </Router>
     </AuthProvider>
