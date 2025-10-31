@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import {
   Camera,
   Check,
@@ -37,6 +38,13 @@ import AdvancedGenerator from "./components/AdvancedGenerator.jsx";
 import History from "./components/History.jsx";
 
 import QualityAnalysis from "./components/QualityAnalysis.jsx";
+
+// Sistema Legal
+import Footer from "./components/Footer.jsx";
+import CookieBanner from "./components/CookieBanner.jsx";
+import LegalPages from "./pages/LegalPages.jsx";
+import FAQ from "./pages/FAQ.jsx";
+import Contacto from "./pages/Contacto.jsx";
 
 // prompts externos
 import { ALL_PROMPTS } from "./data/prompts.js";
@@ -357,12 +365,8 @@ function AppContent() {
     { label: "Planes", value: "pricing" },
   ];
 
-  if (user) {
-    navItems.push(
-      { label: "Mi Perfil", value: "profile" },
-      { label: "Historial", value: "history" }
-    );
-  }
+  // Mi Perfil e Historial ya no se muestran en el menú principal
+  // Están accesibles desde el botón de usuario (UserMenu)
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--fg)]">
@@ -416,7 +420,16 @@ function AppContent() {
                   {isPro && <Crown className="w-4 h-4" />}
                   <span>{user.email?.split("@")[0]}</span>
                 </button>
-                {showUserMenu && <UserMenu onLogout={handleLogout} />}
+                {showUserMenu && (
+                  <UserMenu 
+                    onLogout={handleLogout}
+                    profile={profile}
+                    onNavigate={(viewName) => {
+                      setView(viewName);
+                      setShowUserMenu(false);
+                    }}
+                  />
+                )}
               </div>
             ) : (
               <>
@@ -907,7 +920,15 @@ function AppContent() {
         )}
 
         {/* PERFIL */}
-        {view === "profile" && <Profile />}
+        {view === "profile" && (
+          <Profile 
+            onNavigate={(viewName) => setView(viewName)}
+            onAccountDeleted={() => {
+              // Refrescar la página automáticamente al eliminar cuenta
+              window.location.reload();
+            }}
+          />
+        )}
 
         {/* HISTORIAL */}
         {view === "history" && <History />}
@@ -994,6 +1015,12 @@ function AppContent() {
           </div>
         </div>
       )}
+      
+      {/* Footer en todas las páginas */}
+      <Footer />
+      
+      {/* Banner de Cookies */}
+      <CookieBanner />
     </div>
   );
 }
@@ -1001,7 +1028,17 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <Routes>
+          {/* Ruta principal de la aplicación */}
+          <Route path="/" element={<AppContent />} />
+          
+          {/* Rutas del sistema legal */}
+          <Route path="/legal/:page" element={<LegalPages />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/contacto" element={<Contacto />} />
+        </Routes>
+      </Router>
     </AuthProvider>
   );
 }
