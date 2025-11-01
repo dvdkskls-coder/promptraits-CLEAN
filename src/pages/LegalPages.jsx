@@ -51,11 +51,16 @@ const AvisoLegal = () => (
     <section className="mb-8">
       <h2 className="text-2xl font-semibold text-white mb-4">1. Identificación del Titular</h2>
       <div className="bg-[#0d0d0d] border border-amber-900/20 rounded-lg p-6 text-gray-300">
-        <p className="mb-2"><strong className="text-amber-500">Titular:</strong> [Tu Nombre/Razón Social]</p>
-        <p className="mb-2"><strong className="text-amber-500">NIF/CIF:</strong> [Tu NIF/CIF]</p>
-        <p className="mb-2"><strong className="text-amber-500">Domicilio:</strong> [Tu Dirección Completa]</p>
-        <p className="mb-2"><strong className="text-amber-500">Email:</strong> <a href="mailto:legal@promptraits.com" className="text-amber-400 hover:text-amber-300">legal@promptraits.com</a></p>
-        <p><strong className="text-amber-500">Web:</strong> <a href="https://promptraits.com" className="text-amber-400 hover:text-amber-300">promptraits.com</a></p>
+        <p className="mb-2"><strong className="text-amber-500">Titular:</strong> David Cascales - Promptraits</p>
+        <p className="mb-2"><strong className="text-amber-500">NIF:</strong> 48554355K</p>
+        <p className="mb-2"><strong className="text-amber-500">Domicilio:</strong> Murcia, España</p>
+        <p className="mb-2"><strong className="text-amber-500">Email:</strong> <a href="mailto:contacto@promptraits.com" className="text-amber-400 hover:text-amber-300">contacto@promptraits.com</a></p>
+        <p className="mb-4"><strong className="text-amber-500">Web:</strong> <a href="https://promptraits.com" className="text-amber-400 hover:text-amber-300">promptraits.com</a></p>
+        <div className="mt-4 pt-4 border-t border-amber-900/30">
+          <p className="text-sm text-gray-400 italic">
+            <strong className="text-amber-400">Nota:</strong> La dirección postal completa está disponible bajo solicitud a través de contacto@promptraits.com
+          </p>
+        </div>
       </div>
     </section>
 
@@ -136,8 +141,8 @@ const AvisoLegal = () => (
       <h2 className="text-2xl font-semibold text-white mb-4">7. Contacto</h2>
       <p className="text-gray-300 leading-relaxed">
         Para cualquier consulta relacionada con este aviso legal, puede contactarnos en:{' '}
-        <a href="mailto:legal@promptraits.com" className="text-amber-400 hover:text-amber-300">
-          legal@promptraits.com
+        <a href="mailto:contacto@promptraits.com" className="text-amber-400 hover:text-amber-300">
+          contacto@promptraits.com
         </a>
       </p>
     </section>
@@ -160,8 +165,8 @@ const Privacidad = () => (
     <section className="mb-8">
       <h2 className="text-2xl font-semibold text-white mb-4">1. Responsable del Tratamiento</h2>
       <div className="bg-[#0d0d0d] border border-amber-900/20 rounded-lg p-6 text-gray-300">
-        <p className="mb-2"><strong className="text-amber-500">Responsable:</strong> [Tu Nombre/Razón Social]</p>
-        <p className="mb-2"><strong className="text-amber-500">NIF/CIF:</strong> [Tu NIF/CIF]</p>
+        <p className="mb-2"><strong className="text-amber-500">Responsable:</strong> David Cascales - Promptraits</p>
+        <p className="mb-2"><strong className="text-amber-500">NIF/CIF:</strong> 48554355K</p>
         <p className="mb-2"><strong className="text-amber-500">Email:</strong> <a href="mailto:privacidad@promptraits.com" className="text-amber-400 hover:text-amber-300">privacidad@promptraits.com</a></p>
       </div>
     </section>
@@ -641,8 +646,8 @@ const Terminos = () => (
       <h2 className="text-2xl font-semibold text-white mb-4">12. Contacto</h2>
       <p className="text-gray-300 leading-relaxed">
         Para consultas sobre estos términos:{' '}
-        <a href="mailto:legal@promptraits.com" className="text-amber-400 hover:text-amber-300">
-          legal@promptraits.com
+        <a href="mailto:contacto@promptraits.com" className="text-amber-400 hover:text-amber-300">
+          contacto@promptraits.com
         </a>
       </p>
     </section>

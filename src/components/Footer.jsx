@@ -124,8 +124,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="mailto:soporte@promptraits.com" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
-                  soporte@promptraits.com
+                <a href="mailto:contacto@promptraits.com" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                  contacto@promptraits.com
                 </a>
               </li>
               <li>

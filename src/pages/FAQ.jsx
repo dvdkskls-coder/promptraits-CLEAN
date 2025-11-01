@@ -148,7 +148,7 @@ const FAQ = () => {
       questions: [
         {
           q: "¿Cómo contacto con soporte?",
-          a: "Email: soporte@promptraits.com | Respondemos en 24-48 horas laborables. Para urgencias técnicas, indica 'URGENTE' en el asunto."
+          a: "Email: contacto@promptraits.com | Respondemos en 24-48 horas laborables. Para urgencias técnicas, indica 'URGENTE' en el asunto."
         },
         {
           q: "¿Ofrecen tutoriales o guías?",
@@ -156,7 +156,7 @@ const FAQ = () => {
         },
         {
           q: "¿Puedo sugerir nuevas funcionalidades?",
-          a: "¡Sí! Nos encanta recibir feedback. Envía tus sugerencias a soporte@promptraits.com. Muchas funciones actuales nacieron de ideas de usuarios."
+          a: "¡Sí! Nos encanta recibir feedback. Envía tus sugerencias a contacto@promptraits.com. Muchas funciones actuales nacieron de ideas de usuarios."
         },
         {
           q: "¿Hay descuentos para educación o uso comercial intensivo?",
@@ -264,7 +264,7 @@ const FAQ = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="mailto:soporte@promptraits.com"
+              href="mailto:contacto@promptraits.com"
               className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

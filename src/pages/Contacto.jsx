@@ -25,7 +25,7 @@ const Contacto = () => {
     // Por ahora, simulamos el envío
     try {
       // Ejemplo con mailto (básico)
-      const mailtoLink = `mailto:soporte@promptraits.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
+      const mailtoLink = `mailto:contacto@promptraits.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
         `Nombre: ${formData.name}\nEmail: ${formData.email}\n\nMensaje:\n${formData.message}`
       )}`;
       window.location.href = mailtoLink;
@@ -80,7 +80,7 @@ const Contacto = () => {
             {status === 'error' && (
               <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
                 <p className="text-red-300">
-                  Hubo un error. Por favor, escríbenos directamente a soporte@promptraits.com
+                  Hubo un error. Por favor, escríbenos directamente a contacto@promptraits.com
                 </p>
               </div>
             )}
@@ -203,8 +203,8 @@ const Contacto = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-white mb-2">Soporte General</h3>
-                  <a href="mailto:soporte@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
-                    soporte@promptraits.com
+                  <a href="mailto:contacto@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
+                    contacto@promptraits.com
                   </a>
                   <p className="text-gray-400 text-sm mt-1">Para consultas técnicas y ayuda</p>
                 </div>
@@ -220,8 +220,8 @@ const Contacto = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-white mb-2">Facturación</h3>
-                  <a href="mailto:facturacion@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
-                    facturacion@promptraits.com
+                  <a href="mailto:contacto@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
+                    contacto@promptraits.com
                   </a>
                   <p className="text-gray-400 text-sm mt-1">Pagos, facturas y suscripciones</p>
                 </div>
@@ -237,8 +237,8 @@ const Contacto = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-white mb-2">Ventas Enterprise</h3>
-                  <a href="mailto:ventas@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
-                    ventas@promptraits.com
+                  <a href="mailto:contacto@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
+                    contacto@promptraits.com
                   </a>
                   <p className="text-gray-400 text-sm mt-1">Planes personalizados y empresas</p>
                 </div>
@@ -254,8 +254,8 @@ const Contacto = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-white mb-2">Legal y Privacidad</h3>
-                  <a href="mailto:legal@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
-                    legal@promptraits.com
+                  <a href="mailto:contacto@promptraits.com" className="text-amber-400 hover:text-amber-300 transition-colors">
+                    contacto@promptraits.com
                   </a>
                   <p className="text-gray-400 text-sm mt-1">Asuntos legales y RGPD</p>
                 </div>
