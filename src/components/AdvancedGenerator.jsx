@@ -18,8 +18,9 @@ import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
-// ✅ IMPORTAR SOLO OUTFIT_STYLES
-import { OUTFIT_STYLES } from "../data/outfitStylesData";
+// ✅ IMPORTAR OUTFITS SEPARADOS POR GÉNERO
+import Outfits_women from "../data/Outfits_women";
+import Outfits_men from "../data/Outfits_men";
 
 // ============================================================================
 // ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
@@ -28,32 +29,38 @@ const QUICK_FEATURES = [
   {
     id: "professional-lighting",
     name: "Iluminación Profesional",
-    description: "Rembrandt, Butterfly o Loop lighting",
+    description: "Rembrandt, Butterfly o Loop lighting with professional setup",
+    promptText: "Professional studio lighting setup with Rembrandt or Butterfly lighting creating gentle shadow modeling, soft diffused key light at 45-degree angle, fill light maintaining detail in shadows",
   },
   {
     id: "bokeh",
     name: "Fondo Desenfocado",
     description: "Shallow depth of field con 85mm",
+    promptText: "Shallow depth of field with 85mm f/1.8 lens creating creamy smooth bokeh, background beautifully blurred with soft out-of-focus areas",
   },
   {
     id: "cinematic",
     name: "Look Cinematográfico",
     description: "Black Pro-Mist effect",
+    promptText: "Cinematic look with soft diffused highlights using Black Pro-Mist filter effect, gentle halation on bright lights, organic film-like quality",
   },
   {
     id: "golden-hour",
     name: "Golden Hour",
     description: "Luz cálida de atardecer",
+    promptText: "Warm golden hour light with sunset glow, magical warm tones creating romantic atmosphere, soft natural illumination",
   },
   {
     id: "smooth-skin",
     name: "Piel Suave y Uniforme",
     description: "Skin tone uniformity",
+    promptText: "Skin tone uniformity with subtle texture preservation, even complexion, natural beauty retouching maintaining realistic appearance",
   },
   {
     id: "teal-orange",
     name: "Teal & Orange",
     description: "Color grading Hollywood",
+    promptText: "Cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
 ];
 
@@ -72,26 +79,64 @@ const LIGHTING_SCHEMES = [
     id: "rembrandt",
     name: "Rembrandt",
     description: "45° con triángulo de luz",
+    promptText: "Rembrandt lighting setup with triangle of light on cheek, key light at 45-degree angle creating dramatic shadows, 2:1 lighting ratio",
   },
   {
     id: "butterfly",
     name: "Butterfly",
     description: "Frontal elevada, sombra nariz",
+    promptText: "Butterfly lighting from above creating shadow under nose in butterfly shape, glamorous beauty lighting, defines cheekbones",
   },
-  { id: "loop", name: "Loop", description: "45° elevada, sombra bucle" },
-  { id: "split", name: "Split", description: "Lateral 90°, mitad luz/sombra" },
-  { id: "broad", name: "Broad", description: "Lado hacia cámara iluminado" },
-  { id: "short", name: "Short", description: "Lado alejado iluminado" },
+  { 
+    id: "loop", 
+    name: "Loop", 
+    description: "45° elevada, sombra bucle",
+    promptText: "Loop lighting with 45-degree elevated key light, loop-shaped nose shadow toward cheek, flattering portrait setup",
+  },
+  { 
+    id: "split", 
+    name: "Split", 
+    description: "Lateral 90°, mitad luz/sombra",
+    promptText: "Split lighting with half face illuminated and half in shadow, dramatic high contrast, 90-degree side light",
+  },
+  { 
+    id: "broad", 
+    name: "Broad", 
+    description: "Lado hacia cámara iluminado",
+    promptText: "Broad lighting with camera-facing side of face illuminated, widening effect on face",
+  },
+  { 
+    id: "short", 
+    name: "Short", 
+    description: "Lado alejado iluminado",
+    promptText: "Short lighting with shadow on camera-facing side, slimming effect, sculpts facial structure",
+  },
 ];
 
 const LENSES = [
-  { id: "24-35mm", name: "24-35mm", description: "Gran angular, contexto" },
-  { id: "50mm", name: "50mm", description: "Normal, versátil" },
-  { id: "85mm", name: "85mm", description: "REY del retrato" },
+  { 
+    id: "24-35mm", 
+    name: "24-35mm", 
+    description: "Gran angular, contexto",
+    promptText: "24mm wide-angle lens capturing environmental context, slight perspective distortion, expansive field of view",
+  },
+  { 
+    id: "50mm", 
+    name: "50mm", 
+    description: "Normal, versátil",
+    promptText: "50mm f/1.8 lens with natural perspective matching human vision, versatile standard focal length",
+  },
+  { 
+    id: "85mm", 
+    name: "85mm", 
+    description: "REY del retrato",
+    promptText: "85mm f/1.2 portrait lens creating shallow depth of field, creamy smooth bokeh, flattering compression, professional portrait setup",
+  },
   {
     id: "135-200mm",
     name: "135-200mm",
     description: "Teleobjetivo, compresión",
+    promptText: "135mm telephoto lens with strong compression isolating subject from background, compressed perspective",
   },
 ];
 
@@ -100,16 +145,38 @@ const COLOR_GRADING = [
     id: "teal-orange",
     name: "Teal & Orange",
     description: "Hollywood blockbuster",
+    promptText: "Cinematic color grading with teal shadows and warm orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
   {
     id: "vintage",
     name: "Vintage Film",
     description: "Tonos pastel, contraste suave",
+    promptText: "Vintage film look with lifted shadows creating pastel tones, soft faded contrast, nostalgic aesthetic, film grain texture",
   },
-  { id: "high-key", name: "High-Key", description: "Brillante, optimista" },
-  { id: "low-key", name: "Low-Key", description: "Oscuro, dramático" },
-  { id: "warm", name: "Warm Tones", description: "Tonos cálidos" },
-  { id: "cool", name: "Cool Tones", description: "Tonos fríos" },
+  { 
+    id: "high-key", 
+    name: "High-Key", 
+    description: "Brillante, optimista",
+    promptText: "High-key bright atmosphere with minimal shadows, optimistic mood, soft overall illumination, light airy feel",
+  },
+  { 
+    id: "low-key", 
+    name: "Low-Key", 
+    description: "Oscuro, dramático",
+    promptText: "Low-key dramatic lighting with predominant shadows, dark moody atmosphere, high contrast with deep blacks",
+  },
+  { 
+    id: "warm", 
+    name: "Warm Tones", 
+    description: "Tonos cálidos",
+    promptText: "Warm color tones with enhanced oranges and yellows, cozy inviting atmosphere, golden warmth throughout",
+  },
+  { 
+    id: "cool", 
+    name: "Cool Tones", 
+    description: "Tonos fríos",
+    promptText: "Cool color tones with enhanced blues and cyans, modern clean aesthetic, professional cool atmosphere",
+  },
 ];
 
 const FILTERS = [
@@ -117,27 +184,35 @@ const FILTERS = [
     id: "black-pro-mist",
     name: "Black Pro-Mist",
     description: "Look cinematográfico",
+    promptText: "Soft diffused highlights with Black Pro-Mist filter effect, cinematic halation on bright lights, organic film-like quality reducing digital harshness",
   },
-  { id: "nd", name: "ND Filter", description: "Largas exposiciones, bokeh" },
+  { 
+    id: "nd", 
+    name: "ND Filter", 
+    description: "Largas exposiciones, bokeh",
+    promptText: "ND filter allowing wide aperture for shallow depth of field, enhanced bokeh with motion blur if applicable",
+  },
   {
     id: "polarizer",
     name: "Polarizer",
     description: "Elimina reflejos, satura",
+    promptText: "Circular polarizer filter reducing reflections and glare, enhanced color saturation, deeper sky tones, cleaner surfaces",
   },
   {
     id: "anamorphic",
     name: "Anamorphic Flare",
     description: "Destello horizontal azul",
+    promptText: "Anamorphic lens flare with characteristic horizontal blue streak, cinematic widescreen aesthetic, oval bokeh",
   },
 ];
 
 const ASPECT_RATIOS = [
-  { id: "1:1", name: "1:1", description: "Cuadrado (Instagram)" },
-  { id: "3:4", name: "3:4", description: "Vertical retrato" },
-  { id: "4:5", name: "4:5", description: "Vertical Instagram" },
-  { id: "9:16", name: "9:16", description: "Vertical Stories/Reels" },
-  { id: "16:9", name: "16:9", description: "Horizontal panorámico" },
-  { id: "4:3", name: "4:3", description: "Horizontal clásico" },
+  { id: "1:1", name: "1:1", description: "Cuadrado (Instagram)", promptText: "square composition format" },
+  { id: "3:4", name: "3:4", description: "Vertical retrato", promptText: "vertical portrait format" },
+  { id: "4:5", name: "4:5", description: "Vertical Instagram", promptText: "vertical portrait format" },
+  { id: "9:16", name: "9:16", description: "Vertical Stories/Reels", promptText: "vertical portrait format for mobile stories" },
+  { id: "16:9", name: "16:9", description: "Horizontal panorámico", promptText: "wide horizontal composition" },
+  { id: "4:3", name: "4:3", description: "Horizontal clásico", promptText: "horizontal landscape format" },
 ];
 
 // ============================================================================
@@ -201,8 +276,18 @@ export default function AdvancedGenerator() {
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
-  // ✅ Convertir OUTFIT_STYLES a array
-  const outfitStylesArray = OUTFIT_STYLES ? Object.values(OUTFIT_STYLES) : [];
+  // ✅ OBTENER OUTFITS SEGÚN GÉNERO
+  const getOutfitsByGender = () => {
+    if (proSettings.gender === "masculine") {
+      return Outfits_men;
+    } else if (proSettings.gender === "feminine") {
+      return Outfits_women;
+    }
+    // Si es neutral, mostrar ambos combinados
+    return [...Outfits_women, ...Outfits_men];
+  };
+
+  const currentOutfits = getOutfitsByGender();
 
   // ============================================================================
   // EFECTO: Cuando se abre PRO, limpia características rápidas
@@ -212,6 +297,82 @@ export default function AdvancedGenerator() {
       setSelectedFeature(null);
     }
   }, [showProTools]);
+
+  // ============================================================================
+  // ✨ EFECTO: ACTUALIZAR TEXTAREA AUTOMÁTICAMENTE
+  // ============================================================================
+  useEffect(() => {
+    // Construir el texto completo basado en selecciones
+    let enhancedText = "";
+    const parts = [];
+
+    // 1. Característica rápida
+    if (selectedFeature) {
+      const feature = QUICK_FEATURES.find((f) => f.id === selectedFeature);
+      if (feature) {
+        parts.push(feature.promptText);
+      }
+    }
+
+    // 2. Herramientas PRO
+    if (showProTools) {
+      // Género (solo si no es neutral)
+      if (proSettings.gender && proSettings.gender !== "neutral") {
+        const genderText = proSettings.gender === "masculine" 
+          ? "masculine aesthetic with strong confident posing" 
+          : "feminine aesthetic with elegant graceful styling";
+        parts.push(genderText);
+      }
+
+      // Iluminación
+      if (proSettings.lighting) {
+        const lighting = LIGHTING_SCHEMES.find((l) => l.id === proSettings.lighting);
+        if (lighting) parts.push(lighting.promptText);
+      }
+
+      // Lente
+      if (proSettings.lens) {
+        const lens = LENSES.find((l) => l.id === proSettings.lens);
+        if (lens) parts.push(lens.promptText);
+      }
+
+      // Color Grading
+      if (proSettings.colorGrading) {
+        const grading = COLOR_GRADING.find((g) => g.id === proSettings.colorGrading);
+        if (grading) parts.push(grading.promptText);
+      }
+
+      // Filtro
+      if (proSettings.filter) {
+        const filter = FILTERS.find((f) => f.id === proSettings.filter);
+        if (filter) parts.push(filter.promptText);
+      }
+
+      // Aspect Ratio
+      if (proSettings.aspectRatio) {
+        const ratio = ASPECT_RATIOS.find((r) => r.id === proSettings.aspectRatio);
+        if (ratio) parts.push(ratio.promptText);
+      }
+
+      // Outfit
+      if (proSettings.outfit) {
+        const outfit = currentOutfits.find((o) => o.id === proSettings.outfit);
+        if (outfit) {
+          parts.push(`wearing ${outfit.keywords}`);
+        }
+      }
+    }
+
+    // Unir todas las partes
+    if (parts.length > 0) {
+      enhancedText = parts.join(", ");
+    }
+
+    // Solo actualizar si hay cambios
+    if (enhancedText && enhancedText !== prompt) {
+      setPrompt(enhancedText);
+    }
+  }, [selectedFeature, showProTools, proSettings, currentOutfits]);
 
   // ============================================================================
   // HANDLERS
@@ -271,18 +432,8 @@ export default function AdvancedGenerator() {
     setValidation(null);
 
     try {
-      let enhancedPrompt = prompt;
-
-      // Si hay característica rápida seleccionada
-      if (selectedFeature) {
-        const feature = QUICK_FEATURES.find((f) => f.id === selectedFeature);
-        if (feature) {
-          enhancedPrompt = `${prompt}. Apply: ${feature.description}`;
-        }
-      }
-
       const payload = {
-        prompt: enhancedPrompt,
+        prompt,
         referenceImage,
         mimeType: "image/jpeg",
         analyzeQuality: isPro,
@@ -400,23 +551,25 @@ export default function AdvancedGenerator() {
       !Array.isArray(suggestions) ||
       suggestions.length === 0
     ) {
-      console.error("No hay sugerencias válidas para aplicar");
+      alert("No hay sugerencias para aplicar");
       return;
     }
 
     setIsApplyingSuggestions(true);
 
     try {
+      const payload = {
+        applySuggestions: true,
+        currentPrompt: response,
+        suggestions: suggestions,
+        isPro: true,
+        platform: selectedPlatform,
+      };
+
       const res = await fetch("/api/gemini-processor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applySuggestions: true,
-          currentPrompt: response,
-          suggestions: suggestions,
-          isPro,
-          platform: selectedPlatform,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -428,300 +581,239 @@ export default function AdvancedGenerator() {
       setResponse(data.prompt);
       setQualityAnalysis(null);
     } catch (error) {
-      console.error("Error al aplicar sugerencias:", error);
-      alert("Error al aplicar sugerencias: " + error.message);
+      console.error("Error:", error);
+      alert(error.message);
     } finally {
       setIsApplyingSuggestions(false);
     }
   };
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
   return (
-    <section className="min-h-screen py-24 px-6">
-      <div className="max-w-5xl mx-auto">
+    <section className="py-12">
+      <div className="max-w-5xl mx-auto px-4">
         <AnimatedSection>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Generador Avanzado de Prompts
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Tecnología profesional con Gemini 2.0 Flash Experimental
-            </p>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold">✨ Generador Avanzado</h2>
+            {profile && (
+              <div className="text-sm text-gray-400">
+                Créditos: {profile.credits || 0}
+              </div>
+            )}
+          </div>
+
+          {/* SELECTOR DE PLATAFORMA */}
+          <div className="mb-6 p-4 bg-white/5 border border-[var(--border)] rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium">
+                Plataforma de Destino:
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPlatformInfo(!showPlatformInfo)}
+                className="text-xs text-[var(--primary)] hover:underline flex items-center space-x-1"
+              >
+                <Info size={14} />
+                <span>{showPlatformInfo ? "Ocultar" : "Más info"}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {Object.entries(PLATFORM_INFO).map(([key, info]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSelectedPlatform(key)}
+                  className={`p-3 rounded-lg text-left transition-all ${
+                    selectedPlatform === key
+                      ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)]"
+                      : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                  }`}
+                >
+                  <div className="font-semibold text-sm">{info.name}</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {info.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {showPlatformInfo && (
+              <div className="mt-3 p-3 bg-black/40 rounded-lg text-xs space-y-2">
+                <div>
+                  <div className="font-semibold text-[var(--primary)] mb-1">
+                    {PLATFORM_INFO[selectedPlatform].name}
+                  </div>
+                  <ul className="space-y-1 text-gray-400">
+                    {PLATFORM_INFO[selectedPlatform].features.map(
+                      (feature, idx) => (
+                        <li key={idx}>• {feature}</li>
+                      )
+                    )}
+                  </ul>
+                  <div className="mt-2 text-gray-300">
+                    💡 {PLATFORM_INFO[selectedPlatform].tips}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ============================================================================ */}
-            {/* 1. INPUT (80%) + IMAGEN (20%) */}
-            {/* ============================================================================ */}
-            <div className="flex gap-4">
-              {/* INPUT */}
-              <div className="flex-[0.8]">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+            {/* SECCIÓN: IMAGEN + TEXTAREA EN GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* IMAGEN DE REFERENCIA */}
+              <div className="flex flex-col">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--primary)" }}
+                >
+                  Imagen de Referencia (Opcional):
+                </label>
+                <div
+                  className="border-2 border-dashed border-[var(--border)] rounded-lg flex items-center justify-center overflow-hidden bg-black/20"
+                  style={{ height: "300px" }}
+                >
+                  {imagePreview ? (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center space-y-2 p-6 text-center">
+                      <Upload size={32} className="text-gray-400" />
+                      <span className="text-sm text-gray-400">
+                        Arrastra o haz clic para subir
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        (Max 4MB - JPG, PNG)
+                      </span>
+                      <input
+                        type="file"
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* TEXTAREA DESCRIPCIÓN */}
+              <div className="flex flex-col">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: "var(--primary)" }}
+                >
                   Describe lo que quieres generar:
                 </label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  rows={8}
-                  placeholder="Retrato cinematográfico en un garaje abandonado"
-                  className="w-full px-4 py-3 bg-black/40 border border-[var(--border)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition resize-none"
+                  placeholder="Ejemplo: Professional portrait with confident expression..."
+                  className="w-full p-4 rounded-lg bg-white/5 border border-[var(--border)] text-gray-200 placeholder-gray-500 resize-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                  style={{ height: "300px" }}
                 />
-                {referenceImage && (
-                  <p className="text-xs text-yellow-400 mt-2">
-                    ⚠️ Con imagen: NO describas físicamente a la persona (edad,
-                    género, pelo). Solo pose, expresión y outfit.
-                  </p>
-                )}
-              </div>
-
-              {/* IMAGEN */}
-              <div className="flex-[0.2]">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Imagen de Referencia:
-                </label>
-
-                {!imagePreview ? (
-                  <label className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--primary)] transition bg-black/20">
-                    <Upload size={32} className="text-gray-400 mb-2" />
-                    <span className="text-xs text-gray-400 text-center px-2">
-                      Sube una foto
-                    </span>
-                    <span className="text-xs text-gray-500 mt-1">Max 4MB</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </label>
-                ) : (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full h-full object-cover rounded-lg border border-[var(--border)]"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* ============================================================================ */}
-            {/* 2. PLATAFORMA */}
-            {/* ============================================================================ */}
-            <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3
-                  className="font-semibold text-lg"
-                  style={{ color: "var(--primary)" }}
-                >
-                  Plataforma de Destino
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowPlatformInfo(!showPlatformInfo)}
-                  className="text-sm text-[var(--primary)] hover:underline flex items-center space-x-1"
-                >
-                  <Info size={16} />
-                  <span>{showPlatformInfo ? "Ocultar" : "Más info"}</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlatform("nano-banana")}
-                  className={`p-4 rounded-lg border-2 transition-all text-left ${
-                    selectedPlatform === "nano-banana"
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                      : "border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/50"
-                  }`}
-                >
-                  <div className="font-bold mb-1">Nano-Banana</div>
-                  <div className="text-xs text-gray-400">
-                    Google Gemini • Imagen.ia
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlatform("midjourney")}
-                  className={`p-4 rounded-lg border-2 transition-all text-left ${
-                    selectedPlatform === "midjourney"
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                      : "border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/50"
-                  }`}
-                >
-                  <div className="font-bold mb-1">Midjourney V7</div>
-                  <div className="text-xs text-gray-400">
-                    Control total • Parámetros
-                  </div>
-                </button>
-              </div>
-
-              {showPlatformInfo && (
-                <div className="bg-black/30 border border-[var(--border)] rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">
-                    {PLATFORM_INFO[selectedPlatform].name}
-                  </h4>
-                  <p className="text-sm text-gray-400 mb-3">
-                    {PLATFORM_INFO[selectedPlatform].description}
-                  </p>
-                  <div className="space-y-1 text-sm text-gray-300">
-                    {PLATFORM_INFO[selectedPlatform].features.map(
-                      (feature, idx) => (
-                        <div key={idx}>• {feature}</div>
-                      )
-                    )}
-                  </div>
-                  <div className="mt-3 p-2 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded text-xs text-gray-300">
-                    <strong>Tip:</strong> {PLATFORM_INFO[selectedPlatform].tips}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* ============================================================================ */}
-            {/* 3. CARACTERÍSTICAS RÁPIDAS */}
-            {/* ============================================================================ */}
-            <div className="bg-[var(--surface)]/50 border border-[var(--border)] rounded-xl p-6">
-              <h3
-                className="font-semibold text-lg mb-2"
+            {/* CARACTERÍSTICAS RÁPIDAS */}
+            <div>
+              <label
+                className="block text-sm font-medium mb-3"
                 style={{ color: "var(--primary)" }}
               >
-                Características Rápidas
-              </h3>
-              <p className="text-sm text-gray-400 mb-4">
-                Selecciona un efecto profesional (solo uno)
-              </p>
-
-              {showProTools && (
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-sm text-yellow-400 mb-4">
-                  ⚠️ Herramientas PRO está activo. Las características rápidas
-                  están desactivadas.
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                Características Rápidas (Selecciona 1):
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                 {QUICK_FEATURES.map((feature) => (
                   <button
                     key={feature.id}
                     type="button"
                     onClick={() => selectFeature(feature.id)}
                     disabled={showProTools}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedFeature === feature.id && !showProTools
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                        : "border-[var(--border)] bg-black/20 hover:border-[var(--primary)]/30"
-                    } ${showProTools ? "opacity-30 cursor-not-allowed" : ""}`}
+                    className={`p-3 rounded-lg text-xs text-left transition-all ${
+                      selectedFeature === feature.id
+                        ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)]"
+                        : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                    } ${showProTools ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    <div
-                      className="font-semibold mb-1"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      {feature.name}
-                    </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="font-semibold">{feature.name}</div>
+                    <div className="text-gray-400 mt-1">
                       {feature.description}
                     </div>
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* ============================================================================ */}
-            {/* 4. BOTÓN GENERAR */}
-            {/* ============================================================================ */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={
-                  isLoading ||
-                  (!prompt && !referenceImage) ||
-                  !profile ||
-                  profile.credits <= 0
-                }
-                className="w-full bg-[var(--primary)] text-black px-6 py-4 rounded-full font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all flex items-center justify-center space-x-2"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="animate-spin" size={20} />
-                    <span>Generando prompt profesional...</span>
-                  </>
-                ) : !profile || profile.credits <= 0 ? (
-                  <span>Sin créditos disponibles</span>
-                ) : (
-                  <>
-                    <Sparkles size={20} />
-                    <span>Generar Prompt ({profile.credits} créditos)</span>
-                  </>
-                )}
-              </button>
-              {profile && (
-                <p className="text-xs text-center mt-2 opacity-60">
-                  {profile.credits > 0
-                    ? `Tienes ${profile.credits} crédito${
-                        profile.credits !== 1 ? "s" : ""
-                      } disponible${profile.credits !== 1 ? "s" : ""}`
-                    : "No tienes créditos. Actualiza tu plan para continuar."}
+              {showProTools && (
+                <p className="text-xs text-gray-400 mt-2">
+                  ⚠️ Desactiva Herramientas PRO para usar características
+                  rápidas
                 </p>
               )}
             </div>
 
-            {/* ============================================================================ */}
-            {/* 5. HERRAMIENTAS PRO - SIMPLIFICADAS (7 elementos) */}
-            {/* ============================================================================ */}
+            {/* HERRAMIENTAS PRO */}
             <div>
-              {!isPro && (
-                <div className="mb-3 p-3 bg-[var(--primary)]/10 border border-[var(--primary)] rounded-lg flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Crown className="text-[var(--primary)]" size={20} />
-                    <span className="text-sm font-semibold">
-                      Desbloquea herramientas PRO
-                    </span>
-                  </div>
-                  <a
-                    href="#planes"
-                    className="text-[var(--primary)] hover:opacity-90 text-sm font-semibold"
-                  >
-                    Actualizar a PRO →
-                  </a>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setShowProTools(!showProTools)}
-                disabled={!isPro}
-                className="w-full flex items-center justify-between p-3 bg-[var(--surface)]/30 border border-[var(--border)] rounded-lg hover:border-[var(--primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="font-semibold flex items-center space-x-2">
-                  <Crown className="w-5 h-5 text-[var(--primary)]" />
-                  <span>Herramientas PRO</span>
-                  {showProTools && (
-                    <span className="text-xs bg-[var(--primary)]/20 text-[var(--primary)] px-2 py-1 rounded">
-                      ACTIVO
-                    </span>
+              <div className="flex items-center justify-between mb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isPro) {
+                      setShowProTools(!showProTools);
+                    } else {
+                      alert("Esta función requiere Plan PRO o Premium");
+                    }
+                  }}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                    isPro
+                      ? showProTools
+                        ? "bg-[var(--primary)] text-black font-bold"
+                        : "bg-white/10 hover:bg-white/20"
+                      : "bg-white/5 opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <Crown size={18} />
+                  <span>
+                    {showProTools
+                      ? "Cerrar Herramientas PRO"
+                      : "Abrir Herramientas PRO"}
+                  </span>
+                  {showProTools ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
                   )}
-                </span>
-                {showProTools ? <ChevronUp /> : <ChevronDown />}
-              </button>
+                </button>
+                {!isPro && (
+                  <span className="text-xs text-gray-400">
+                    Solo para usuarios PRO/Premium
+                  </span>
+                )}
+              </div>
 
               {showProTools && isPro && (
-                <div className="mt-3 p-4 bg-black/30 border border-[var(--border)] rounded-lg space-y-6">
+                <div className="space-y-4 p-4 bg-white/5 border border-[var(--primary)]/30 rounded-lg">
                   {/* 1. GÉNERO */}
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
                       style={{ color: "var(--primary)" }}
                     >
-                      Género (para outfit/maquillaje):
+                      Género:
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {GENDER_OPTIONS.map((gender) => (
@@ -739,9 +831,6 @@ export default function AdvancedGenerator() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      * NO aparece en el prompt, solo guía el outfit/maquillaje
-                    </p>
                   </div>
 
                   {/* 2. ILUMINACIÓN */}
@@ -894,16 +983,16 @@ export default function AdvancedGenerator() {
                   </div>
 
                   {/* 7. OUTFIT */}
-                  {outfitStylesArray.length > 0 && (
+                  {currentOutfits.length > 0 && (
                     <div>
                       <label
                         className="block text-sm font-medium mb-2"
                         style={{ color: "var(--primary)" }}
                       >
-                        Outfit Style:
+                        Outfit Style ({proSettings.gender === "masculine" ? "Masculino" : proSettings.gender === "feminine" ? "Femenino" : "Todos"}):
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-                        {outfitStylesArray.map((outfit) => (
+                        {currentOutfits.map((outfit) => (
                           <button
                             key={outfit.id}
                             type="button"
@@ -928,6 +1017,25 @@ export default function AdvancedGenerator() {
                 </div>
               )}
             </div>
+
+            {/* BOTÓN GENERAR */}
+            <button
+              type="submit"
+              disabled={isLoading || (!prompt && !referenceImage)}
+              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-black px-6 py-4 rounded-lg font-bold text-lg hover:shadow-2xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  <span>Generando...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={20} />
+                  <span>Generar Prompt Profesional</span>
+                </>
+              )}
+            </button>
           </form>
 
           {/* ANÁLISIS DE CALIDAD */}

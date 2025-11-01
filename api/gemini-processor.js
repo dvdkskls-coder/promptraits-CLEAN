@@ -809,38 +809,30 @@ Apply ${filterName} filter effect from KNOWLEDGE_BASE.filters`;
       }
     }
     
-    // 6. OUTFIT
+    // 6. OUTFIT (usando los nuevos catálogos separados por género)
     if (proSettings.outfit) {
-      // Mapeo simple de IDs de outfit a descripciones
-      const outfitMap = {
-        'casual': 'casual everyday outfit, comfortable relaxed clothing, jeans and t-shirt',
-        'classic': 'classic timeless attire, tailored basics, neutral colors',
-        'professional': 'professional business attire, elegant suit or formal wear',
-        'smart_casual': 'smart casual attire, business casual, blazer with chinos',
-        'elegant_urban': 'elegant urban style, sophisticated city fashion, tailored coat',
-        'streetwear': 'urban streetwear fashion, hoodies, graphic tees, sneaker culture',
-        'sporty': 'athletic sportswear, performance fabrics, sporty casual outfit',
-        'minimalist': 'minimalist fashion, clean lines, monochrome palette',
-        'vintage': 'vintage retro clothing, period-inspired fashion, nostalgic style',
-        'boho': 'bohemian hippie style, flowing fabrics, earthy tones',
-        'rocker': 'rock and roll style, leather jacket, band t-shirts, edgy aesthetic'
-      };
-      
-      const outfitDesc = outfitMap[proSettings.outfit] || `${proSettings.outfit} style clothing`;
+      // El frontend ya filtra por género y envía el outfit ID
+      // Los catálogos separados (Outfits_women.js y Outfits_men.js) están en el frontend
+      const outfitId = proSettings.outfit;
       
       if (gender) {
         systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
-Subject wearing ${outfitDesc}, appropriate for the ${gender} aesthetic`;
+The user has selected outfit style ID: "${outfitId}" for a ${gender} aesthetic.
+Interpret this outfit style appropriately for ${gender === 'masculine' ? 'masculine' : 'feminine'} fashion.
+Describe the clothing details, style, and accessories that match this outfit ID while maintaining the ${gender} aesthetic.`;
       } else {
         systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
-Subject wearing ${outfitDesc}`;
+The user has selected outfit style ID: "${outfitId}".
+Interpret this outfit style with gender-neutral fashion elements.
+Describe the clothing details, style, and accessories appropriate for this outfit ID.`;
       }
     } else if (!referenceImage) {
       // Si NO hay outfit seleccionado y NO hay imagen de referencia
       // Gemini decide basándose en el contexto (y género si fue seleccionado)
       if (gender) {
         systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
-Choose appropriate outfit that fits the ${gender} aesthetic and matches the scene context logically`;
+Choose appropriate outfit that fits the ${gender} aesthetic and matches the scene context logically.
+${gender === 'masculine' ? 'Consider masculine styles: suits, casual wear, streetwear, smart casual, etc.' : 'Consider feminine styles: dresses, elegant wear, casual chic, feminine fashion, etc.'}`;
       } else {
         systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
 Choose appropriate outfit that matches the scene context logically. Use neutral, versatile clothing that works for any person.`;
