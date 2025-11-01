@@ -767,41 +767,7 @@ function AppContent() {
             </section>
 
             {/* Footer */}
-            <footer className="bg-black/20 border-t border-[color:var(--border)] py-12 px-4 mt-12">
-              <div className="max-w-7xl mx-auto text-center">
-                <button
-                  type="button"
-                  onClick={() => setView("home")}
-                  className="inline-flex items-center mb-6"
-                >
-                  <img src="/logo.svg" alt="Logo" className="w-40 h-auto" />
-                </button>
-                <p className="text-muted max-w-lg mx-auto mb-6">
-                  Plataforma profesional de prompts y retratos IA.
-                </p>
-                <div className="flex justify-center space-x-6 mb-8">
-                  <a
-                    href="https://www.instagram.com/sr_waly/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted hover:text-[color:var(--fg)] transition"
-                  >
-                    <Instagram />
-                  </a>
-                  <a
-                    href="https://t.me/+nyMJxze9il4wZGJk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted hover:text-[color:var(--fg)] transition"
-                  >
-                    <Send />
-                  </a>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  © {new Date().getFullYear()} Promptraits by Sr. Waly.
-                </p>
-              </div>
-            </footer>
+            {/* Footer antiguo eliminado - Ahora se usa el componente Footer al final del AppContent */}
           </>
         )}
 
