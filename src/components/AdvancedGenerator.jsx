@@ -22,6 +22,9 @@ import QualityAnalysis from "./QualityAnalysis";
 import Outfits_women from "../data/Outfits_women";
 import Outfits_men from "../data/Outfits_men";
 
+// ✅ IMPORTAR TIPOS DE PLANO Y ÁNGULOS DE CÁMARA
+import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
+
 // ============================================================================
 // ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
 // ============================================================================
@@ -179,42 +182,6 @@ const COLOR_GRADING = [
   },
 ];
 
-const FILTERS = [
-  {
-    id: "black-pro-mist",
-    name: "Black Pro-Mist",
-    description: "Look cinematográfico",
-    promptText: "Soft diffused highlights with Black Pro-Mist filter effect, cinematic halation on bright lights, organic film-like quality reducing digital harshness",
-  },
-  { 
-    id: "nd", 
-    name: "ND Filter", 
-    description: "Largas exposiciones, bokeh",
-    promptText: "ND filter allowing wide aperture for shallow depth of field, enhanced bokeh with motion blur if applicable",
-  },
-  {
-    id: "polarizer",
-    name: "Polarizer",
-    description: "Elimina reflejos, satura",
-    promptText: "Circular polarizer filter reducing reflections and glare, enhanced color saturation, deeper sky tones, cleaner surfaces",
-  },
-  {
-    id: "anamorphic",
-    name: "Anamorphic Flare",
-    description: "Destello horizontal azul",
-    promptText: "Anamorphic lens flare with characteristic horizontal blue streak, cinematic widescreen aesthetic, oval bokeh",
-  },
-];
-
-const ASPECT_RATIOS = [
-  { id: "1:1", name: "1:1", description: "Cuadrado (Instagram)", promptText: "square composition format" },
-  { id: "3:4", name: "3:4", description: "Vertical retrato", promptText: "vertical portrait format" },
-  { id: "4:5", name: "4:5", description: "Vertical Instagram", promptText: "vertical portrait format" },
-  { id: "9:16", name: "9:16", description: "Vertical Stories/Reels", promptText: "vertical portrait format for mobile stories" },
-  { id: "16:9", name: "16:9", description: "Horizontal panorámico", promptText: "wide horizontal composition" },
-  { id: "4:3", name: "4:3", description: "Horizontal clásico", promptText: "horizontal landscape format" },
-];
-
 // ============================================================================
 // ✨ INFORMACIÓN DE PLATAFORMAS
 // ============================================================================
@@ -265,12 +232,12 @@ export default function AdvancedGenerator() {
 
   // ✨ Estados para Herramientas PRO (SIMPLIFICADAS - 7 elementos)
   const [proSettings, setProSettings] = useState({
+    shotType: null,
+    cameraAngle: null,
     gender: "neutral",
     lighting: null,
     lens: null,
     colorGrading: null,
-    filter: null,
-    aspectRatio: null,
     outfit: null,
   });
 
@@ -316,6 +283,18 @@ export default function AdvancedGenerator() {
 
     // 2. Herramientas PRO
     if (showProTools) {
+      // Shot Type
+      if (proSettings.shotType) {
+        const shot = SHOT_TYPES.find((s) => s.id === proSettings.shotType);
+        if (shot) parts.push(shot.promptText);
+      }
+
+      // Camera Angle
+      if (proSettings.cameraAngle) {
+        const angle = CAMERA_ANGLES.find((a) => a.id === proSettings.cameraAngle);
+        if (angle) parts.push(angle.promptText);
+      }
+
       // Género (solo si no es neutral)
       if (proSettings.gender && proSettings.gender !== "neutral") {
         const genderText = proSettings.gender === "masculine" 
@@ -340,18 +319,6 @@ export default function AdvancedGenerator() {
       if (proSettings.colorGrading) {
         const grading = COLOR_GRADING.find((g) => g.id === proSettings.colorGrading);
         if (grading) parts.push(grading.promptText);
-      }
-
-      // Filtro
-      if (proSettings.filter) {
-        const filter = FILTERS.find((f) => f.id === proSettings.filter);
-        if (filter) parts.push(filter.promptText);
-      }
-
-      // Aspect Ratio
-      if (proSettings.aspectRatio) {
-        const ratio = ASPECT_RATIOS.find((r) => r.id === proSettings.aspectRatio);
-        if (ratio) parts.push(ratio.promptText);
       }
 
       // Outfit
@@ -404,12 +371,12 @@ export default function AdvancedGenerator() {
       // Si PRO está abierto, cerrar PRO y limpiar
       setShowProTools(false);
       setProSettings({
+        shotType: null,
+        cameraAngle: null,
         gender: "neutral",
         lighting: null,
         lens: null,
         colorGrading: null,
-        filter: null,
-        aspectRatio: null,
         outfit: null,
       });
     }
@@ -664,9 +631,9 @@ export default function AdvancedGenerator() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* SECCIÓN: IMAGEN + TEXTAREA EN GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* IMAGEN DE REFERENCIA */}
-              <div className="flex flex-col">
+            <div className="grid grid-cols-12 gap-4">
+              {/* IMAGEN DE REFERENCIA - 20% */}
+              <div className="col-span-12 md:col-span-3 flex flex-col">
                 <label
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--primary)" }}
@@ -675,7 +642,7 @@ export default function AdvancedGenerator() {
                 </label>
                 <div
                   className="border-2 border-dashed border-[var(--border)] rounded-lg flex items-center justify-center overflow-hidden bg-black/20"
-                  style={{ height: "300px" }}
+                  style={{ minHeight: "300px" }}
                 >
                   {imagePreview ? (
                     <div className="relative w-full h-full">
@@ -712,8 +679,8 @@ export default function AdvancedGenerator() {
                 </div>
               </div>
 
-              {/* TEXTAREA DESCRIPCIÓN */}
-              <div className="flex flex-col">
+              {/* TEXTAREA DESCRIPCIÓN - 80% */}
+              <div className="col-span-12 md:col-span-9 flex flex-col">
                 <label
                   className="block text-sm font-medium mb-2"
                   style={{ color: "var(--primary)" }}
@@ -725,7 +692,7 @@ export default function AdvancedGenerator() {
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="Ejemplo: Professional portrait with confident expression..."
                   className="w-full p-4 rounded-lg bg-white/5 border border-[var(--border)] text-gray-200 placeholder-gray-500 resize-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
-                  style={{ height: "300px" }}
+                  style={{ minHeight: "300px" }}
                 />
               </div>
             </div>
@@ -781,7 +748,7 @@ export default function AdvancedGenerator() {
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
                     isPro
                       ? showProTools
-                        ? "bg-[var(--primary)] text-black font-bold"
+                        ? "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-bold hover:shadow-lg"
                         : "bg-white/10 hover:bg-white/20"
                       : "bg-white/5 opacity-50 cursor-not-allowed"
                   }`}
@@ -807,7 +774,71 @@ export default function AdvancedGenerator() {
 
               {showProTools && isPro && (
                 <div className="space-y-4 p-4 bg-white/5 border border-[var(--primary)]/30 rounded-lg">
-                  {/* 1. GÉNERO */}
+                  {/* 1. TIPO DE PLANO */}
+                  <div>
+                    <label
+                      className="block text-sm font-medium mb-2"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      📸 Tipo de Plano:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {SHOT_TYPES.map((shot) => (
+                        <button
+                          key={shot.id}
+                          type="button"
+                          onClick={() => updateProSetting("shotType", shot.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.shotType === shot.id
+                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
+                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="font-semibold flex items-center space-x-1">
+                            <span>{shot.icon}</span>
+                            <span>{shot.name}</span>
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {shot.description}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. ÁNGULO DE CÁMARA */}
+                  <div>
+                    <label
+                      className="block text-sm font-medium mb-2"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      🎥 Ángulo de Cámara:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {CAMERA_ANGLES.map((angle) => (
+                        <button
+                          key={angle.id}
+                          type="button"
+                          onClick={() => updateProSetting("cameraAngle", angle.id)}
+                          className={`p-2 rounded-lg text-left text-sm transition-all ${
+                            proSettings.cameraAngle === angle.id
+                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
+                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="font-semibold flex items-center space-x-1">
+                            <span>{angle.icon}</span>
+                            <span>{angle.name}</span>
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {angle.description}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3. GÉNERO */}
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
@@ -833,7 +864,7 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* 2. ILUMINACIÓN */}
+                  {/* 4. ILUMINACIÓN */}
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
@@ -862,7 +893,7 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* 3. LENTE */}
+                  {/* 5. LENTE */}
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
@@ -891,7 +922,7 @@ export default function AdvancedGenerator() {
                     </div>
                   </div>
 
-                  {/* 4. COLOR GRADING */}
+                  {/* 6. COLOR GRADING */}
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
@@ -916,66 +947,6 @@ export default function AdvancedGenerator() {
                           <div className="font-semibold">{grade.name}</div>
                           <div className="text-xs text-gray-400">
                             {grade.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 5. FILTROS */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      Filtros:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {FILTERS.map((filter) => (
-                        <button
-                          key={filter.id}
-                          type="button"
-                          onClick={() => updateProSetting("filter", filter.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.filter === filter.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="font-semibold">{filter.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {filter.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 6. ASPECT RATIO */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      Aspect Ratio:
-                    </label>
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                      {ASPECT_RATIOS.map((ratio) => (
-                        <button
-                          key={ratio.id}
-                          type="button"
-                          onClick={() =>
-                            updateProSetting("aspectRatio", ratio.id)
-                          }
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.aspectRatio === ratio.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="font-semibold">{ratio.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {ratio.description}
                           </div>
                         </button>
                       ))}
@@ -1022,7 +993,7 @@ export default function AdvancedGenerator() {
             <button
               type="submit"
               disabled={isLoading || (!prompt && !referenceImage)}
-              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-black px-6 py-4 rounded-lg font-bold text-lg hover:shadow-2xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black px-6 py-4 rounded-lg font-bold text-lg hover:shadow-2xl hover:from-[#FFC700] hover:to-[#FF9500] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-[#FFD700] disabled:hover:to-[#FFA500]"
             >
               {isLoading ? (
                 <>
@@ -1113,7 +1084,7 @@ export default function AdvancedGenerator() {
                       <button
                         type="button"
                         onClick={handleUseInGemini}
-                        className="w-full flex items-center justify-center space-x-2 bg-[var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition"
+                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black px-4 py-3 rounded-lg font-bold hover:shadow-lg hover:from-[#FFC700] hover:to-[#FF9500] transition-all"
                       >
                         <Send size={18} />
                         <span>Usar en Gemini</span>
@@ -1126,7 +1097,7 @@ export default function AdvancedGenerator() {
                         onClick={() =>
                           window.open("https://www.midjourney.com", "_blank")
                         }
-                        className="w-full flex items-center justify-center space-x-2 bg-[var(--primary)] text-black px-4 py-3 rounded-lg font-bold hover:shadow transition"
+                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black px-4 py-3 rounded-lg font-bold hover:shadow-lg hover:from-[#FFC700] hover:to-[#FF9500] transition-all"
                       >
                         <ImageIcon size={18} />
                         <span>Ir a Midjourney</span>

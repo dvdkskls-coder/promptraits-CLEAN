@@ -1,165 +1,281 @@
-// 📷 TIPOS DE PLANO FOTOGRÁFICO
-// 15 opciones: 3 generales, 3 medios, 3 primeros planos, 5 ángulos
+// 📸 TIPOS DE PLANO Y ÁNGULOS DE CÁMARA
+// Sistema completo para control preciso de composición fotográfica
 
-export const SHOT_TYPES = {
-  // ========== PLANOS GENERALES ==========
-  extreme_wide: {
-    id: "extreme_wide",
-    name: "Gran Plano General",
-    nameEN: "Extreme Wide Shot",
-    description: "Muestra el entorno completo, persona pequeña en contexto",
-    technical: "Extreme wide shot (EWS), establishing shot, full environmental context, subject small in frame",
-    category: "general",
-  },
-  wide: {
-    id: "wide",
-    name: "Plano General",
-    nameEN: "Wide Shot",
-    description: "Persona completa con contexto visible del entorno",
-    technical: "Wide shot (WS), full body with environmental context visible, subject dominant but environment important",
-    category: "general",
-  },
-  full: {
-    id: "full",
-    name: "Plano Entero",
-    nameEN: "Full Shot",
-    description: "Cuerpo completo de pies a cabeza, entorno secundario",
-    technical: "Full body shot, head to toe framing, subject fills majority of frame, minimal headroom",
-    category: "general",
-  },
+// ============================================================================
+// TIPOS DE PLANO (SHOT TYPES)
+// ============================================================================
 
-  // ========== PLANOS MEDIOS ==========
-  american: {
-    id: "american",
-    name: "Plano Americano",
-    nameEN: "Cowboy Shot",
-    description: "Desde las rodillas hacia arriba, ideal para mostrar outfit",
-    technical: "Cowboy shot, mid-thigh to head framing, three-quarter body visible, classic western portrait style",
-    category: "medium",
+export const SHOT_TYPES = [
+  {
+    id: "extreme-close-up",
+    name: "Extreme Close-Up",
+    nameES: "Primerísimo Primer Plano",
+    description: "Solo rostro, muy íntimo",
+    promptText: "Extreme close-up shot focusing on facial details and expression, tight framing from forehead to chin creating intimate perspective, minimal background visible",
+    technical: "Framing: Face only (forehead to chin), Distance: < 1m, FOV: Minimal, Background: None/Blurred",
+    icon: "👁️"
   },
-  medium: {
-    id: "medium",
-    name: "Plano Medio",
-    nameEN: "Medium Shot",
-    description: "Desde la cintura hacia arriba, equilibrio cuerpo-rostro",
-    technical: "Medium shot (MS), waist-up portrait, balanced body and face composition, standard interview framing",
-    category: "medium",
+  {
+    id: "close-up",
+    name: "Close-Up",
+    nameES: "Primer Plano",
+    description: "Cabeza y hombros",
+    promptText: "Close-up portrait shot from shoulders to top of head, standard professional headshot framing, intimate yet professional distance, focus on facial expression",
+    technical: "Framing: Shoulders to head, Distance: 1-1.5m, FOV: 15-20°, Background: Minimal context",
+    icon: "😊"
   },
-  medium_close: {
-    id: "medium_close",
-    name: "Plano Medio Corto",
-    nameEN: "Medium Close-Up",
-    description: "Desde el pecho hacia arriba, énfasis en expresión",
-    technical: "Medium close-up (MCU), chest-up portrait, bust shot, emphasis on facial expression and upper body",
-    category: "medium",
+  {
+    id: "medium-close-up",
+    name: "Medium Close-Up",
+    nameES: "Plano Medio Corto",
+    description: "Desde pecho hasta cabeza",
+    promptText: "Medium close-up shot from chest to head, balanced portrait framing showing upper body and torso context, professional interview style composition",
+    technical: "Framing: Chest to head, Distance: 1.5-2m, FOV: 20-30°, Background: Some visible",
+    icon: "👤"
   },
+  {
+    id: "medium-shot",
+    name: "Medium Shot",
+    nameES: "Plano Medio",
+    description: "Desde cintura hasta cabeza",
+    promptText: "Medium shot from waist to head, classical portrait composition showing upper body and hands, balanced environmental context",
+    technical: "Framing: Waist to head, Distance: 2-3m, FOV: 30-40°, Background: Contextual",
+    icon: "🧍"
+  },
+  {
+    id: "american-shot",
+    name: "American Shot",
+    nameES: "Plano Americano",
+    description: "Desde rodillas hasta cabeza",
+    promptText: "American shot from knees to head, Western film style framing showing three-quarters of body, dynamic action-ready composition",
+    technical: "Framing: Knees to head, Distance: 2.5-3.5m, FOV: 35-45°, Background: Visible",
+    icon: "🤠"
+  },
+  {
+    id: "full-body",
+    name: "Full Body Shot",
+    nameES: "Plano Entero",
+    description: "Cuerpo completo visible",
+    promptText: "Full body shot showing entire figure from head to feet, complete environmental context, fashion editorial style framing with space above and below subject",
+    technical: "Framing: Full body head to toe, Distance: 3-5m, FOV: 45-60°, Background: Full context",
+    icon: "🧍‍♂️"
+  },
+  {
+    id: "cowboy-shot",
+    name: "Cowboy Shot",
+    nameES: "Plano 3/4",
+    description: "Desde medio muslo",
+    promptText: "Cowboy shot from mid-thigh to head, action cinema style framing showing most of body, dynamic composition with movement potential",
+    technical: "Framing: Mid-thigh to head, Distance: 2-3.5m, FOV: 30-40°, Background: Contextual",
+    icon: "🔫"
+  },
+  {
+    id: "two-shot",
+    name: "Two-Shot",
+    nameES: "Plano de Dos",
+    description: "Dos personas en cuadro",
+    promptText: "Two-shot composition framing two subjects together, balanced dual portrait showing relationship and interaction between subjects",
+    technical: "Framing: Two people visible, Distance: 2-4m, FOV: 40-50°, Background: Shared context",
+    icon: "👥"
+  }
+];
 
-  // ========== PRIMEROS PLANOS ==========
-  close_up: {
-    id: "close_up",
-    name: "Primer Plano",
-    nameEN: "Close-Up",
-    description: "Desde los hombros, rostro como protagonista absoluto",
-    technical: "Close-up (CU), shoulders to head framing, face dominates composition, intimate portrait focus",
-    category: "closeup",
-  },
-  extreme_close_up: {
-    id: "extreme_close_up",
-    name: "Primerísimo Primer Plano",
-    nameEN: "Extreme Close-Up",
-    description: "Solo rostro completo, máxima intimidad emocional",
-    technical: "Extreme close-up (ECU), face fills entire frame, forehead to chin, ultra-intimate emotional portrait",
-    category: "closeup",
-  },
-  detail: {
-    id: "detail",
-    name: "Plano de Detalle",
-    nameEN: "Detail Shot",
-    description: "Detalle específico aislado (ojos, manos, textura)",
-    technical: "Macro detail shot, isolated feature focus (eyes, hands, texture), extreme shallow depth of field",
-    category: "closeup",
-  },
+// ============================================================================
+// ÁNGULOS DE CÁMARA (CAMERA ANGLES)
+// ============================================================================
 
-  // ========== ÁNGULOS DE CÁMARA ==========
-  overhead: {
+export const CAMERA_ANGLES = [
+  {
+    id: "eye-level",
+    name: "Eye Level",
+    nameES: "A Nivel de Ojos",
+    description: "Neutral, realista",
+    promptText: "Camera at eye level creating neutral perspective, natural realistic viewpoint at subject's eye height, standard documentary style angle",
+    technical: "Angle: 0°, Height: Subject's eyes, Effect: Neutral/Realistic, Feeling: Equal status",
+    icon: "👁️"
+  },
+  {
+    id: "high-angle",
+    name: "High Angle",
+    nameES: "Picado",
+    description: "Cámara arriba mirando abajo",
+    promptText: "High angle shot with camera positioned above subject looking down, creates vulnerable diminutive feeling, subject appears smaller and less powerful",
+    technical: "Angle: 15-45° down, Height: Above subject, Effect: Diminishing, Feeling: Vulnerability/Weakness",
+    icon: "⬇️"
+  },
+  {
+    id: "low-angle",
+    name: "Low Angle",
+    nameES: "Contrapicado",
+    description: "Cámara abajo mirando arriba",
+    promptText: "Low angle shot with camera positioned below subject looking up, creates powerful heroic feeling, subject appears larger and more imposing",
+    technical: "Angle: 15-45° up, Height: Below subject, Effect: Empowering, Feeling: Power/Dominance",
+    icon: "⬆️"
+  },
+  {
     id: "overhead",
-    name: "Cenital (Overhead)",
-    nameEN: "Overhead Shot",
-    description: "Cámara directamente arriba a 90° mirando hacia abajo",
-    technical: "Top-down view, bird's eye perspective, 90° overhead angle, zenithal shot, directly above subject",
-    category: "angles",
+    name: "Overhead / Bird's Eye",
+    nameES: "Cenital",
+    description: "Vista desde arriba 90°",
+    promptText: "Overhead shot from directly above, bird's eye view perspective with 90-degree downward angle, architectural geometric composition",
+    technical: "Angle: 90° down, Height: Directly above, Effect: Detached/Abstract, Feeling: Omniscient view",
+    icon: "🦅"
   },
-  high_angle: {
-    id: "high_angle",
-    name: "Picado (High Angle)",
-    nameEN: "High Angle",
-    description: "Cámara elevada mirando hacia abajo 30-45°",
-    technical: "High angle shot, camera positioned above eye level at 30-45° downward angle, slightly diminishing perspective",
-    category: "angles",
+  {
+    id: "worm-eye",
+    name: "Worm's Eye View",
+    nameES: "Nadir",
+    description: "Vista desde abajo 90°",
+    promptText: "Worm's eye view from ground level looking straight up, extreme low angle with 90-degree upward perspective, dramatic towering effect",
+    technical: "Angle: 90° up, Height: Ground level, Effect: Dramatic/Imposing, Feeling: Overwhelming scale",
+    icon: "🐛"
   },
-  eye_level: {
-    id: "eye_level",
-    name: "Normal (Eye Level)",
-    nameEN: "Eye Level",
-    description: "Cámara a la altura natural de los ojos",
-    technical: "Eye level shot, camera at subject's eye height, neutral straight-on perspective, natural viewing angle",
-    category: "angles",
+  {
+    id: "dutch-angle",
+    name: "Dutch Angle / Canted",
+    nameES: "Aberrante",
+    description: "Cámara inclinada",
+    promptText: "Dutch angle with tilted horizon line, diagonal composition creating dynamic tension and unease, camera rolled 10-45 degrees",
+    technical: "Angle: 10-45° tilt, Orientation: Diagonal, Effect: Disorienting, Feeling: Tension/Unease",
+    icon: "↗️"
   },
-  low_angle: {
-    id: "low_angle",
-    name: "Contrapicado (Low Angle)",
-    nameEN: "Low Angle",
-    description: "Cámara baja mirando hacia arriba 30-45°",
-    technical: "Low angle shot, camera positioned below eye level at 30-45° upward angle, empowering heroic perspective",
-    category: "angles",
-  },
-  worms_eye: {
-    id: "worms_eye",
-    name: "Nadir (Worm's Eye)",
-    nameEN: "Worm's Eye View",
-    description: "Cámara al nivel del suelo mirando completamente arriba",
-    technical: "Ground level perspective, extreme low angle at 70-90° upward, worm's eye view, dramatic foreshortening",
-    category: "angles",
-  },
-};
+  {
+    id: "over-shoulder",
+    name: "Over-the-Shoulder",
+    nameES: "Sobre el Hombro",
+    description: "Desde detrás del hombro",
+    promptText: "Over-the-shoulder shot with camera positioned behind subject's shoulder, creates sense of perspective and relationship with what subject is viewing",
+    technical: "Angle: Slight side, Height: Shoulder, Effect: Perspective, Feeling: Shared viewpoint",
+    icon: "🔙"
+  }
+];
 
-// Categorías para organizar en la UI
-export const SHOT_TYPE_CATEGORIES = {
-  general: {
-    name: "Planos Generales",
-    icon: "🌍",
-    shots: ["extreme_wide", "wide", "full"],
-  },
-  medium: {
-    name: "Planos Medios",
-    icon: "👤",
-    shots: ["american", "medium", "medium_close"],
-  },
-  closeup: {
-    name: "Primeros Planos",
-    icon: "😊",
-    shots: ["close_up", "extreme_close_up", "detail"],
-  },
-  angles: {
-    name: "Ángulos de Cámara",
-    icon: "📐",
-    shots: ["overhead", "high_angle", "eye_level", "low_angle", "worms_eye"],
-  },
-};
+// ============================================================================
+// COMPOSICIONES ESPECIALES (SPECIAL COMPOSITIONS)
+// ============================================================================
 
-// Función helper para obtener un shot type por ID
+export const SPECIAL_COMPOSITIONS = [
+  {
+    id: "rule-of-thirds",
+    name: "Rule of Thirds",
+    nameES: "Regla de Tercios",
+    description: "Sujeto en intersecciones",
+    promptText: "Rule of thirds composition with subject positioned at intersection points, eyes on upper third line, balanced negative space",
+    technical: "Grid: 3x3, Position: Intersections, Balance: 1/3 - 2/3 ratio",
+    icon: "⊞"
+  },
+  {
+    id: "centered",
+    name: "Centered / Symmetrical",
+    nameES: "Centrado Simétrico",
+    description: "Perfecto balance central",
+    promptText: "Centered symmetrical composition with subject in exact center, balanced equal negative space on both sides, formal portrait style",
+    technical: "Position: Center, Balance: 50-50, Style: Formal/Symmetrical",
+    icon: "⊡"
+  },
+  {
+    id: "golden-ratio",
+    name: "Golden Ratio",
+    nameES: "Proporción Áurea",
+    description: "Espiral de Fibonacci",
+    promptText: "Golden ratio composition following Fibonacci spiral, subject positioned along phi grid lines, naturally pleasing proportions",
+    technical: "Ratio: 1.618:1, Pattern: Fibonacci spiral, Balance: Natural/Organic",
+    icon: "φ"
+  },
+  {
+    id: "leading-lines",
+    name: "Leading Lines",
+    nameES: "Líneas Guía",
+    description: "Líneas hacia el sujeto",
+    promptText: "Leading lines composition with environmental elements directing eye toward subject, creating depth and guiding viewer attention",
+    technical: "Pattern: Converging lines, Purpose: Guide attention, Depth: Enhanced",
+    icon: "➡️"
+  },
+  {
+    id: "negative-space",
+    name: "Negative Space",
+    nameES: "Espacio Negativo",
+    description: "Mucho espacio vacío",
+    promptText: "Negative space composition with subject occupying small portion, extensive empty space creating minimalist artistic effect",
+    technical: "Subject: < 30%, Empty: > 70%, Style: Minimalist/Artistic",
+    icon: "⬜"
+  },
+  {
+    id: "frame-within-frame",
+    name: "Frame Within Frame",
+    nameES: "Marco Dentro de Marco",
+    description: "Elementos enmarcan sujeto",
+    promptText: "Frame within frame composition using environmental elements to create natural border around subject, adds depth and focus",
+    technical: "Layers: Multiple frames, Depth: Enhanced, Focus: Directed",
+    icon: "🖼️"
+  }
+];
+
+// ============================================================================
+// DEPTH OF FIELD (PROFUNDIDAD DE CAMPO)
+// ============================================================================
+
+export const DEPTH_OF_FIELD = [
+  {
+    id: "shallow-dof",
+    name: "Shallow DOF",
+    nameES: "Profundidad Reducida",
+    description: "Fondo muy desenfocado",
+    promptText: "Shallow depth of field with extremely blurred background, creamy smooth bokeh, subject isolated with sharp focus, wide aperture f/1.2-f/2.8 effect",
+    technical: "Aperture: f/1.2-f/2.8, Focus: Narrow plane, Bokeh: Pronounced, Background: Very blurred",
+    icon: "🔵"
+  },
+  {
+    id: "medium-dof",
+    name: "Medium DOF",
+    nameES: "Profundidad Media",
+    description: "Fondo semi-desenfocado",
+    promptText: "Medium depth of field with moderately blurred background, subject clearly separated but some context visible, balanced aperture f/4-f/5.6 effect",
+    technical: "Aperture: f/4-f/5.6, Focus: Moderate plane, Bokeh: Subtle, Background: Soft",
+    icon: "🟢"
+  },
+  {
+    id: "deep-dof",
+    name: "Deep DOF",
+    nameES: "Profundidad Amplia",
+    description: "Todo nítido",
+    promptText: "Deep depth of field with sharp focus throughout entire scene, foreground to background all in focus, small aperture f/11-f/22 effect",
+    technical: "Aperture: f/11-f/22, Focus: Wide plane, Bokeh: None, Background: Sharp",
+    icon: "🔴"
+  }
+];
+
+// ============================================================================
+// FUNCIONES HELPER
+// ============================================================================
+
 export const getShotTypeById = (id) => {
-  return SHOT_TYPES[id] || null;
+  return SHOT_TYPES.find(shot => shot.id === id) || null;
 };
 
-// Función para obtener un shot type aleatorio
-export const getRandomShotType = () => {
-  const keys = Object.keys(SHOT_TYPES);
-  const randomKey = keys[Math.floor(Math.random() * keys.length)];
-  return SHOT_TYPES[randomKey];
+export const getCameraAngleById = (id) => {
+  return CAMERA_ANGLES.find(angle => angle.id === id) || null;
 };
 
-// Función para obtener shots por categoría
-export const getShotsByCategory = (category) => {
-  return Object.values(SHOT_TYPES).filter(shot => shot.category === category);
+export const getCompositionById = (id) => {
+  return SPECIAL_COMPOSITIONS.find(comp => comp.id === id) || null;
+};
+
+export const getDOFById = (id) => {
+  return DEPTH_OF_FIELD.find(dof => dof.id === id) || null;
+};
+
+// ============================================================================
+// EXPORT DEFAULT
+// ============================================================================
+
+export default {
+  SHOT_TYPES,
+  CAMERA_ANGLES,
+  SPECIAL_COMPOSITIONS,
+  DEPTH_OF_FIELD,
+  getShotTypeById,
+  getCameraAngleById,
+  getCompositionById,
+  getDOFById
 };
