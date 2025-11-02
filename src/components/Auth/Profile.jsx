@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import PromptHistory from '../Profile/PromptHistory';
 import { CreditCard, Package, Trash2, Key, ArrowLeft } from 'lucide-react';
 
-export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpenPortal }) {
+export default function Profile({ onNavigate, onAccountDeleted }) {
   const { user, profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -47,7 +47,11 @@ export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpen
       
       // Cerrar sesión
       await signOut();
-      alert('Cuenta eliminada correctamente.');
+      
+      // Llamar callback para refrescar
+      if (onAccountDeleted) {
+        onAccountDeleted();
+      }
     } catch (err) {
       alert('Error al eliminar cuenta: ' + err.message);
     }
@@ -56,7 +60,7 @@ export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpen
   return (
     <main className="pt-32 px-4 max-w-4xl mx-auto pb-20">
       <button
-        onClick={onBack}
+        onClick={() => onNavigate('home')}
         className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -119,7 +123,7 @@ export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpen
                 </div>
                 {profile.plan !== 'premium' && (
                   <button
-                    onClick={onOpenCheckout}
+                    onClick={() => onNavigate('pricing')}
                     className="px-4 py-2 bg-[color:var(--primary)] text-black rounded-lg font-semibold hover:opacity-90 transition"
                   >
                     Actualizar plan
@@ -137,7 +141,7 @@ export default function Profile({ onBack, onOpenCheckout, onOpenRegister, onOpen
                   </div>
                 </div>
                 <button
-                  onClick={onOpenCheckout}
+                  onClick={() => onNavigate('pricing')}
                   className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition"
                 >
                   Comprar créditos
