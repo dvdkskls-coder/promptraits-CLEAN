@@ -476,6 +476,9 @@ export default function AdvancedGenerator() {
       setQualityAnalysis(data.qualityAnalysis);
       setValidation(data.validation);
 
+      // ✅ GUARDAR EN HISTORIAL
+      await saveToHistory(data.prompt, selectedPlatform);
+
       // Descontar crédito y refrescar perfil
       await supabase
         .from("profiles")
@@ -505,6 +508,22 @@ export default function AdvancedGenerator() {
     navigator.clipboard.writeText(response);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // ✅ GUARDAR EN HISTORIAL
+  const saveToHistory = async (promptText, platform) => {
+    if (!user) return;
+
+    try {
+      await supabase.from('prompt_history').insert({
+        user_id: user.id,
+        prompt_text: promptText,
+        platform: platform
+      });
+      console.log('✅ Prompt guardado en historial');
+    } catch (error) {
+      console.error('Error guardando en historial:', error);
+    }
   };
 
   const handleUseInGemini = () => {

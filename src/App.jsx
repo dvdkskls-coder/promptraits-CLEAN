@@ -275,6 +275,7 @@ const SUBSCRIPTION_PLANS = [
   },
   {
     name: "PREMIUM",
+    displayName: "PRO",
     price: "19.99",
     priceLabel: "19.99€",
     period: "/mes",

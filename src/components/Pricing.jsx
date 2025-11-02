@@ -11,10 +11,11 @@ const SUBSCRIPTION_PLANS = [
     period: '/mes',
     popular: false,
     features: [
-      '5 créditos al registrarte',
+      '3 créditos al registrarse',
       'Newsletter con consejos y trucos',
-      '4 prompts exclusivos al mes',
-      'Acceso a galería pública'
+      'Acceso a galería pública',
+      'Presets free',
+      'Comprar créditos'
     ]
   },
   {
@@ -25,24 +26,27 @@ const SUBSCRIPTION_PLANS = [
     popular: true,
     features: [
       '60 créditos/mes',
-      '3 prompts personalizados (24-48h)',
-      'Revisiones incluidas',
-      '8 prompts exclusivos al mes',
-      'Generador IA avanzado'
+      'Generador de PROMPTS con IA',
+      'Newsletter con consejos y trucos',
+      'Acceso a galería pública',
+      'Presets PRO',
+      'Comprar créditos'
     ]
   },
   {
     id: 'premium',
-    name: 'PREMIUM',
+    name: 'PRO',
     price: '19.99',
     period: '/mes',
     popular: false,
     features: [
       '300 créditos/mes',
-      'Acceso al agente personalizado',
+      'Generador de PROMPTS con IA',
       'Asesoría 1 a 1',
-      '5 prompts personalizados',
-      'Soporte prioritario'
+      'Newsletter con consejos y trucos',
+      'Acceso a galería pública',
+      'Presets PRO',
+      'Comprar créditos'
     ]
   }
 ];
