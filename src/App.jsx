@@ -530,14 +530,61 @@ function AppContent() {
               )}
 
               {user && (
-                <div className="pt-3 border-t border-[color:var(--border)] flex items-center justify-between px-3 py-2 bg-[color:var(--surface)] rounded-lg">
-                  <span className="text-sm text-muted">Créditos</span>
-                  <div className="flex items-center">
-                    <Gift className="w-4 h-4 text-[color:var(--primary)] mr-1.5" />
-                    <span className="text-sm font-semibold">
-                      {profile?.credits ?? 0}
+                <div className="pt-3 border-t border-[color:var(--border)] space-y-2">
+                  {/* Créditos */}
+                  <div className="flex items-center justify-between px-3 py-2 bg-[color:var(--surface)] rounded-lg">
+                    <span className="text-sm text-muted">Créditos</span>
+                    <div className="flex items-center">
+                      <Gift className="w-4 h-4 text-[color:var(--primary)] mr-1.5" />
+                      <span className="text-sm font-semibold">
+                        {profile?.credits ?? 0}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Usuario */}
+                  <div className="flex items-center px-3 py-2 bg-[color:var(--surface)] rounded-lg">
+                    {isPro && <Crown className="w-4 h-4 text-[color:var(--primary)] mr-2" />}
+                    <span className="text-sm font-medium">
+                      {user.email?.split("@")[0]}
                     </span>
                   </div>
+
+                  {/* Mi Perfil */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView("profile");
+                      setShowMobileMenu(false);
+                    }}
+                    className="w-full py-2 px-4 text-left text-sm border border-[color:var(--border)] rounded-lg hover:bg-[color:var(--surface)] transition"
+                  >
+                    Mi Perfil
+                  </button>
+
+                  {/* Historial */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView("history");
+                      setShowMobileMenu(false);
+                    }}
+                    className="w-full py-2 px-4 text-left text-sm border border-[color:var(--border)] rounded-lg hover:bg-[color:var(--surface)] transition"
+                  >
+                    Historial
+                  </button>
+
+                  {/* Cerrar Sesión */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleLogout();
+                      setShowMobileMenu(false);
+                    }}
+                    className="w-full py-2 px-4 text-left text-sm bg-red-500/10 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition"
+                  >
+                    Cerrar Sesión
+                  </button>
                 </div>
               )}
             </nav>
