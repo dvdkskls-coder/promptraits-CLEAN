@@ -5,7 +5,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] border-t border-amber-900/20">
+    <footer className="bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d] border-t border-[color:var(--border)]">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -27,7 +27,7 @@ const Footer = () => {
                 href="https://www.instagram.com/sr_waly/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-amber-500 transition-colors"
+                className="text-gray-400 hover:text-[color:var(--primary)] transition-colors"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -40,7 +40,7 @@ const Footer = () => {
                 href="https://t.me/+nyMJxze9il4wZGJk" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-amber-500 transition-colors"
+                className="text-gray-400 hover:text-[color:var(--primary)] transition-colors"
                 aria-label="Telegram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -55,24 +55,24 @@ const Footer = () => {
             <h3 className="text-white font-semibold mb-4">Producto</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#features" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/caracteristicas" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Características
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#pricing" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/planes" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Planes y Precios
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#examples" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/ejemplos" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Ejemplos
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#guide" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/guia" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Guía de Uso
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -82,27 +82,27 @@ const Footer = () => {
             <h3 className="text-white font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/legal/aviso-legal" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/legal/aviso-legal" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Aviso Legal
                 </Link>
               </li>
               <li>
-                <Link to="/legal/privacidad" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/legal/privacidad" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Política de Privacidad
                 </Link>
               </li>
               <li>
-                <Link to="/legal/terminos" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/legal/terminos" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Términos y Condiciones
                 </Link>
               </li>
               <li>
-                <Link to="/legal/cookies" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/legal/cookies" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Política de Cookies
                 </Link>
               </li>
               <li>
-                <Link to="/legal/reembolsos" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/legal/reembolsos" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Reembolsos
                 </Link>
               </li>
@@ -114,22 +114,22 @@ const Footer = () => {
             <h3 className="text-white font-semibold mb-4">Soporte</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/faq" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/faq" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Preguntas Frecuentes
                 </Link>
               </li>
               <li>
-                <Link to="/contacto" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <Link to="/contacto" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   Contacto
                 </Link>
               </li>
               <li>
-                <a href="mailto:contacto@promptraits.com" className="text-gray-400 hover:text-amber-500 transition-colors text-sm">
+                <a href="mailto:contacto@promptraits.com" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm">
                   contacto@promptraits.com
                 </a>
               </li>
               <li>
-                <a href="#status" className="text-gray-400 hover:text-amber-500 transition-colors text-sm inline-flex items-center">
+                <a href="#status" className="text-gray-400 hover:text-[color:var(--primary)] transition-colors text-sm inline-flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
                   Estado del Servicio
                 </a>
@@ -141,11 +141,11 @@ const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-amber-900/20">
+      <div className="border-t border-[color:var(--border)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm text-center md:text-left">
-              © {currentYear} <span className="text-amber-500 font-semibold">Promptraits by Sr. Waly</span>. Todos los derechos reservados.
+              © {currentYear} <span className="text-[color:var(--primary)] font-semibold">Promptraits by Sr. Waly</span>. Todos los derechos reservados.
             </div>
             <div className="flex items-center space-x-6 text-sm">
               <span className="text-gray-500">Hecho con</span>

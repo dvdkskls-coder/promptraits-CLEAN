@@ -33,37 +33,43 @@ const QUICK_FEATURES = [
     id: "professional-lighting",
     name: "Iluminación Profesional",
     description: "Rembrandt, Butterfly o Loop lighting with professional setup",
-    promptText: "Professional studio lighting setup with Rembrandt or Butterfly lighting creating gentle shadow modeling, soft diffused key light at 45-degree angle, fill light maintaining detail in shadows",
+    promptText:
+      "Professional studio lighting setup with Rembrandt or Butterfly lighting creating gentle shadow modeling, soft diffused key light at 45-degree angle, fill light maintaining detail in shadows",
   },
   {
     id: "bokeh",
     name: "Fondo Desenfocado",
     description: "Shallow depth of field con 85mm",
-    promptText: "Shallow depth of field with 85mm f/1.8 lens creating creamy smooth bokeh, background beautifully blurred with soft out-of-focus areas",
+    promptText:
+      "Shallow depth of field with 85mm f/1.8 lens creating creamy smooth bokeh, background beautifully blurred with soft out-of-focus areas",
   },
   {
     id: "cinematic",
     name: "Look Cinematográfico",
     description: "Black Pro-Mist effect",
-    promptText: "Cinematic look with soft diffused highlights using Black Pro-Mist filter effect, gentle halation on bright lights, organic film-like quality",
+    promptText:
+      "Cinematic look with soft diffused highlights using Black Pro-Mist filter effect, gentle halation on bright lights, organic film-like quality",
   },
   {
     id: "golden-hour",
     name: "Golden Hour",
     description: "Luz cálida de atardecer",
-    promptText: "Warm golden hour light with sunset glow, magical warm tones creating romantic atmosphere, soft natural illumination",
+    promptText:
+      "Warm golden hour light with sunset glow, magical warm tones creating romantic atmosphere, soft natural illumination",
   },
   {
     id: "smooth-skin",
     name: "Piel Suave y Uniforme",
     description: "Skin tone uniformity",
-    promptText: "Skin tone uniformity with subtle texture preservation, even complexion, natural beauty retouching maintaining realistic appearance",
+    promptText:
+      "Skin tone uniformity with subtle texture preservation, even complexion, natural beauty retouching maintaining realistic appearance",
   },
   {
     id: "teal-orange",
     name: "Teal & Orange",
     description: "Color grading Hollywood",
-    promptText: "Cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster style, complementary color contrast",
+    promptText:
+      "Cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
 ];
 
@@ -82,64 +88,74 @@ const LIGHTING_SCHEMES = [
     id: "rembrandt",
     name: "Rembrandt",
     description: "45° con triángulo de luz",
-    promptText: "Rembrandt lighting setup with triangle of light on cheek, key light at 45-degree angle creating dramatic shadows, 2:1 lighting ratio",
+    promptText:
+      "Rembrandt lighting setup with triangle of light on cheek, key light at 45-degree angle creating dramatic shadows, 2:1 lighting ratio",
   },
   {
     id: "butterfly",
     name: "Butterfly",
     description: "Frontal elevada, sombra nariz",
-    promptText: "Butterfly lighting from above creating shadow under nose in butterfly shape, glamorous beauty lighting, defines cheekbones",
+    promptText:
+      "Butterfly lighting from above creating shadow under nose in butterfly shape, glamorous beauty lighting, defines cheekbones",
   },
-  { 
-    id: "loop", 
-    name: "Loop", 
+  {
+    id: "loop",
+    name: "Loop",
     description: "45° elevada, sombra bucle",
-    promptText: "Loop lighting with 45-degree elevated key light, loop-shaped nose shadow toward cheek, flattering portrait setup",
+    promptText:
+      "Loop lighting with 45-degree elevated key light, loop-shaped nose shadow toward cheek, flattering portrait setup",
   },
-  { 
-    id: "split", 
-    name: "Split", 
+  {
+    id: "split",
+    name: "Split",
     description: "Lateral 90°, mitad luz/sombra",
-    promptText: "Split lighting with half face illuminated and half in shadow, dramatic high contrast, 90-degree side light",
+    promptText:
+      "Split lighting with half face illuminated and half in shadow, dramatic high contrast, 90-degree side light",
   },
-  { 
-    id: "broad", 
-    name: "Broad", 
+  {
+    id: "broad",
+    name: "Broad",
     description: "Lado hacia cámara iluminado",
-    promptText: "Broad lighting with camera-facing side of face illuminated, widening effect on face",
+    promptText:
+      "Broad lighting with camera-facing side of face illuminated, widening effect on face",
   },
-  { 
-    id: "short", 
-    name: "Short", 
+  {
+    id: "short",
+    name: "Short",
     description: "Lado alejado iluminado",
-    promptText: "Short lighting with shadow on camera-facing side, slimming effect, sculpts facial structure",
+    promptText:
+      "Short lighting with shadow on camera-facing side, slimming effect, sculpts facial structure",
   },
 ];
 
 const LENSES = [
-  { 
-    id: "24-35mm", 
-    name: "24-35mm", 
+  {
+    id: "24-35mm",
+    name: "24-35mm",
     description: "Gran angular, contexto",
-    promptText: "24mm wide-angle lens capturing environmental context, slight perspective distortion, expansive field of view",
+    promptText:
+      "24mm wide-angle lens capturing environmental context, slight perspective distortion, expansive field of view",
   },
-  { 
-    id: "50mm", 
-    name: "50mm", 
+  {
+    id: "50mm",
+    name: "50mm",
     description: "Normal, versátil",
-    promptText: "50mm f/1.8 lens with natural perspective matching human vision, versatile standard focal length",
+    promptText:
+      "50mm f/1.8 lens with natural perspective matching human vision, versatile standard focal length",
   },
-  { 
-    id: "85mm", 
-    name: "85mm", 
+  {
+    id: "85mm",
+    name: "85mm",
     description: "REY del retrato",
-    promptText: "85mm f/1.2 portrait lens creating shallow depth of field, creamy smooth bokeh, flattering compression, professional portrait setup",
+    promptText:
+      "85mm f/1.2 portrait lens creating shallow depth of field, creamy smooth bokeh, flattering compression, professional portrait setup",
   },
   {
     id: "135-200mm",
     name: "135-200mm",
     description: "Teleobjetivo, compresión",
-    promptText: "135mm telephoto lens with strong compression isolating subject from background, compressed perspective",
+    promptText:
+      "135mm telephoto lens with strong compression isolating subject from background, compressed perspective",
   },
 ];
 
@@ -148,37 +164,43 @@ const COLOR_GRADING = [
     id: "teal-orange",
     name: "Teal & Orange",
     description: "Hollywood blockbuster",
-    promptText: "Cinematic color grading with teal shadows and warm orange highlights, Hollywood blockbuster style, complementary color contrast",
+    promptText:
+      "Cinematic color grading with teal shadows and warm orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
   {
     id: "vintage",
     name: "Vintage Film",
     description: "Tonos pastel, contraste suave",
-    promptText: "Vintage film look with lifted shadows creating pastel tones, soft faded contrast, nostalgic aesthetic, film grain texture",
+    promptText:
+      "Vintage film look with lifted shadows creating pastel tones, soft faded contrast, nostalgic aesthetic, film grain texture",
   },
-  { 
-    id: "high-key", 
-    name: "High-Key", 
+  {
+    id: "high-key",
+    name: "High-Key",
     description: "Brillante, optimista",
-    promptText: "High-key bright atmosphere with minimal shadows, optimistic mood, soft overall illumination, light airy feel",
+    promptText:
+      "High-key bright atmosphere with minimal shadows, optimistic mood, soft overall illumination, light airy feel",
   },
-  { 
-    id: "low-key", 
-    name: "Low-Key", 
+  {
+    id: "low-key",
+    name: "Low-Key",
     description: "Oscuro, dramático",
-    promptText: "Low-key dramatic lighting with predominant shadows, dark moody atmosphere, high contrast with deep blacks",
+    promptText:
+      "Low-key dramatic lighting with predominant shadows, dark moody atmosphere, high contrast with deep blacks",
   },
-  { 
-    id: "warm", 
-    name: "Warm Tones", 
+  {
+    id: "warm",
+    name: "Warm Tones",
     description: "Tonos cálidos",
-    promptText: "Warm color tones with enhanced oranges and yellows, cozy inviting atmosphere, golden warmth throughout",
+    promptText:
+      "Warm color tones with enhanced oranges and yellows, cozy inviting atmosphere, golden warmth throughout",
   },
-  { 
-    id: "cool", 
-    name: "Cool Tones", 
+  {
+    id: "cool",
+    name: "Cool Tones",
     description: "Tonos fríos",
-    promptText: "Cool color tones with enhanced blues and cyans, modern clean aesthetic, professional cool atmosphere",
+    promptText:
+      "Cool color tones with enhanced blues and cyans, modern clean aesthetic, professional cool atmosphere",
   },
 ];
 
@@ -291,21 +313,26 @@ export default function AdvancedGenerator() {
 
       // Camera Angle
       if (proSettings.cameraAngle) {
-        const angle = CAMERA_ANGLES.find((a) => a.id === proSettings.cameraAngle);
+        const angle = CAMERA_ANGLES.find(
+          (a) => a.id === proSettings.cameraAngle
+        );
         if (angle) parts.push(angle.promptText);
       }
 
       // Género (solo si no es neutral)
       if (proSettings.gender && proSettings.gender !== "neutral") {
-        const genderText = proSettings.gender === "masculine" 
-          ? "masculine aesthetic with strong confident posing" 
-          : "feminine aesthetic with elegant graceful styling";
+        const genderText =
+          proSettings.gender === "masculine"
+            ? "masculine aesthetic with strong confident posing"
+            : "feminine aesthetic with elegant graceful styling";
         parts.push(genderText);
       }
 
       // Iluminación
       if (proSettings.lighting) {
-        const lighting = LIGHTING_SCHEMES.find((l) => l.id === proSettings.lighting);
+        const lighting = LIGHTING_SCHEMES.find(
+          (l) => l.id === proSettings.lighting
+        );
         if (lighting) parts.push(lighting.promptText);
       }
 
@@ -317,7 +344,9 @@ export default function AdvancedGenerator() {
 
       // Color Grading
       if (proSettings.colorGrading) {
-        const grading = COLOR_GRADING.find((g) => g.id === proSettings.colorGrading);
+        const grading = COLOR_GRADING.find(
+          (g) => g.id === proSettings.colorGrading
+        );
         if (grading) parts.push(grading.promptText);
       }
 
@@ -515,14 +544,14 @@ export default function AdvancedGenerator() {
     if (!user) return;
 
     try {
-      await supabase.from('prompt_history').insert({
+      await supabase.from("prompt_history").insert({
         user_id: user.id,
         prompt_text: promptText,
-        platform: platform
+        platform: platform,
       });
-      console.log('✅ Prompt guardado en historial');
+      console.log("✅ Prompt guardado en historial");
     } catch (error) {
-      console.error('Error guardando en historial:', error);
+      console.error("Error guardando en historial:", error);
     }
   };
 
@@ -838,7 +867,9 @@ export default function AdvancedGenerator() {
                         <button
                           key={angle.id}
                           type="button"
-                          onClick={() => updateProSetting("cameraAngle", angle.id)}
+                          onClick={() =>
+                            updateProSetting("cameraAngle", angle.id)
+                          }
                           className={`p-2 rounded-lg text-left text-sm transition-all ${
                             proSettings.cameraAngle === angle.id
                               ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
@@ -979,7 +1010,13 @@ export default function AdvancedGenerator() {
                         className="block text-sm font-medium mb-2"
                         style={{ color: "var(--primary)" }}
                       >
-                        Outfit Style ({proSettings.gender === "masculine" ? "Masculino" : proSettings.gender === "feminine" ? "Femenino" : "Todos"}):
+                        Outfit Style (
+                        {proSettings.gender === "masculine"
+                          ? "Masculino"
+                          : proSettings.gender === "feminine"
+                          ? "Femenino"
+                          : "Todos"}
+                        ):
                       </label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
                         {currentOutfits.map((outfit) => (

@@ -46,6 +46,12 @@ import LegalPages from "./pages/LegalPages.jsx";
 import FAQ from "./pages/FAQ.jsx";
 import Contacto from "./pages/Contacto.jsx";
 
+// Páginas nuevas
+import GuiaUso from "./pages/GuiaUso.jsx";
+import Ejemplos from "./pages/Ejemplos.jsx";
+import PlanesPrecios from "./pages/PlanesPrecios.jsx";
+import Caracteristicas from "./pages/Caracteristicas.jsx";
+
 // prompts externos
 import { ALL_PROMPTS } from "./data/prompts.js";
 
@@ -1094,6 +1100,12 @@ export default function App() {
           <Route path="/legal/:page" element={<LegalPages />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
+
+          {/* Páginas nuevas */}
+          <Route path="/guia" element={<GuiaUso />} />
+          <Route path="/ejemplos" element={<Ejemplos />} />
+          <Route path="/planes" element={<PlanesPrecios />} />
+          <Route path="/caracteristicas" element={<Caracteristicas />} />
         </Routes>
       </Router>
     </AuthProvider>
