@@ -459,7 +459,7 @@ export default function AdvancedGenerator() {
   // ============================================================================
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <AnimatedSection delay={0}>
         {/* Header Section */}
         <div className="text-center mb-8">
@@ -519,43 +519,6 @@ export default function AdvancedGenerator() {
               <p className="mt-2 text-sm text-purple-400">
                 💡 {PLATFORM_INFO[selectedPlatform].tips}
               </p>
-            </div>
-          )}
-        </div>
-
-        {/* Image Upload */}
-        <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-          <label className="block text-sm font-medium text-gray-300 mb-3">
-            Imagen de referencia (opcional)
-          </label>
-          
-          {!imagePreview ? (
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors">
-              <Upload className="w-8 h-8 text-gray-400 mb-2" />
-              <span className="text-sm text-gray-400">
-                Sube una imagen de referencia (máx 4MB)
-              </span>
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-            </label>
-          ) : (
-            <div className="relative">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full h-48 object-cover rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             </div>
           )}
         </div>
@@ -630,31 +593,35 @@ export default function AdvancedGenerator() {
             
             {/* 1. ENTORNO */}
             <ProSection
-              title="🏞️ Entorno"
+              title="Entorno"
               description="Donde se realizará el retrato"
               isOpen={openSections.environment}
               onToggle={() => toggleSection("environment")}
+              autoButton={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoSelection("autoEnvironment");
+                    if (!autoSelections.autoEnvironment) {
+                      setProSettings((prev) => ({
+                        ...prev,
+                        environment: null,
+                        customEnvironment: "",
+                      }));
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    autoSelections.autoEnvironment
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Automático
+                </button>
+              }
             >
               <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoSelections.autoEnvironment}
-                    onChange={() => {
-                      toggleAutoSelection("autoEnvironment");
-                      if (!autoSelections.autoEnvironment) {
-                        setProSettings((prev) => ({
-                          ...prev,
-                          environment: null,
-                          customEnvironment: "",
-                        }));
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-gray-300">🤖 Decide tú</span>
-                </label>
-
                 {!autoSelections.autoEnvironment && (
                   <>
                     <select
@@ -695,27 +662,31 @@ export default function AdvancedGenerator() {
 
             {/* 2. TIPO DE PLANO */}
             <ProSection
-              title="📷 Tipo de Plano"
+              title="Tipo de Plano"
               description="Encuadre de la fotografía"
               isOpen={openSections.shotType}
               onToggle={() => toggleSection("shotType")}
+              autoButton={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoSelection("autoShotType");
+                    if (!autoSelections.autoShotType) {
+                      updateProSetting("shotType", null);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    autoSelections.autoShotType
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Automático
+                </button>
+              }
             >
               <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoSelections.autoShotType}
-                    onChange={() => {
-                      toggleAutoSelection("autoShotType");
-                      if (!autoSelections.autoShotType) {
-                        updateProSetting("shotType", null);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-gray-300">🤖 Decide tú</span>
-                </label>
-
                 {!autoSelections.autoShotType && (
                   <select
                     value={proSettings.shotType || ""}
@@ -735,27 +706,31 @@ export default function AdvancedGenerator() {
 
             {/* 3. ÁNGULO DE CÁMARA */}
             <ProSection
-              title="📐 Ángulo de Cámara"
+              title="Ángulo de Cámara"
               description="Perspectiva de la toma"
               isOpen={openSections.cameraAngle}
               onToggle={() => toggleSection("cameraAngle")}
+              autoButton={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoSelection("autoAngle");
+                    if (!autoSelections.autoAngle) {
+                      updateProSetting("cameraAngle", null);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    autoSelections.autoAngle
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Automático
+                </button>
+              }
             >
               <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoSelections.autoAngle}
-                    onChange={() => {
-                      toggleAutoSelection("autoAngle");
-                      if (!autoSelections.autoAngle) {
-                        updateProSetting("cameraAngle", null);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-gray-300">🤖 Decide tú</span>
-                </label>
-
                 {!autoSelections.autoAngle && (
                   <select
                     value={proSettings.cameraAngle || ""}
@@ -775,7 +750,7 @@ export default function AdvancedGenerator() {
 
             {/* 4. GÉNERO */}
             <ProSection
-              title="👤 Género"
+              title="Género"
               description="Determina poses y outfits disponibles"
               isOpen={openSections.gender}
               onToggle={() => toggleSection("gender")}
@@ -801,27 +776,31 @@ export default function AdvancedGenerator() {
 
             {/* 5. POSES */}
             <ProSection
-              title="🤸 Poses"
+              title="Poses"
               description="Postura y expresión del sujeto"
               isOpen={openSections.pose}
               onToggle={() => toggleSection("pose")}
+              autoButton={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoSelection("autoPose");
+                    if (!autoSelections.autoPose) {
+                      updateProSetting("pose", null);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    autoSelections.autoPose
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Automático
+                </button>
+              }
             >
               <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoSelections.autoPose}
-                    onChange={() => {
-                      toggleAutoSelection("autoPose");
-                      if (!autoSelections.autoPose) {
-                        updateProSetting("pose", null);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-gray-300">🤖 Decide tú</span>
-                </label>
-
                 {!autoSelections.autoPose && (
                   <select
                     value={proSettings.pose || ""}
@@ -841,27 +820,31 @@ export default function AdvancedGenerator() {
 
             {/* 6. OUTFIT */}
             <ProSection
-              title="👔 Outfit"
+              title="Outfit"
               description="Vestuario y estilo de ropa"
               isOpen={openSections.outfit}
               onToggle={() => toggleSection("outfit")}
+              autoButton={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoSelection("autoOutfit");
+                    if (!autoSelections.autoOutfit) {
+                      updateProSetting("outfit", null);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    autoSelections.autoOutfit
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Automático
+                </button>
+              }
             >
               <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoSelections.autoOutfit}
-                    onChange={() => {
-                      toggleAutoSelection("autoOutfit");
-                      if (!autoSelections.autoOutfit) {
-                        updateProSetting("outfit", null);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-gray-300">🤖 Decide tú</span>
-                </label>
-
                 {!autoSelections.autoOutfit && (
                   <select
                     value={proSettings.outfit || ""}
@@ -881,27 +864,31 @@ export default function AdvancedGenerator() {
 
             {/* 7. ILUMINACIÓN */}
             <ProSection
-              title="💡 Iluminación"
+              title="Iluminación"
               description="Esquema de luces profesional"
               isOpen={openSections.lighting}
               onToggle={() => toggleSection("lighting")}
+              autoButton={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoSelection("autoLighting");
+                    if (!autoSelections.autoLighting) {
+                      updateProSetting("lighting", null);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    autoSelections.autoLighting
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Automático
+                </button>
+              }
             >
               <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoSelections.autoLighting}
-                    onChange={() => {
-                      toggleAutoSelection("autoLighting");
-                      if (!autoSelections.autoLighting) {
-                        updateProSetting("lighting", null);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-gray-300">🤖 Decide tú</span>
-                </label>
-
                 {!autoSelections.autoLighting && (
                   <select
                     value={proSettings.lighting || ""}
@@ -921,27 +908,31 @@ export default function AdvancedGenerator() {
 
             {/* 8. CORRECCIÓN DE COLOR */}
             <ProSection
-              title="🎨 Corrección de Color"
+              title="Corrección de Color"
               description="Look cinematográfico y filtros"
               isOpen={openSections.colorGrading}
               onToggle={() => toggleSection("colorGrading")}
+              autoButton={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAutoSelection("autoColorGrading");
+                    if (!autoSelections.autoColorGrading) {
+                      updateProSetting("colorGrading", null);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    autoSelections.autoColorGrading
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  Automático
+                </button>
+              }
             >
               <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoSelections.autoColorGrading}
-                    onChange={() => {
-                      toggleAutoSelection("autoColorGrading");
-                      if (!autoSelections.autoColorGrading) {
-                        updateProSetting("colorGrading", null);
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span className="text-gray-300">🤖 Decide tú</span>
-                </label>
-
                 {!autoSelections.autoColorGrading && (
                   <select
                     value={proSettings.colorGrading || ""}
@@ -962,19 +953,61 @@ export default function AdvancedGenerator() {
           </div>
         )}
 
-        {/* Prompt Input */}
+        {/* Prompt Input + Image Upload */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-            <label className="block text-sm font-medium text-gray-300 mb-3">
-              Describe lo que quieres generar
-            </label>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ej: Mujer joven en estudio con iluminación Rembrandt..."
-              className="w-full h-32 bg-gray-900/50 text-white rounded-lg p-4 border border-white/10 focus:border-purple-500 focus:outline-none resize-none"
-              required
-            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Imagen de referencia - Columna pequeña */}
+              <div className="md:col-span-1">
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Imagen de referencia
+                </label>
+                
+                {!imagePreview ? (
+                  <label className="flex flex-col items-center justify-center w-full h-full min-h-[200px] border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors">
+                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                    <span className="text-xs text-gray-400 text-center px-2">
+                      Sube una imagen (máx 4MB)
+                    </span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                ) : (
+                  <div className="relative h-full min-h-[200px]">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Textarea - Columna grande */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Describe lo que quieres generar
+                </label>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Ej: Mujer joven en estudio con iluminación Rembrandt..."
+                  className="w-full h-full min-h-[200px] bg-gray-900/50 text-white rounded-lg p-4 border border-white/10 focus:border-purple-500 focus:outline-none resize-none"
+                  required
+                />
+              </div>
+            </div>
           </div>
 
           <button
@@ -1038,7 +1071,7 @@ export default function AdvancedGenerator() {
 // ============================================================================
 // COMPONENTE HELPER: ProSection
 // ============================================================================
-function ProSection({ title, description, isOpen, onToggle, children }) {
+function ProSection({ title, description, isOpen, onToggle, autoButton, children }) {
   return (
     <div className="border border-white/10 rounded-lg overflow-hidden">
       <button
@@ -1046,13 +1079,17 @@ function ProSection({ title, description, isOpen, onToggle, children }) {
         onClick={onToggle}
         className="w-full flex items-center justify-between p-4 bg-gray-900/50 hover:bg-gray-900 transition-colors"
       >
-        <div className="text-left">
+        <div className="text-left flex-1">
           <div className="font-medium text-white">{title}</div>
           <div className="text-sm text-gray-400">{description}</div>
         </div>
-        <span className="text-xl">
-          {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </span>
+        
+        <div className="flex items-center gap-3">
+          {autoButton}
+          <span className="text-xl">
+            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </span>
+        </div>
       </button>
 
       {isOpen && (
