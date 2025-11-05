@@ -25,6 +25,14 @@ import Outfits_men from "../data/Outfits_men";
 // ✅ IMPORTAR TIPOS DE PLANO Y ÁNGULOS DE CÁMARA
 import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
 
+// ✅ IMPORTAR ENTORNOS
+import { ENVIRONMENTS } from "../data/environmentsData";
+
+// ✅ IMPORTAR NUEVOS COMPONENTES PRO
+import { getPosesByGender, POSES } from "../data/posesData";
+import { LIGHTING_SETUPS } from "../data/lightingData";
+import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
+
 // ============================================================================
 // ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
 // ============================================================================
@@ -74,134 +82,12 @@ const QUICK_FEATURES = [
 ];
 
 // ============================================================================
-// ✨ HERRAMIENTAS PRO - SIMPLIFICADAS (7 elementos)
+// ✨ OPCIONES DE GÉNERO (Actualizado con PAREJA)
 // ============================================================================
-
 const GENDER_OPTIONS = [
-  { id: "masculine", name: "Masculino" },
-  { id: "feminine", name: "Femenino" },
-  { id: "neutral", name: "Neutral" },
-];
-
-const LIGHTING_SCHEMES = [
-  {
-    id: "rembrandt",
-    name: "Rembrandt",
-    description: "45° con triángulo de luz",
-    promptText:
-      "Rembrandt lighting setup with triangle of light on cheek, key light at 45-degree angle creating dramatic shadows, 2:1 lighting ratio",
-  },
-  {
-    id: "butterfly",
-    name: "Butterfly",
-    description: "Frontal elevada, sombra nariz",
-    promptText:
-      "Butterfly lighting from above creating shadow under nose in butterfly shape, glamorous beauty lighting, defines cheekbones",
-  },
-  {
-    id: "loop",
-    name: "Loop",
-    description: "45° elevada, sombra bucle",
-    promptText:
-      "Loop lighting with 45-degree elevated key light, loop-shaped nose shadow toward cheek, flattering portrait setup",
-  },
-  {
-    id: "split",
-    name: "Split",
-    description: "Lateral 90°, mitad luz/sombra",
-    promptText:
-      "Split lighting with half face illuminated and half in shadow, dramatic high contrast, 90-degree side light",
-  },
-  {
-    id: "broad",
-    name: "Broad",
-    description: "Lado hacia cámara iluminado",
-    promptText:
-      "Broad lighting with camera-facing side of face illuminated, widening effect on face",
-  },
-  {
-    id: "short",
-    name: "Short",
-    description: "Lado alejado iluminado",
-    promptText:
-      "Short lighting with shadow on camera-facing side, slimming effect, sculpts facial structure",
-  },
-];
-
-const LENSES = [
-  {
-    id: "24-35mm",
-    name: "24-35mm",
-    description: "Gran angular, contexto",
-    promptText:
-      "24mm wide-angle lens capturing environmental context, slight perspective distortion, expansive field of view",
-  },
-  {
-    id: "50mm",
-    name: "50mm",
-    description: "Normal, versátil",
-    promptText:
-      "50mm f/1.8 lens with natural perspective matching human vision, versatile standard focal length",
-  },
-  {
-    id: "85mm",
-    name: "85mm",
-    description: "REY del retrato",
-    promptText:
-      "85mm f/1.2 portrait lens creating shallow depth of field, creamy smooth bokeh, flattering compression, professional portrait setup",
-  },
-  {
-    id: "135-200mm",
-    name: "135-200mm",
-    description: "Teleobjetivo, compresión",
-    promptText:
-      "135mm telephoto lens with strong compression isolating subject from background, compressed perspective",
-  },
-];
-
-const COLOR_GRADING = [
-  {
-    id: "teal-orange",
-    name: "Teal & Orange",
-    description: "Hollywood blockbuster",
-    promptText:
-      "Cinematic color grading with teal shadows and warm orange highlights, Hollywood blockbuster style, complementary color contrast",
-  },
-  {
-    id: "vintage",
-    name: "Vintage Film",
-    description: "Tonos pastel, contraste suave",
-    promptText:
-      "Vintage film look with lifted shadows creating pastel tones, soft faded contrast, nostalgic aesthetic, film grain texture",
-  },
-  {
-    id: "high-key",
-    name: "High-Key",
-    description: "Brillante, optimista",
-    promptText:
-      "High-key bright atmosphere with minimal shadows, optimistic mood, soft overall illumination, light airy feel",
-  },
-  {
-    id: "low-key",
-    name: "Low-Key",
-    description: "Oscuro, dramático",
-    promptText:
-      "Low-key dramatic lighting with predominant shadows, dark moody atmosphere, high contrast with deep blacks",
-  },
-  {
-    id: "warm",
-    name: "Warm Tones",
-    description: "Tonos cálidos",
-    promptText:
-      "Warm color tones with enhanced oranges and yellows, cozy inviting atmosphere, golden warmth throughout",
-  },
-  {
-    id: "cool",
-    name: "Cool Tones",
-    description: "Tonos fríos",
-    promptText:
-      "Cool color tones with enhanced blues and cyans, modern clean aesthetic, professional cool atmosphere",
-  },
+  { id: "masculine", name: "👨 Masculino", emoji: "👨" },
+  { id: "feminine", name: "👩 Femenino", emoji: "👩" },
+  { id: "couple", name: "💑 Pareja", emoji: "💑" },
 ];
 
 // ============================================================================
@@ -252,31 +138,61 @@ export default function AdvancedGenerator() {
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [showProTools, setShowProTools] = useState(false);
 
-  // ✨ Estados para Herramientas PRO (SIMPLIFICADAS - 7 elementos)
+  // ✨ Estados para Herramientas PRO EXPANDIDAS (8 secciones)
   const [proSettings, setProSettings] = useState({
+    environment: null,
+    customEnvironment: "",
     shotType: null,
     cameraAngle: null,
-    gender: "neutral",
-    lighting: null,
-    lens: null,
-    colorGrading: null,
+    gender: "feminine", // Por defecto femenino
+    pose: null,
     outfit: null,
+    lighting: null,
+    colorGrading: null,
+  });
+
+  // ✨ Estados "Decide tú" para cada sección
+  const [autoSelections, setAutoSelections] = useState({
+    autoEnvironment: false,
+    autoShotType: false,
+    autoAngle: false,
+    autoPose: false,
+    autoOutfit: false,
+    autoLighting: false,
+    autoColorGrading: false,
+  });
+
+  // ✨ Estados para controlar desplegables
+  const [openSections, setOpenSections] = useState({
+    environment: false,
+    shotType: false,
+    cameraAngle: false,
+    gender: false,
+    pose: false,
+    outfit: false,
+    lighting: false,
+    colorGrading: false,
   });
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
   // ✅ OBTENER OUTFITS SEGÚN GÉNERO
   const getOutfitsByGender = () => {
-    if (proSettings.gender === "masculine") {
+    if (proSettings.gender === "masculine" || proSettings.gender === "couple") {
       return Outfits_men;
     } else if (proSettings.gender === "feminine") {
       return Outfits_women;
     }
-    // Si es neutral, mostrar ambos combinados
     return [...Outfits_women, ...Outfits_men];
   };
 
+  // ✅ OBTENER POSES SEGÚN GÉNERO
+  const getPosesForGender = () => {
+    return getPosesByGender(proSettings.gender);
+  };
+
   const currentOutfits = getOutfitsByGender();
+  const currentPoses = getPosesForGender();
 
   // ============================================================================
   // EFECTO: Cuando se abre PRO, limpia características rápidas
@@ -305,57 +221,58 @@ export default function AdvancedGenerator() {
 
     // 2. Herramientas PRO
     if (showProTools) {
+      // Environment
+      if (!autoSelections.autoEnvironment) {
+        if (proSettings.customEnvironment) {
+          parts.push(`in ${proSettings.customEnvironment}`);
+        } else if (proSettings.environment) {
+          const env = ENVIRONMENTS[proSettings.environment];
+          if (env) parts.push(env.prompt);
+        }
+      }
+
       // Shot Type
-      if (proSettings.shotType) {
+      if (!autoSelections.autoShotType && proSettings.shotType) {
         const shot = SHOT_TYPES.find((s) => s.id === proSettings.shotType);
         if (shot) parts.push(shot.promptText);
       }
 
       // Camera Angle
-      if (proSettings.cameraAngle) {
-        const angle = CAMERA_ANGLES.find(
-          (a) => a.id === proSettings.cameraAngle
-        );
+      if (!autoSelections.autoAngle && proSettings.cameraAngle) {
+        const angle = CAMERA_ANGLES.find((a) => a.id === proSettings.cameraAngle);
         if (angle) parts.push(angle.promptText);
       }
 
-      // Género (solo si no es neutral)
-      if (proSettings.gender && proSettings.gender !== "neutral") {
-        const genderText =
-          proSettings.gender === "masculine"
-            ? "masculine aesthetic with strong confident posing"
-            : "feminine aesthetic with elegant graceful styling";
-        parts.push(genderText);
-      }
-
-      // Iluminación
-      if (proSettings.lighting) {
-        const lighting = LIGHTING_SCHEMES.find(
-          (l) => l.id === proSettings.lighting
-        );
-        if (lighting) parts.push(lighting.promptText);
-      }
-
-      // Lente
-      if (proSettings.lens) {
-        const lens = LENSES.find((l) => l.id === proSettings.lens);
-        if (lens) parts.push(lens.promptText);
-      }
-
-      // Color Grading
-      if (proSettings.colorGrading) {
-        const grading = COLOR_GRADING.find(
-          (g) => g.id === proSettings.colorGrading
-        );
-        if (grading) parts.push(grading.promptText);
+      // Gender + Pose
+      if (proSettings.gender) {
+        if (proSettings.gender === "couple") {
+          parts.push("couple portrait");
+        }
+        
+        if (!autoSelections.autoPose && proSettings.pose) {
+          const pose = currentPoses.find((p) => p.id === proSettings.pose);
+          if (pose) parts.push(pose.keywords);
+        }
       }
 
       // Outfit
-      if (proSettings.outfit) {
+      if (!autoSelections.autoOutfit && proSettings.outfit) {
         const outfit = currentOutfits.find((o) => o.id === proSettings.outfit);
         if (outfit) {
           parts.push(`wearing ${outfit.keywords}`);
         }
+      }
+
+      // Lighting
+      if (!autoSelections.autoLighting && proSettings.lighting) {
+        const lighting = LIGHTING_SETUPS.find((l) => l.id === proSettings.lighting);
+        if (lighting) parts.push(lighting.keywords);
+      }
+
+      // Color Grading
+      if (!autoSelections.autoColorGrading && proSettings.colorGrading) {
+        const grading = COLOR_GRADING_FILTERS.find((g) => g.id === proSettings.colorGrading);
+        if (grading) parts.push(grading.keywords);
       }
     }
 
@@ -368,7 +285,7 @@ export default function AdvancedGenerator() {
     if (enhancedText && enhancedText !== prompt) {
       setPrompt(enhancedText);
     }
-  }, [selectedFeature, showProTools, proSettings, currentOutfits]);
+  }, [selectedFeature, showProTools, proSettings, autoSelections, currentOutfits, currentPoses]);
 
   // ============================================================================
   // HANDLERS
@@ -397,19 +314,19 @@ export default function AdvancedGenerator() {
 
   const selectFeature = (featureId) => {
     if (showProTools) {
-      // Si PRO está abierto, cerrar PRO y limpiar
       setShowProTools(false);
       setProSettings({
+        environment: null,
+        customEnvironment: "",
         shotType: null,
         cameraAngle: null,
-        gender: "neutral",
-        lighting: null,
-        lens: null,
-        colorGrading: null,
+        gender: "feminine",
+        pose: null,
         outfit: null,
+        lighting: null,
+        colorGrading: null,
       });
     }
-    // Toggle de la característica (solo 1 puede estar activa)
     setSelectedFeature(selectedFeature === featureId ? null : featureId);
   };
 
@@ -417,6 +334,20 @@ export default function AdvancedGenerator() {
     setProSettings((prev) => ({
       ...prev,
       [key]: prev[key] === value ? null : value,
+    }));
+  };
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const toggleAutoSelection = (key) => {
+    setAutoSelections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
     }));
   };
 
@@ -435,8 +366,7 @@ export default function AdvancedGenerator() {
         analyzeQuality: isPro,
         isPro,
         platform: selectedPlatform,
-        // Enviar solo si PRO está activo, sino null
-        proSettings: showProTools ? proSettings : null,
+        proSettings: showProTools ? { ...proSettings, autoSelections } : null,
       };
 
       console.log("📤 Enviando payload a API...", {
@@ -455,7 +385,6 @@ export default function AdvancedGenerator() {
 
       console.log("📥 Respuesta recibida - Status:", res.status);
 
-      // Intentar parsear respuesta
       let data;
       try {
         data = await res.json();
@@ -465,7 +394,6 @@ export default function AdvancedGenerator() {
         throw new Error("Error parseando respuesta del servidor");
       }
 
-      // Manejo específico de errores según status
       if (!res.ok) {
         console.error("❌ Error en respuesta:", data);
 
@@ -492,42 +420,29 @@ export default function AdvancedGenerator() {
         throw new Error(data.error || `Error ${res.status}: ${res.statusText}`);
       }
 
-      // Validar que la respuesta tenga el prompt
       if (!data.prompt) {
         console.error("❌ Respuesta sin prompt:", data);
         throw new Error("La API no devolvió un prompt válido");
       }
 
-      console.log("✅ Prompt generado exitosamente");
-
-      // Actualizar estados con la respuesta
+      console.log("✅ Prompt recibido exitosamente");
       setResponse(data.prompt);
-      setQualityAnalysis(data.qualityAnalysis);
-      setValidation(data.validation);
+      
+      if (data.qualityAnalysis) {
+        setQualityAnalysis(data.qualityAnalysis);
+      }
 
-      // ✅ GUARDAR EN HISTORIAL
-      await saveToHistory(data.prompt, selectedPlatform);
+      if (data.validation) {
+        setValidation(data.validation);
+      }
 
-      // Descontar crédito y refrescar perfil
-      await supabase
-        .from("profiles")
-        .update({
-          credits: (profile.credits || 0) - 1,
-        })
-        .eq("id", user.id);
+      if (user && profile) {
+        await refreshProfile();
+      }
 
-      await refreshProfile();
-
-      console.log("✅ Todo completado correctamente");
     } catch (error) {
       console.error("❌ Error en handleSubmit:", error);
-
-      // Mostrar error con más contexto
-      const errorMessage =
-        error.message || "Error desconocido al generar el prompt";
-      alert(
-        `ERROR:\n\n${errorMessage}\n\nRevisa la consola (F12) para más detalles.`
-      );
+      setResponse(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -539,633 +454,612 @@ export default function AdvancedGenerator() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // ✅ GUARDAR EN HISTORIAL
-  const saveToHistory = async (promptText, platform) => {
-    if (!user) return;
-
-    try {
-      await supabase.from("prompt_history").insert({
-        user_id: user.id,
-        prompt_text: promptText,
-        platform: platform,
-      });
-      console.log("✅ Prompt guardado en historial");
-    } catch (error) {
-      console.error("Error guardando en historial:", error);
-    }
-  };
-
-  const handleUseInGemini = () => {
-    const encodedPrompt = encodeURIComponent(response);
-    window.open(`https://gemini.google.com/?prompt=${encodedPrompt}`, "_blank");
-  };
-
-  const handleApplySuggestions = async (suggestions) => {
-    if (
-      !suggestions ||
-      !Array.isArray(suggestions) ||
-      suggestions.length === 0
-    ) {
-      alert("No hay sugerencias para aplicar");
-      return;
-    }
-
-    setIsApplyingSuggestions(true);
-
-    try {
-      const payload = {
-        applySuggestions: true,
-        currentPrompt: response,
-        suggestions: suggestions,
-        isPro: true,
-        platform: selectedPlatform,
-      };
-
-      const res = await fetch("/api/gemini-processor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Error al aplicar sugerencias");
-      }
-
-      setResponse(data.prompt);
-      setQualityAnalysis(null);
-    } catch (error) {
-      console.error("Error:", error);
-      alert(error.message);
-    } finally {
-      setIsApplyingSuggestions(false);
-    }
-  };
-
   // ============================================================================
   // RENDER
   // ============================================================================
 
   return (
-    <section className="py-12">
-      <div className="max-w-5xl mx-auto px-4">
-        <AnimatedSection>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold">✨ Generador Avanzado</h2>
-            {profile && (
-              <div className="text-sm text-gray-400">
-                Créditos: {profile.credits || 0}
-              </div>
-            )}
+    <div className="space-y-6">
+      <AnimatedSection delay={0}>
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 text-transparent bg-clip-text">
+            Generador Avanzado de Prompts
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Crea prompts profesionales con IA y herramientas PRO
+          </p>
+        </div>
+
+        {/* Platform Selection */}
+        <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <div className="flex items-center justify-between mb-4">
+            <label className="text-sm font-medium text-gray-300">
+              Plataforma de destino
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowPlatformInfo(!showPlatformInfo)}
+              className="text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              <Info className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* SELECTOR DE PLATAFORMA */}
-          <div className="mb-6 p-4 bg-white/5 border border-[var(--border)] rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium">
-                Plataforma de Destino:
-              </label>
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(PLATFORM_INFO).map(([key, info]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSelectedPlatform(key)}
+                className={`p-4 rounded-lg border transition-all ${
+                  selectedPlatform === key
+                    ? "border-purple-500 bg-purple-500/20"
+                    : "border-white/10 bg-white/5 hover:border-white/20"
+                }`}
+              >
+                <div className="font-medium text-white">{info.name}</div>
+                <div className="text-sm text-gray-400 mt-1">
+                  {info.description}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {showPlatformInfo && (
+            <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+              <h3 className="font-medium text-white mb-2">
+                {PLATFORM_INFO[selectedPlatform].name}
+              </h3>
+              <ul className="space-y-1 text-sm text-gray-400">
+                {PLATFORM_INFO[selectedPlatform].features.map((feature, idx) => (
+                  <li key={idx}>• {feature}</li>
+                ))}
+              </ul>
+              <p className="mt-2 text-sm text-purple-400">
+                💡 {PLATFORM_INFO[selectedPlatform].tips}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Image Upload */}
+        <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Imagen de referencia (opcional)
+          </label>
+          
+          {!imagePreview ? (
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors">
+              <Upload className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-sm text-gray-400">
+                Sube una imagen de referencia (máx 4MB)
+              </span>
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+            </label>
+          ) : (
+            <div className="relative">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-48 object-cover rounded-lg"
+              />
               <button
                 type="button"
-                onClick={() => setShowPlatformInfo(!showPlatformInfo)}
-                className="text-xs text-[var(--primary)] hover:underline flex items-center space-x-1"
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
               >
-                <Info size={14} />
-                <span>{showPlatformInfo ? "Ocultar" : "Más info"}</span>
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
+          )}
+        </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {Object.entries(PLATFORM_INFO).map(([key, info]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setSelectedPlatform(key)}
-                  className={`p-3 rounded-lg text-left transition-all ${
-                    selectedPlatform === key
-                      ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)]"
-                      : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                  }`}
-                >
-                  <div className="font-semibold text-sm">{info.name}</div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {info.description}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {showPlatformInfo && (
-              <div className="mt-3 p-3 bg-black/40 rounded-lg text-xs space-y-2">
-                <div>
-                  <div className="font-semibold text-[var(--primary)] mb-1">
-                    {PLATFORM_INFO[selectedPlatform].name}
-                  </div>
-                  <ul className="space-y-1 text-gray-400">
-                    {PLATFORM_INFO[selectedPlatform].features.map(
-                      (feature, idx) => (
-                        <li key={idx}>• {feature}</li>
-                      )
-                    )}
-                  </ul>
-                  <div className="mt-2 text-gray-300">
-                    💡 {PLATFORM_INFO[selectedPlatform].tips}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* SECCIÓN: IMAGEN + TEXTAREA EN GRID */}
-            <div className="grid grid-cols-12 gap-4">
-              {/* IMAGEN DE REFERENCIA - 20% */}
-              <div className="col-span-12 md:col-span-3 flex flex-col">
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--primary)" }}
-                >
-                  Imagen de Referencia (Opcional):
-                </label>
-                <div
-                  className="border-2 border-dashed border-[var(--border)] rounded-lg flex items-center justify-center overflow-hidden bg-black/20"
-                  style={{ minHeight: "300px" }}
-                >
-                  {imagePreview ? (
-                    <div className="relative w-full h-full">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center space-y-2 p-6 text-center">
-                      <Upload size={32} className="text-gray-400" />
-                      <span className="text-sm text-gray-400">
-                        Arrastra o haz clic para subir
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        (Max 4MB - JPG, PNG)
-                      </span>
-                      <input
-                        type="file"
-                        onChange={handleImageUpload}
-                        accept="image/*"
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* TEXTAREA DESCRIPCIÓN - 80% */}
-              <div className="col-span-12 md:col-span-9 flex flex-col">
-                <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: "var(--primary)" }}
-                >
-                  Describe lo que quieres generar:
-                </label>
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Ejemplo: Professional portrait with confident expression..."
-                  className="w-full p-4 rounded-lg bg-white/5 border border-[var(--border)] text-gray-200 placeholder-gray-500 resize-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
-                  style={{ minHeight: "300px" }}
-                />
-              </div>
-            </div>
-
-            {/* CARACTERÍSTICAS RÁPIDAS */}
-            <div>
-              <label
-                className="block text-sm font-medium mb-3"
-                style={{ color: "var(--primary)" }}
+        {/* Características Rápidas */}
+        <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <h3 className="text-lg font-medium text-white mb-4">
+            ⚡ Características Rápidas
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {QUICK_FEATURES.map((feature) => (
+              <button
+                key={feature.id}
+                type="button"
+                onClick={() => selectFeature(feature.id)}
+                className={`p-3 rounded-lg border transition-all text-left ${
+                  selectedFeature === feature.id
+                    ? "border-purple-500 bg-purple-500/20"
+                    : "border-white/10 bg-white/5 hover:border-white/20"
+                }`}
               >
-                Características Rápidas (Selecciona 1):
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-                {QUICK_FEATURES.map((feature) => (
-                  <button
-                    key={feature.id}
-                    type="button"
-                    onClick={() => selectFeature(feature.id)}
-                    disabled={showProTools}
-                    className={`p-3 rounded-lg text-xs text-left transition-all ${
-                      selectedFeature === feature.id
-                        ? "bg-[var(--primary)]/20 border-2 border-[var(--primary)]"
-                        : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                    } ${showProTools ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <div className="font-semibold">{feature.name}</div>
-                    <div className="text-gray-400 mt-1">
-                      {feature.description}
+                <div className="font-medium text-sm text-white">
+                  {feature.name}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  {feature.description}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Herramientas PRO Button */}
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              setShowProTools(!showProTools);
+              if (!showProTools) {
+                setSelectedFeature(null);
+              }
+            }}
+            className={`w-full py-4 px-6 rounded-xl font-medium transition-all flex items-center justify-between ${
+              isPro
+                ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                : "bg-gray-700 hover:bg-gray-600"
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              {isPro ? <Crown className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+              Herramientas PRO
+            </span>
+            {showProTools ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </button>
+
+          {!isPro && showProTools && (
+            <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <p className="text-yellow-400 text-sm">
+                ⚠️ Las herramientas PRO requieren una suscripción activa.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Herramientas PRO Expandidas */}
+        {showProTools && isPro && (
+          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10 space-y-4">
+            
+            {/* 1. ENTORNO */}
+            <ProSection
+              title="🏞️ Entorno"
+              description="Donde se realizará el retrato"
+              isOpen={openSections.environment}
+              onToggle={() => toggleSection("environment")}
+            >
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoSelections.autoEnvironment}
+                    onChange={() => {
+                      toggleAutoSelection("autoEnvironment");
+                      if (!autoSelections.autoEnvironment) {
+                        setProSettings((prev) => ({
+                          ...prev,
+                          environment: null,
+                          customEnvironment: "",
+                        }));
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-gray-300">🤖 Decide tú</span>
+                </label>
+
+                {!autoSelections.autoEnvironment && (
+                  <>
+                    <select
+                      value={proSettings.environment || ""}
+                      onChange={(e) => updateProSetting("environment", e.target.value)}
+                      className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                    >
+                      <option value="">-- Selecciona entorno --</option>
+                      {Object.values(ENVIRONMENTS).map((env) => (
+                        <option key={env.id} value={env.id}>
+                          {env.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="pt-2">
+                      <label className="text-sm text-gray-400 block mb-1">
+                        O escribe tu propio entorno:
+                      </label>
+                      <input
+                        type="text"
+                        value={proSettings.customEnvironment}
+                        onChange={(e) => {
+                          setProSettings((prev) => ({
+                            ...prev,
+                            customEnvironment: e.target.value,
+                            environment: e.target.value ? null : prev.environment,
+                          }));
+                        }}
+                        placeholder="Ej: En el columpio de un parque"
+                        className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                      />
                     </div>
+                  </>
+                )}
+              </div>
+            </ProSection>
+
+            {/* 2. TIPO DE PLANO */}
+            <ProSection
+              title="📷 Tipo de Plano"
+              description="Encuadre de la fotografía"
+              isOpen={openSections.shotType}
+              onToggle={() => toggleSection("shotType")}
+            >
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoSelections.autoShotType}
+                    onChange={() => {
+                      toggleAutoSelection("autoShotType");
+                      if (!autoSelections.autoShotType) {
+                        updateProSetting("shotType", null);
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-gray-300">🤖 Decide tú</span>
+                </label>
+
+                {!autoSelections.autoShotType && (
+                  <select
+                    value={proSettings.shotType || ""}
+                    onChange={(e) => updateProSetting("shotType", e.target.value)}
+                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                  >
+                    <option value="">-- Selecciona plano --</option>
+                    {SHOT_TYPES.map((shot) => (
+                      <option key={shot.id} value={shot.id}>
+                        {shot.nameES} - {shot.description}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </ProSection>
+
+            {/* 3. ÁNGULO DE CÁMARA */}
+            <ProSection
+              title="📐 Ángulo de Cámara"
+              description="Perspectiva de la toma"
+              isOpen={openSections.cameraAngle}
+              onToggle={() => toggleSection("cameraAngle")}
+            >
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoSelections.autoAngle}
+                    onChange={() => {
+                      toggleAutoSelection("autoAngle");
+                      if (!autoSelections.autoAngle) {
+                        updateProSetting("cameraAngle", null);
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-gray-300">🤖 Decide tú</span>
+                </label>
+
+                {!autoSelections.autoAngle && (
+                  <select
+                    value={proSettings.cameraAngle || ""}
+                    onChange={(e) => updateProSetting("cameraAngle", e.target.value)}
+                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                  >
+                    <option value="">-- Selecciona ángulo --</option>
+                    {CAMERA_ANGLES.map((angle) => (
+                      <option key={angle.id} value={angle.id}>
+                        {angle.nameES} - {angle.description}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </ProSection>
+
+            {/* 4. GÉNERO */}
+            <ProSection
+              title="👤 Género"
+              description="Determina poses y outfits disponibles"
+              isOpen={openSections.gender}
+              onToggle={() => toggleSection("gender")}
+            >
+              <div className="grid grid-cols-3 gap-3">
+                {GENDER_OPTIONS.map((gender) => (
+                  <button
+                    key={gender.id}
+                    type="button"
+                    onClick={() => updateProSetting("gender", gender.id)}
+                    className={`py-3 px-4 rounded-lg border transition-all ${
+                      proSettings.gender === gender.id
+                        ? "border-purple-500 bg-purple-500/20"
+                        : "border-white/10 bg-white/5 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">{gender.emoji}</div>
+                    <div className="text-sm">{gender.name.split(" ")[1]}</div>
                   </button>
                 ))}
               </div>
-              {showProTools && (
-                <p className="text-xs text-gray-400 mt-2">
-                  ⚠️ Desactiva Herramientas PRO para usar características
-                  rápidas
-                </p>
-              )}
-            </div>
+            </ProSection>
 
-            {/* HERRAMIENTAS PRO */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isPro) {
-                      setShowProTools(!showProTools);
-                    } else {
-                      alert("Esta función requiere Plan PRO o Premium");
-                    }
-                  }}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-                    isPro
-                      ? showProTools
-                        ? "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-bold hover:shadow-lg"
-                        : "bg-white/10 hover:bg-white/20"
-                      : "bg-white/5 opacity-50 cursor-not-allowed"
-                  }`}
-                >
-                  <Crown size={18} />
-                  <span>
-                    {showProTools
-                      ? "Cerrar Herramientas PRO"
-                      : "Abrir Herramientas PRO"}
-                  </span>
-                  {showProTools ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                </button>
-                {!isPro && (
-                  <span className="text-xs text-gray-400">
-                    Solo para usuarios PRO/Premium
-                  </span>
+            {/* 5. POSES */}
+            <ProSection
+              title="🤸 Poses"
+              description="Postura y expresión del sujeto"
+              isOpen={openSections.pose}
+              onToggle={() => toggleSection("pose")}
+            >
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoSelections.autoPose}
+                    onChange={() => {
+                      toggleAutoSelection("autoPose");
+                      if (!autoSelections.autoPose) {
+                        updateProSetting("pose", null);
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-gray-300">🤖 Decide tú</span>
+                </label>
+
+                {!autoSelections.autoPose && (
+                  <select
+                    value={proSettings.pose || ""}
+                    onChange={(e) => updateProSetting("pose", e.target.value)}
+                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                  >
+                    <option value="">-- Selecciona pose --</option>
+                    {currentPoses.map((pose) => (
+                      <option key={pose.id} value={pose.id}>
+                        {pose.name} - {pose.description}
+                      </option>
+                    ))}
+                  </select>
                 )}
               </div>
+            </ProSection>
 
-              {showProTools && isPro && (
-                <div className="space-y-4 p-4 bg-white/5 border border-[var(--primary)]/30 rounded-lg">
-                  {/* 1. TIPO DE PLANO */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      📸 Tipo de Plano:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {SHOT_TYPES.map((shot) => (
-                        <button
-                          key={shot.id}
-                          type="button"
-                          onClick={() => updateProSetting("shotType", shot.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.shotType === shot.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="font-semibold flex items-center space-x-1">
-                            <span>{shot.icon}</span>
-                            <span>{shot.name}</span>
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {shot.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 2. ÁNGULO DE CÁMARA */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      🎥 Ángulo de Cámara:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {CAMERA_ANGLES.map((angle) => (
-                        <button
-                          key={angle.id}
-                          type="button"
-                          onClick={() =>
-                            updateProSetting("cameraAngle", angle.id)
-                          }
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.cameraAngle === angle.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="font-semibold flex items-center space-x-1">
-                            <span>{angle.icon}</span>
-                            <span>{angle.name}</span>
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {angle.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 3. GÉNERO */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      Género:
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {GENDER_OPTIONS.map((gender) => (
-                        <button
-                          key={gender.id}
-                          type="button"
-                          onClick={() => updateProSetting("gender", gender.id)}
-                          className={`p-2 rounded-lg text-sm transition-all ${
-                            proSettings.gender === gender.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          {gender.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 4. ILUMINACIÓN */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      Iluminación:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {LIGHTING_SCHEMES.map((light) => (
-                        <button
-                          key={light.id}
-                          type="button"
-                          onClick={() => updateProSetting("lighting", light.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.lighting === light.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="font-semibold">{light.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {light.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 5. LENTE */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      Lente:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {LENSES.map((lens) => (
-                        <button
-                          key={lens.id}
-                          type="button"
-                          onClick={() => updateProSetting("lens", lens.id)}
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.lens === lens.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="font-semibold">{lens.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {lens.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 6. COLOR GRADING */}
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      Color Grading:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {COLOR_GRADING.map((grade) => (
-                        <button
-                          key={grade.id}
-                          type="button"
-                          onClick={() =>
-                            updateProSetting("colorGrading", grade.id)
-                          }
-                          className={`p-2 rounded-lg text-left text-sm transition-all ${
-                            proSettings.colorGrading === grade.id
-                              ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                              : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="font-semibold">{grade.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {grade.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 7. OUTFIT */}
-                  {currentOutfits.length > 0 && (
-                    <div>
-                      <label
-                        className="block text-sm font-medium mb-2"
-                        style={{ color: "var(--primary)" }}
-                      >
-                        Outfit Style (
-                        {proSettings.gender === "masculine"
-                          ? "Masculino"
-                          : proSettings.gender === "feminine"
-                          ? "Femenino"
-                          : "Todos"}
-                        ):
-                      </label>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-                        {currentOutfits.map((outfit) => (
-                          <button
-                            key={outfit.id}
-                            type="button"
-                            onClick={() =>
-                              updateProSetting("outfit", outfit.id)
-                            }
-                            className={`p-2 rounded-lg text-left text-sm transition-all ${
-                              proSettings.outfit === outfit.id
-                                ? "bg-[var(--primary)]/10 border-2 border-[var(--primary)]"
-                                : "bg-white/5 border border-[var(--border)] hover:bg-white/10"
-                            }`}
-                          >
-                            <div className="font-semibold">{outfit.name}</div>
-                            <div className="text-xs text-gray-400">
-                              {outfit.description}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* BOTÓN GENERAR */}
-            <button
-              type="submit"
-              disabled={isLoading || (!prompt && !referenceImage)}
-              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black px-6 py-4 rounded-lg font-bold text-lg hover:shadow-2xl hover:from-[#FFC700] hover:to-[#FF9500] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-[#FFD700] disabled:hover:to-[#FFA500]"
+            {/* 6. OUTFIT */}
+            <ProSection
+              title="👔 Outfit"
+              description="Vestuario y estilo de ropa"
+              isOpen={openSections.outfit}
+              onToggle={() => toggleSection("outfit")}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} />
-                  <span>Generando...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={20} />
-                  <span>Generar Prompt Profesional</span>
-                </>
-              )}
-            </button>
-          </form>
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoSelections.autoOutfit}
+                    onChange={() => {
+                      toggleAutoSelection("autoOutfit");
+                      if (!autoSelections.autoOutfit) {
+                        updateProSetting("outfit", null);
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-gray-300">🤖 Decide tú</span>
+                </label>
 
-          {/* ANÁLISIS DE CALIDAD */}
-          <QualityAnalysis
-            analysis={qualityAnalysis}
-            isPro={isPro}
-            onApplySuggestions={handleApplySuggestions}
-            isApplying={isApplyingSuggestions}
-          />
+                {!autoSelections.autoOutfit && (
+                  <select
+                    value={proSettings.outfit || ""}
+                    onChange={(e) => updateProSetting("outfit", e.target.value)}
+                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                  >
+                    <option value="">-- Selecciona outfit --</option>
+                    {currentOutfits.map((outfit) => (
+                      <option key={outfit.id} value={outfit.id}>
+                        {outfit.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </ProSection>
 
-          {/* RESULTADO */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-lg">Prompt Generado:</h3>
-              {response && validation && (
-                <div
-                  className={`text-sm px-3 py-1 rounded-full ${
-                    validation.optimal
-                      ? "bg-green-500/20 text-green-400 border border-green-500/50"
-                      : validation.acceptable
-                      ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50"
-                      : "bg-red-500/20 text-red-400 border border-red-500/50"
-                  }`}
-                >
-                  {validation.length} caracteres • {validation.message}
-                </div>
-              )}
+            {/* 7. ILUMINACIÓN */}
+            <ProSection
+              title="💡 Iluminación"
+              description="Esquema de luces profesional"
+              isOpen={openSections.lighting}
+              onToggle={() => toggleSection("lighting")}
+            >
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoSelections.autoLighting}
+                    onChange={() => {
+                      toggleAutoSelection("autoLighting");
+                      if (!autoSelections.autoLighting) {
+                        updateProSetting("lighting", null);
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-gray-300">🤖 Decide tú</span>
+                </label>
+
+                {!autoSelections.autoLighting && (
+                  <select
+                    value={proSettings.lighting || ""}
+                    onChange={(e) => updateProSetting("lighting", e.target.value)}
+                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                  >
+                    <option value="">-- Selecciona iluminación --</option>
+                    {LIGHTING_SETUPS.map((light) => (
+                      <option key={light.id} value={light.id}>
+                        {light.name} - {light.description}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </ProSection>
+
+            {/* 8. CORRECCIÓN DE COLOR */}
+            <ProSection
+              title="🎨 Corrección de Color"
+              description="Look cinematográfico y filtros"
+              isOpen={openSections.colorGrading}
+              onToggle={() => toggleSection("colorGrading")}
+            >
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoSelections.autoColorGrading}
+                    onChange={() => {
+                      toggleAutoSelection("autoColorGrading");
+                      if (!autoSelections.autoColorGrading) {
+                        updateProSetting("colorGrading", null);
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <span className="text-gray-300">🤖 Decide tú</span>
+                </label>
+
+                {!autoSelections.autoColorGrading && (
+                  <select
+                    value={proSettings.colorGrading || ""}
+                    onChange={(e) => updateProSetting("colorGrading", e.target.value)}
+                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                  >
+                    <option value="">-- Selecciona filtro --</option>
+                    {COLOR_GRADING_FILTERS.map((filter) => (
+                      <option key={filter.id} value={filter.id}>
+                        {filter.name} - {filter.description}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </ProSection>
+
+          </div>
+        )}
+
+        {/* Prompt Input */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Describe lo que quieres generar
+            </label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Ej: Mujer joven en estudio con iluminación Rembrandt..."
+              className="w-full h-32 bg-gray-900/50 text-white rounded-lg p-4 border border-white/10 focus:border-purple-500 focus:outline-none resize-none"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading || !prompt.trim()}
+            className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Generando...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Generar Prompt Profesional
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Response */}
+        {response && (
+          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-white">
+                ✨ Prompt Generado
+              </h3>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Copiado
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copiar
+                  </>
+                )}
+              </button>
             </div>
-
-            <div className="bg-black/40 border border-[var(--border)] rounded-lg p-4">
-              <pre className="text-gray-300 whitespace-pre-wrap font-sans text-sm">
-                {response || "Aquí aparecerá el prompt generado..."}
-              </pre>
-              {response && (
-                <>
-                  <div className="mt-4 p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/30 rounded-lg text-sm">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="font-semibold">
-                        Optimizado para {PLATFORM_INFO[selectedPlatform].name}
-                      </span>
-                    </div>
-                    {selectedPlatform === "midjourney" && (
-                      <div className="text-xs text-gray-400">
-                        Los parámetros están al final del prompt. Puedes ajustar
-                        --ar, --s, --q según necesites.
-                      </div>
-                    )}
-                    {selectedPlatform === "nano-banana" && (
-                      <div className="text-xs text-gray-400">
-                        Este prompt está optimizado como párrafo continuo.
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={handleCopy}
-                      className="w-full flex items-center justify-center space-x-2 bg-[var(--surface)] text-white px-4 py-3 rounded-lg font-bold hover:bg-[var(--surface)]/80 transition"
-                    >
-                      {copied ? (
-                        <>
-                          <Check size={18} />
-                          <span>Copiado</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={18} />
-                          <span>Copiar Prompt</span>
-                        </>
-                      )}
-                    </button>
-
-                    {selectedPlatform === "nano-banana" && (
-                      <button
-                        type="button"
-                        onClick={handleUseInGemini}
-                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black px-4 py-3 rounded-lg font-bold hover:shadow-lg hover:from-[#FFC700] hover:to-[#FF9500] transition-all"
-                      >
-                        <Send size={18} />
-                        <span>Usar en Gemini</span>
-                      </button>
-                    )}
-
-                    {selectedPlatform === "midjourney" && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          window.open("https://www.midjourney.com", "_blank")
-                        }
-                        className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black px-4 py-3 rounded-lg font-bold hover:shadow-lg hover:from-[#FFC700] hover:to-[#FF9500] transition-all"
-                      >
-                        <ImageIcon size={18} />
-                        <span>Ir a Midjourney</span>
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
+            <div className="bg-gray-900/50 rounded-lg p-4 text-gray-300 whitespace-pre-wrap">
+              {response}
             </div>
           </div>
-        </AnimatedSection>
-      </div>
-    </section>
+        )}
+
+        {/* Quality Analysis */}
+        {qualityAnalysis && <QualityAnalysis analysis={qualityAnalysis} />}
+
+      </AnimatedSection>
+    </div>
+  );
+}
+
+// ============================================================================
+// COMPONENTE HELPER: ProSection
+// ============================================================================
+function ProSection({ title, description, isOpen, onToggle, children }) {
+  return (
+    <div className="border border-white/10 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 bg-gray-900/50 hover:bg-gray-900 transition-colors"
+      >
+        <div className="text-left">
+          <div className="font-medium text-white">{title}</div>
+          <div className="text-sm text-gray-400">{description}</div>
+        </div>
+        <span className="text-xl">
+          {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="p-4 bg-black/20">
+          {children}
+        </div>
+      )}
+    </div>
   );
 }

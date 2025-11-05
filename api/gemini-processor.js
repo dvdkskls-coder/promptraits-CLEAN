@@ -26,7 +26,7 @@ const KNOWLEDGE_BASE = {
         "5. Composición: Encuadre (close-up, medium shot), ángulo (eye level, low angle)",
         "6. Contexto/Fondo: Entorno, nivel de desenfoque",
         "7. Atmósfera/Mood: Tono emocional (cálido, dramático, sereno)",
-        "8. Orientación: 'vertical portrait format' o 'wide horizontal composition'"
+        "8. Orientación: 'vertical portrait format' o 'wide horizontal composition'",
       ],
       rules: {
         noNegativePrompts: true,
@@ -34,25 +34,27 @@ const KNOWLEDGE_BASE = {
         maxLength: "2500 caracteres",
         format: "Un párrafo continuo y fluido",
         conversational: true,
-        specifyOrientation: true
+        specifyOrientation: true,
       },
-      notes: "NO soporta prompts negativos. Usa contexto conversacional. Por defecto genera 1:1 (cuadrado)."
+      notes:
+        "NO soporta prompts negativos. Usa contexto conversacional. Por defecto genera 1:1 (cuadrado).",
     },
     midjourney: {
       name: "Midjourney V7",
       components: [
-        "[Sujeto detallado] + [Estilo] + [Iluminación] + [Composición] + [Ambiente] + [Parámetros]"
+        "[Sujeto detallado] + [Estilo] + [Iluminación] + [Composición] + [Ambiente] + [Parámetros]",
       ],
       parameters: {
         aspectRatio: "--ar [ratio] (1:1, 3:4, 4:3, 16:9, 9:16)",
         version: "--v [4-7] (default: 7)",
-        stylize: "--s [0-1000] (0-50: literal, 100: default, 200-1000: artístico)",
+        stylize:
+          "--s [0-1000] (0-50: literal, 100: default, 200-1000: artístico)",
         quality: "--q [0.25, 0.5, 1, 2] (default: 1)",
         chaos: "--c [0-100] (variedad entre resultados)",
         seed: "--seed [número] (reproducibilidad)",
         negative: "--no [elementos] (lo que NO quieres)",
         weird: "--weird [0-3000] (elementos inusuales)",
-        imageWeight: "--iw [0.5-3] (influencia de imagen referencia)"
+        imageWeight: "--iw [0.5-3] (influencia de imagen referencia)",
       },
       rules: {
         parametersAtEnd: true,
@@ -60,10 +62,11 @@ const KNOWLEDGE_BASE = {
         noCommasBetweenParams: true,
         detailedPrompts: true,
         photorealismStylize: "0-100",
-        conceptArtStylize: "200-1000"
+        conceptArtStylize: "200-1000",
       },
-      notes: "Parámetros al FINAL separados por espacios. Seed para reproducibilidad exacta."
-    }
+      notes:
+        "Parámetros al FINAL separados por espacios. Seed para reproducibilidad exacta.",
+    },
   },
 
   // MÓDULO 2: ILUMINACIÓN PROFESIONAL
@@ -71,127 +74,143 @@ const KNOWLEDGE_BASE = {
     classicSchemes: {
       rembrandt: {
         name: "Rembrandt Lighting",
-        description: "Luz principal a 45° del sujeto, ligeramente elevada. Crea triángulo de luz en mejilla opuesta.",
+        description:
+          "Luz principal a 45° del sujeto, ligeramente elevada. Crea triángulo de luz en mejilla opuesta.",
         mood: "Dramático, clásico, volumen y carácter",
-        prompt: "Rembrandt lighting with triangle of light on cheek, dramatic shadows, 45-degree key light",
-        use: "Retratos profesionales, cine, fotografía dramática"
+        prompt:
+          "Rembrandt lighting with triangle of light on cheek, dramatic shadows, 45-degree key light",
+        use: "Retratos profesionales, cine, fotografía dramática",
       },
       butterfly: {
         name: "Butterfly Lighting",
-        description: "Luz desde arriba y frontal. Crea sombra bajo la nariz en forma de mariposa.",
+        description:
+          "Luz desde arriba y frontal. Crea sombra bajo la nariz en forma de mariposa.",
         mood: "Glamuroso, define pómulos, elegante",
-        prompt: "butterfly lighting from above, shadow under nose, glamorous beauty lighting",
-        use: "Retratos de belleza, moda, fotografía glamour"
+        prompt:
+          "butterfly lighting from above, shadow under nose, glamorous beauty lighting",
+        use: "Retratos de belleza, moda, fotografía glamour",
       },
       loop: {
         name: "Loop Lighting",
-        description: "Luz a 45° y ligeramente elevada. Sombra en forma de bucle desde nariz hacia mejilla.",
+        description:
+          "Luz a 45° y ligeramente elevada. Sombra en forma de bucle desde nariz hacia mejilla.",
         mood: "Versátil, favorecedor, menos contrastado que Rembrandt",
-        prompt: "loop lighting, slight nose shadow toward cheek, flattering portrait setup",
-        use: "Retratos generales, corporativos, versatilidad"
+        prompt:
+          "loop lighting, slight nose shadow toward cheek, flattering portrait setup",
+        use: "Retratos generales, corporativos, versatilidad",
       },
       split: {
         name: "Split Lighting",
-        description: "Mitad del rostro iluminado, mitad en sombra. Muy dramático.",
+        description:
+          "Mitad del rostro iluminado, mitad en sombra. Muy dramático.",
         mood: "Dramático, misterioso, alto contraste",
         prompt: "split lighting, one half of face in shadow, dramatic contrast",
-        use: "Retratos dramáticos, arte conceptual"
+        use: "Retratos dramáticos, arte conceptual",
       },
       broad: {
         name: "Broad Lighting",
         description: "Lado del rostro hacia la cámara está iluminado.",
         mood: "Ensancha el rostro",
         prompt: "broad lighting, camera-facing side illuminated",
-        use: "Rostros delgados que se quieren ensanchar"
+        use: "Rostros delgados que se quieren ensanchar",
       },
       short: {
         name: "Short Lighting",
-        description: "Lado del rostro alejado de la cámara está iluminado. Adelgaza.",
+        description:
+          "Lado del rostro alejado de la cámara está iluminado. Adelgaza.",
         mood: "Adelgaza, esculpe el rostro",
         prompt: "short lighting, shadow on camera-facing side, slimming effect",
-        use: "Rostros anchos que se quieren adelgazar"
-      }
+        use: "Rostros anchos que se quieren adelgazar",
+      },
     },
     quality: {
       soft: {
         name: "Luz Suave (Difusa)",
         description: "Sombras graduales, transiciones suaves, favorecedora",
         sources: "softbox, día nublado, ventana con cortina, luz rebotada",
-        prompt: "soft diffused lighting, gentle shadows, flattering illumination",
-        use: "Retratos, belleza, fotografía corporativa"
+        prompt:
+          "soft diffused lighting, gentle shadows, flattering illumination",
+        use: "Retratos, belleza, fotografía corporativa",
       },
       hard: {
         name: "Luz Dura",
         description: "Sombras marcadas, alto contraste, dramática",
         sources: "sol directo, flash desnudo, luz puntual sin difusor",
         prompt: "hard lighting, sharp shadows, high contrast, dramatic",
-        use: "Fotografía dramática, moda edgy, arte conceptual"
-      }
+        use: "Fotografía dramática, moda edgy, arte conceptual",
+      },
     },
     timeOfDay: {
       goldenHour: {
         name: "Golden Hour",
         description: "Poco después del amanecer o antes del atardecer",
         prompt: "warm golden hour light, sunset glow, magical warm tones",
-        mood: "Cálido, mágico, romántico"
+        mood: "Cálido, mágico, romántico",
       },
       blueHour: {
         name: "Blue Hour",
         description: "Crepúsculo, antes del amanecer o después del atardecer",
         prompt: "blue hour lighting, twilight atmosphere, deep blue tones",
-        mood: "Melancólico, sereno, cinematográfico"
+        mood: "Melancólico, sereno, cinematográfico",
       },
       midday: {
         name: "Midday",
         description: "Sol alto, mediodía",
         prompt: "harsh midday sun, overhead lighting, strong shadows",
-        mood: "Duro, contrastado (evitar para retratos salvo con difusores)"
+        mood: "Duro, contrastado (evitar para retratos salvo con difusores)",
       },
       overcast: {
         name: "Overcast",
         description: "Día nublado, luz difusa natural",
         prompt: "soft overcast light, cloudy day diffusion, even illumination",
-        mood: "Suave, uniforme, ideal para retratos exteriores"
-      }
+        mood: "Suave, uniforme, ideal para retratos exteriores",
+      },
     },
     direction: {
-      frontal: "Luz apunta directamente al sujeto. Reduce sombras, puede aplanar.",
-      lateral: "Luz desde el lado. Resalta forma y textura, dramático con volumen.",
+      frontal:
+        "Luz apunta directamente al sujeto. Reduce sombras, puede aplanar.",
+      lateral:
+        "Luz desde el lado. Resalta forma y textura, dramático con volumen.",
       trasera: "Contraluz desde detrás. Crea siluetas o halo (rim light).",
-      cenital: "Desde arriba. Evitar en retratos (sombras en ojos). Útil para efectos.",
-      uplighting: "Desde abajo. Efecto inquietante, poco natural."
-    }
+      cenital:
+        "Desde arriba. Evitar en retratos (sombras en ojos). Útil para efectos.",
+      uplighting: "Desde abajo. Efecto inquietante, poco natural.",
+    },
   },
 
   // MÓDULO 3: LENTES Y ESPECIFICACIONES TÉCNICAS
   lenses: {
     "24-35mm": {
       type: "Gran angular",
-      characteristics: "Captura más contexto, ligera distorsión en rostros si muy cerca",
+      characteristics:
+        "Captura más contexto, ligera distorsión en rostros si muy cerca",
       use: "Paisajes, arquitectura, retratos ambientales",
-      prompt: "24mm wide angle lens, environmental context, slight perspective distortion"
+      prompt:
+        "24mm wide angle lens, environmental context, slight perspective distortion",
     },
     "50mm": {
       type: "Normal (visión ojo humano)",
       characteristics: "Versátil, perspectiva natural",
       use: "Todo tipo de fotografía, street, retratos",
       aperture: "f/1.4, f/1.8 muy común",
-      prompt: "50mm f/1.8 lens, natural perspective, versatile framing"
+      prompt: "50mm f/1.8 lens, natural perspective, versatile framing",
     },
     "85mm": {
       type: "Retrato clásico - REY DEL RETRATO",
-      characteristics: "Compresión favorable, bokeh hermoso, perspectiva halagadora",
+      characteristics:
+        "Compresión favorable, bokeh hermoso, perspectiva halagadora",
       use: "Retratos profesionales, headshots, moda",
       aperture: "f/1.2, f/1.4, f/1.8, f/2",
-      prompt: "85mm f/1.2 lens, shallow depth of field, creamy bokeh, professional portrait",
-      notes: "El más usado en retratos profesionales"
+      prompt:
+        "85mm f/1.2 lens, shallow depth of field, creamy bokeh, professional portrait",
+      notes: "El más usado en retratos profesionales",
     },
     "135-200mm": {
       type: "Teleobjetivo",
       characteristics: "Gran compresión, aísla sujeto del fondo",
       use: "Retratos íntimos, moda, detalles",
-      prompt: "135mm telephoto lens, strong compression, isolated subject"
-    }
+      prompt: "135mm telephoto lens, strong compression, isolated subject",
+    },
   },
 
   // MÓDULO 4: FILTROS CINEMATOGRÁFICOS
@@ -199,56 +218,72 @@ const KNOWLEDGE_BASE = {
     diffusion: {
       blackProMist: {
         name: "Black Pro-Mist (⭐ MÁS USADO EN CINE)",
-        effect: "Suaviza imagen, crea halo en luces brillantes, look cinematográfico vs digital",
-        intensities: ["1/8 (muy sutil)", "1/4 (sutil)", "1/2 (moderado)", "1 (fuerte)", "2 (muy fuerte)"],
+        effect:
+          "Suaviza imagen, crea halo en luces brillantes, look cinematográfico vs digital",
+        intensities: [
+          "1/8 (muy sutil)",
+          "1/4 (sutil)",
+          "1/2 (moderado)",
+          "1 (fuerte)",
+          "2 (muy fuerte)",
+        ],
         use: "Casi TODA película/serie moderna usa esto. Retratos, cine, moda.",
-        prompt: "soft diffused highlights with Black Pro-Mist effect, cinematic halation on bright lights, organic film-like quality",
-        notes: "Reduce nitidez digital, baja contraste, florece las altas luces. Intensidades bajas (1/8, 1/4) para no delatar mucho el efecto."
+        prompt:
+          "soft diffused highlights with Black Pro-Mist effect, cinematic halation on bright lights, organic film-like quality",
+        notes:
+          "Reduce nitidez digital, baja contraste, florece las altas luces. Intensidades bajas (1/8, 1/4) para no delatar mucho el efecto.",
       },
       hollywoodBlackMagic: {
         name: "Hollywood Black Magic",
         effect: "Pro-Mist + low contrast combinado",
-        prompt: "Hollywood Black Magic filter effect, combined diffusion and contrast reduction"
+        prompt:
+          "Hollywood Black Magic filter effect, combined diffusion and contrast reduction",
       },
       glimmerglass: {
         name: "Glimmerglass",
         effect: "Partículas brillantes que dan glamour",
-        prompt: "Glimmerglass filter effect, glamorous sparkle on highlights"
+        prompt: "Glimmerglass filter effect, glamorous sparkle on highlights",
       },
       softFocus: {
         name: "Soft Focus",
         effect: "Aspecto soñador, romántico",
-        prompt: "soft focus effect, dreamy romantic atmosphere"
-      }
+        prompt: "soft focus effect, dreamy romantic atmosphere",
+      },
     },
     nd: {
       name: "ND (Neutral Density)",
       effect: "Reduce luz sin alterar colores. 'Gafas de sol para la cámara'",
-      intensities: "ND2 (1 stop), ND4 (2 stops), ND8 (3 stops), ND64 (6 stops), ND1000 (10 stops)",
+      intensities:
+        "ND2 (1 stop), ND4 (2 stops), ND8 (3 stops), ND64 (6 stops), ND1000 (10 stops)",
       use: {
         longExposure: "Largas exposiciones de día (efecto seda en agua)",
-        wideAperture: "Apertura amplia bajo sol fuerte (f/1.4 sin sobreexponer)",
-        video: "OBLIGATORIO en video exterior para mantener 1/48s (regla 180°)"
+        wideAperture:
+          "Apertura amplia bajo sol fuerte (f/1.4 sin sobreexponer)",
+        video: "OBLIGATORIO en video exterior para mantener 1/48s (regla 180°)",
       },
-      prompt: "shallow depth of field achieved with ND filter, wide aperture in bright conditions"
+      prompt:
+        "shallow depth of field achieved with ND filter, wide aperture in bright conditions",
     },
     polarizer: {
       name: "CPL (Polarizador Circular)",
-      effect: "Elimina reflejos en superficies no metálicas, oscurece cielos, satura colores",
+      effect:
+        "Elimina reflejos en superficies no metálicas, oscurece cielos, satura colores",
       lossOfLight: "-2 a -3 stops",
       use: {
         reflections: "Elimina reflejos en agua, vidrio, piel brillante",
         sky: "Oscurece cielos azules (más dramáticos con sol a 90°)",
         colors: "Aumenta saturación de colores (especialmente verdes)",
-        skin: "Reduce brillos en piel (retratos exteriores)"
+        skin: "Reduce brillos en piel (retratos exteriores)",
       },
-      prompt: "polarized light reducing skin reflections, darkened sky with saturated colors, enhanced color depth"
+      prompt:
+        "polarized light reducing skin reflections, darkened sky with saturated colors, enhanced color depth",
     },
     streak: {
       name: "Streak Filters (Anamorphic Flare)",
       effect: "Destello horizontal azul imitando lentes anamórficas",
-      prompt: "anamorphic lens flare with blue horizontal streak, cinematic sci-fi look"
-    }
+      prompt:
+        "anamorphic lens flare with blue horizontal streak, cinematic sci-fi look",
+    },
   },
 
   // MÓDULO 5: COLOR GRADING (Capture One Style)
@@ -257,101 +292,124 @@ const KNOWLEDGE_BASE = {
       tealOrange: {
         name: "Teal & Orange (Hollywood)",
         description: "Sombras cian/azul, luces naranjas/amarillas",
-        prompt: "cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster look",
-        use: "Muy usado en cine comercial, moda, publicidad"
+        prompt:
+          "cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster look",
+        use: "Muy usado en cine comercial, moda, publicidad",
       },
       warm: {
         name: "Warm Tones",
         description: "Tonos cálidos en toda la imagen",
-        prompt: "warm color grading, golden tones, cozy atmosphere"
+        prompt: "warm color grading, golden tones, cozy atmosphere",
       },
       cool: {
         name: "Cool Tones",
         description: "Tonos fríos, azules",
-        prompt: "cool color grading, blue tones, cinematic cold atmosphere"
+        prompt: "cool color grading, blue tones, cinematic cold atmosphere",
       },
       vintage: {
         name: "Vintage Film",
-        description: "Contraste reducido, tonos pastel, levantamiento de sombras",
-        prompt: "vintage film look, reduced contrast, lifted shadows, pastel tones, nostalgic atmosphere"
-      }
+        description:
+          "Contraste reducido, tonos pastel, levantamiento de sombras",
+        prompt:
+          "vintage film look, reduced contrast, lifted shadows, pastel tones, nostalgic atmosphere",
+      },
     },
     mood: {
       highKey: {
         name: "High-Key",
-        description: "Brillante, sombras levantadas, predominio de tonos claros",
-        prompt: "high-key lighting setup, bright tones, lifted shadows, optimistic mood",
-        use: "Fotografía comercial, optimismo, ligereza"
+        description:
+          "Brillante, sombras levantadas, predominio de tonos claros",
+        prompt:
+          "high-key lighting setup, bright tones, lifted shadows, optimistic mood",
+        use: "Fotografía comercial, optimismo, ligereza",
       },
       lowKey: {
         name: "Low-Key",
         description: "Oscuro, contraste alto, predominio de sombras",
-        prompt: "low-key lighting, dramatic shadows, high contrast, mysterious dark atmosphere",
-        use: "Drama, misterio, intensidad, film noir"
-      }
+        prompt:
+          "low-key lighting, dramatic shadows, high contrast, mysterious dark atmosphere",
+        use: "Drama, misterio, intensidad, film noir",
+      },
     },
     adjustments: {
       liftedShadows: "lifted shadows revealing detail in dark areas",
-      reducedHighlights: "reduced highlights preserving sky detail without clipping",
+      reducedHighlights:
+        "reduced highlights preserving sky detail without clipping",
       dehaze: "dehaze applied removing atmospheric haze, increased clarity",
-      clarityPunch: "enhanced clarity using punch method, increased midtone contrast",
+      clarityPunch:
+        "enhanced clarity using punch method, increased midtone contrast",
       clarityNatural: "natural clarity enhancement, subtle detail boost",
-      skinUniformity: "skin tone uniformity adjustment for even complexion, reduced color variations"
-    }
+      skinUniformity:
+        "skin tone uniformity adjustment for even complexion, reduced color variations",
+    },
   },
 
   // MÓDULO 6: EXPRESIONES Y EMOCIONES
   emotions: {
     joy: "genuine warm smile, eyes crinkling with joy, radiant happiness, authentic laughter",
-    confidence: "confident gaze, strong direct eye contact, slight smirk, assured expression, powerful presence",
-    serenity: "peaceful expression, calm demeanor, soft gentle smile, relaxed features, tranquil atmosphere",
-    contemplative: "contemplative look, gazing into distance, slightly furrowed brow, thoughtful expression, introspective mood",
-    mysterious: "enigmatic expression, subtle Mona Lisa smile, intense penetrating gaze, secretive aura",
-    serious: "serious professional expression, neutral face, composed demeanor, business-like attitude",
-    playful: "playful expression, mischievous smile, bright eyes, fun energy"
+    confidence:
+      "confident gaze, strong direct eye contact, slight smirk, assured expression, powerful presence",
+    serenity:
+      "peaceful expression, calm demeanor, soft gentle smile, relaxed features, tranquil atmosphere",
+    contemplative:
+      "contemplative look, gazing into distance, slightly furrowed brow, thoughtful expression, introspective mood",
+    mysterious:
+      "enigmatic expression, subtle Mona Lisa smile, intense penetrating gaze, secretive aura",
+    serious:
+      "serious professional expression, neutral face, composed demeanor, business-like attitude",
+    playful: "playful expression, mischievous smile, bright eyes, fun energy",
   },
 
   // MÓDULO 7: PROFUNDIDAD DE CAMPO Y BOKEH
   depthOfField: {
     shallow: {
       description: "Poca profundidad, fondo muy desenfocado",
-      howToAchieve: "Apertura amplia (f/1.4 - f/2.8), cerca del sujeto, lentes largos (85mm+), sensor grande",
-      prompt: "extremely shallow depth of field, f/1.2 aperture, creamy bokeh background, subject isolation",
-      use: "Retratos, aislar sujeto, look profesional"
+      howToAchieve:
+        "Apertura amplia (f/1.4 - f/2.8), cerca del sujeto, lentes largos (85mm+), sensor grande",
+      prompt:
+        "extremely shallow depth of field, f/1.2 aperture, creamy bokeh background, subject isolation",
+      use: "Retratos, aislar sujeto, look profesional",
     },
     deep: {
       description: "Gran profundidad, todo enfocado",
-      howToAchieve: "Apertura cerrada (f/8 - f/16), alejado del sujeto, gran angular",
-      prompt: "deep depth of field, f/11 aperture, everything in sharp focus from foreground to background",
-      use: "Paisajes, fotografía de grupo, arquitectura"
-    }
+      howToAchieve:
+        "Apertura cerrada (f/8 - f/16), alejado del sujeto, gran angular",
+      prompt:
+        "deep depth of field, f/11 aperture, everything in sharp focus from foreground to background",
+      use: "Paisajes, fotografía de grupo, arquitectura",
+    },
   },
 
   // MÓDULO 8: COMPOSICIÓN Y ENCUADRE
   composition: {
     shotTypes: {
-      extremeCloseUp: "Extreme close-up (ECU), solo parte del rostro (ej: ojos)",
+      extremeCloseUp:
+        "Extreme close-up (ECU), solo parte del rostro (ej: ojos)",
       closeUp: "Close-up (CU), rostro completo desde hombros",
       mediumCloseUp: "Medium close-up (MCU), desde pecho hacia arriba",
       mediumShot: "Medium shot (MS), desde cintura hacia arriba",
       americanShot: "American shot, tres cuartos desde rodillas",
       fullShot: "Full shot (FS), cuerpo completo de pies a cabeza",
-      longShot: "Long shot (LS), sujeto en entorno amplio"
+      longShot: "Long shot (LS), sujeto en entorno amplio",
     },
     cameraAngles: {
-      eyeLevel: "Eye level angle, neutral natural perspective at subject's eye height",
-      highAngle: "High angle (picado), camera above looking down, suggests vulnerability",
-      lowAngle: "Low angle (contrapicado), camera below looking up, powerful imposing perspective",
+      eyeLevel:
+        "Eye level angle, neutral natural perspective at subject's eye height",
+      highAngle:
+        "High angle (picado), camera above looking down, suggests vulnerability",
+      lowAngle:
+        "Low angle (contrapicado), camera below looking up, powerful imposing perspective",
       birdsEye: "Bird's eye view, directly from above, top-down perspective",
-      dutchAngle: "Dutch angle, tilted camera, dynamic tension, unease"
+      dutchAngle: "Dutch angle, tilted camera, dynamic tension, unease",
     },
     rules: {
-      ruleOfThirds: "rule of thirds composition, subject placed at intersection points",
+      ruleOfThirds:
+        "rule of thirds composition, subject placed at intersection points",
       goldenRatio: "golden ratio composition, natural harmonious placement",
       centered: "centered composition, symmetrical balanced framing",
       leadingLines: "leading lines directing eye to subject",
-      negativeSpace: "negative space composition, minimalist approach"
-    }
+      negativeSpace: "negative space composition, minimalist approach",
+    },
   },
 
   // MÓDULO 9: ERRORES COMUNES A EVITAR
@@ -363,7 +421,7 @@ const KNOWLEDGE_BASE = {
       "✅ SÍ especificar encuadre y ángulo claramente",
       "✅ SÍ usar orientación específica ('vertical portrait format')",
       "✅ SÍ mantener coherencia en la descripción",
-      "✅ SÍ usar contexto conversacional"
+      "✅ SÍ usar contexto conversacional",
     ],
     midjourney: [
       "❌ NO poner parámetros al principio (van al FINAL)",
@@ -372,15 +430,15 @@ const KNOWLEDGE_BASE = {
       "✅ SÍ ser más explícito y detallado que en V4",
       "✅ SÍ especificar versión si no quieres V7 (--v 6)",
       "✅ SÍ usar --s bajo (0-100) para fotorrealismo",
-      "✅ SÍ usar --seed para reproducibilidad exacta"
+      "✅ SÍ usar --seed para reproducibilidad exacta",
     ],
     general: [
       "❌ NO describir el equipo físico de iluminación que aparecería en la imagen (softbox, umbrella)",
       "✅ SÍ describir la CALIDAD y EFECTO de la luz (soft, hard, diffused, directional)",
       "❌ NO usar descripciones genéricas ('foto bonita de una mujer')",
-      "✅ SÍ ser específico con todos los elementos (edad, rasgos, iluminación, técnica)"
-    ]
-  }
+      "✅ SÍ ser específico con todos los elementos (edad, rasgos, iluminación, técnica)",
+    ],
+  },
 };
 
 // ============================================================================
@@ -397,7 +455,7 @@ function generateSystemPrompt(platform, userData) {
     shotType,
     outfitStyle,
     environment,
-    proSettings // ✅ AGREGADO: Extraer proSettings
+    proSettings, // ✅ AGREGADO: Extraer proSettings
   } = userData;
 
   // BASE COMÚN PARA AMBAS PLATAFORMAS
@@ -420,7 +478,7 @@ ${JSON.stringify(KNOWLEDGE_BASE, null, 2)}
   // ============================================================================
   // NANO-BANANA (GOOGLE GEMINI) - SYSTEM PROMPT
   // ============================================================================
-  if (platform === 'nano-banana') {
+  if (platform === "nano-banana") {
     systemPrompt += `
 ╔═══════════════════════════════════════════════════════════════╗
 ║              PLATFORM: NANO-BANANA (GOOGLE GEMINI)            ║
@@ -540,7 +598,7 @@ EXAMPLE WITHOUT REFERENCE IMAGE (you CAN describe the person):
   // ============================================================================
   // MIDJOURNEY - SYSTEM PROMPT
   // ============================================================================
-  else if (platform === 'midjourney') {
+  else if (platform === "midjourney") {
     systemPrompt += `
 ╔═══════════════════════════════════════════════════════════════╗
 ║                    PLATFORM: MIDJOURNEY V7                    ║
@@ -683,7 +741,6 @@ ${scenario}`;
 - Color temperature: ${sliders.temperature}K`;
   }
 
-
   // ============================================================================
   // HERRAMIENTAS PRO (OPCIONAL) - SIMPLIFICADAS
   // ============================================================================
@@ -691,11 +748,11 @@ ${scenario}`;
     // 0. GÉNERO (SOLO SI EL USUARIO LO SELECCIONÓ EXPLÍCITAMENTE)
     // Si el usuario no selecciona género, el prompt debe ser completamente neutro
     let gender = null;
-    let genderInstruction = '';
-    
-    if (proSettings.gender && proSettings.gender !== 'neutral') {
+    let genderInstruction = "";
+
+    if (proSettings.gender && proSettings.gender !== "neutral") {
       gender = proSettings.gender; // 'male' o 'female'
-      
+
       genderInstruction = `\n\n
 ╔═══════════════════════════════════════════════════════════════╗
 ║               🚹🚺 GENDER SPECIFICATION ACTIVE                ║
@@ -703,25 +760,29 @@ ${scenario}`;
 
 The user has EXPLICITLY selected: ${gender.toUpperCase()}
 
-${gender === 'male' ? `
+${
+  gender === "male"
+    ? `
 FOR MALE AESTHETIC:
 - Poses: More structured, confident, powerful stances
 - Expressions: Strong, determined, assertive (or relaxed confidence)
 - Outfit context: Typically masculine clothing styles
 - Composition: Strong lines, bold framing
-` : `
+`
+    : `
 FOR FEMALE AESTHETIC:
 - Poses: Can include more fluid, graceful movements
 - Expressions: Range from soft elegance to powerful confidence
 - Outfit context: Typically feminine clothing styles  
 - Composition: Can use softer framing, elegant lines
-`}
+`
+}
 
 IMPORTANT: Even with gender specified, when there's a reference image:
 ❌ Still NEVER mention "man", "woman", "male", "female" in the prompt
 ✅ Instead, adapt pose style and composition to the selected aesthetic
 ✅ The face comes from the photo - gender only guides the overall aesthetic`;
-      
+
       systemPrompt += genderInstruction;
     } else {
       // Sin género seleccionado = prompt completamente neutro
@@ -740,85 +801,219 @@ YOUR PROMPT MUST BE COMPLETELY GENDER-NEUTRAL:
 ✅ Describe pose, expression, outfit WITHOUT gender assumptions
 ✅ The aesthetic should work for ANY person`;
     }
-    
-    // 1. ILUMINACIÓN
+
+    // 1. ILUMINACIÓN PROFESIONAL (EXPANDIDO PRO V2.0)
     if (proSettings.lighting) {
       const lightingNames = {
-        'rembrandt': 'Rembrandt',
-        'butterfly': 'Butterfly',
-        'loop': 'Loop',
-        'split': 'Split',
-        'broad': 'Broad',
-        'short': 'Short'
+        rembrandt: "Rembrandt",
+        butterfly: "Butterfly",
+        loop: "Loop",
+        split: "Split",
+        broad: "Broad",
+        short: "Short",
+        "golden-hour": "Golden Hour",
+        "blue-hour": "Blue Hour",
+        softbox: "Soft Diffused (Softbox Style)",
+        "hard-light": "Hard Dramatic Light",
+        "rim-light": "Rim Light / Backlight",
+        "three-point": "Three-Point Studio",
+        "natural-window": "Natural Window Light",
+        overcast: "Soft Overcast",
+        "high-key": "High-Key Bright",
+        "low-key": "Low-Key Dramatic",
+        "clamshell": "Clamshell Beauty",
+        paramount: "Paramount / Butterfly",
+        "side-light": "Dramatic Side Light",
+        "top-light": "Top Light / Hair Light",
+        "bounce": "Soft Bounce / Reflected",
+        "led-panel": "LED Panel Continuous",
+        "mixed-temp": "Mixed Temperature Creative",
       };
-      const lightName = lightingNames[proSettings.lighting] || proSettings.lighting;
+      const lightName =
+        lightingNames[proSettings.lighting] || proSettings.lighting;
       systemPrompt += `\n\n💡 LIGHTING SCHEME SPECIFIED:
-Apply ${lightName} lighting setup from KNOWLEDGE_BASE.lighting.classicSchemes`;
+Apply ${lightName} lighting setup from KNOWLEDGE_BASE.lighting.
+Use professional ratios (e.g., 3:1, 4:1), specify color temperature (in Kelvin), and describe light quality (hard/soft).`;
     }
-    
+
     // 2. LENTE
     if (proSettings.lens) {
       systemPrompt += `\n\n🎯 LENS SPECIFIED:
 Use ${proSettings.lens} lens from KNOWLEDGE_BASE.lenses`;
     }
-    
-    // 3. COLOR GRADING
+
+    // 3. COLOR GRADING CINEMATOGRÁFICO (EXPANDIDO PRO V2.0)
     if (proSettings.colorGrading) {
       const gradingNames = {
-        'teal-orange': 'Teal & Orange',
-        'vintage': 'Vintage Film',
-        'high-key': 'High-Key',
-        'low-key': 'Low-Key',
-        'warm': 'Warm Tones',
-        'cool': 'Cool Tones'
+        "teal-orange": "Teal & Orange (Hollywood Blockbuster)",
+        vintage: "Vintage Film (Lifted Shadows)",
+        "high-key": "High-Key Bright",
+        "low-key": "Low-Key Dramatic",
+        warm: "Warm Golden Tones",
+        cool: "Cool Blue Tones",
+        "desaturated": "Desaturated Muted",
+        "vibrant": "Vibrant Saturated Colors",
+        "film-noir": "Film Noir B&W Contrast",
+        "sepia": "Sepia Nostalgic",
+        "faded": "Faded Retro Film",
+        "cinematic-blue": "Cinematic Blue Shadows",
+        "orange-teal": "Orange Teal Split Toning",
+        "bleach-bypass": "Bleach Bypass Silver Retention",
+        "cross-process": "Cross Process Shifted Hues",
+        "fuji": "Fujifilm Velvia Colors",
+        "kodak": "Kodak Portra Skin Tones",
+        "agfa": "Agfa Vista Warm Cast",
+        "ilford": "Ilford HP5 Grainy B&W",
+        "tri-x": "Kodak Tri-X Classic B&W",
+        "autumn": "Autumn Warm Orange Red",
+        "spring": "Spring Fresh Green Pastels",
+        "summer": "Summer Bright Saturated",
+        "winter": "Winter Cold Blue Steel",
+        "sunset": "Sunset Golden Purple",
+        "cyberpunk": "Cyberpunk Neon Magenta Cyan",
+        "natural": "Natural True Colors Minimal",
       };
-      const gradingName = gradingNames[proSettings.colorGrading] || proSettings.colorGrading;
+      const gradingName =
+        gradingNames[proSettings.colorGrading] || proSettings.colorGrading;
       systemPrompt += `\n\n🎨 COLOR GRADING SPECIFIED:
-Apply ${gradingName} color grading from KNOWLEDGE_BASE.colorGrading`;
+Apply ${gradingName} color grading style from KNOWLEDGE_BASE.colorGrading.
+Include specific curve adjustments, shadow/highlight toning, and color temperature shifts.`;
     }
-    
+
     // 4. FILTRO
     if (proSettings.filter) {
       const filterNames = {
-        'black-pro-mist': 'Black Pro-Mist',
-        'nd': 'ND Filter',
-        'polarizer': 'Polarizer (CPL)',
-        'anamorphic': 'Anamorphic Flare'
+        "black-pro-mist": "Black Pro-Mist",
+        nd: "ND Filter",
+        polarizer: "Polarizer (CPL)",
+        anamorphic: "Anamorphic Flare",
       };
       const filterName = filterNames[proSettings.filter] || proSettings.filter;
       systemPrompt += `\n\n🎬 FILTER SPECIFIED:
 Apply ${filterName} filter effect from KNOWLEDGE_BASE.filters`;
     }
-    
+
     // 5. ASPECT RATIO
     if (proSettings.aspectRatio) {
-      if (platform === 'nano-banana') {
+      if (platform === "nano-banana") {
         // Para nano-banana, traducir a orientación en lenguaje natural
         const orientationMap = {
-          '1:1': 'square composition format',
-          '3:4': 'vertical portrait format',
-          '4:5': 'vertical portrait format',
-          '9:16': 'vertical portrait format for mobile/stories',
-          '16:9': 'wide horizontal composition',
-          '4:3': 'horizontal landscape format'
+          "1:1": "square composition format",
+          "3:4": "vertical portrait format",
+          "4:5": "vertical portrait format",
+          "9:16": "vertical portrait format for mobile/stories",
+          "16:9": "wide horizontal composition",
+          "4:3": "horizontal landscape format",
         };
-        systemPrompt += `\n\n📱 ASPECT RATIO SPECIFIED: ${orientationMap[proSettings.aspectRatio]}`;
-      } else if (platform === 'midjourney') {
+        systemPrompt += `\n\n📱 ASPECT RATIO SPECIFIED: ${
+          orientationMap[proSettings.aspectRatio]
+        }`;
+      } else if (platform === "midjourney") {
         // Para Midjourney, añadir como instrucción (el parámetro se añade al final automáticamente)
         systemPrompt += `\n\n📱 ASPECT RATIO SPECIFIED: Use --ar ${proSettings.aspectRatio} parameter`;
       }
     }
-    
-    // 6. OUTFIT (usando los nuevos catálogos separados por género)
+
+    // 6. POSES PROFESIONALES (NUEVO PRO V2.0)
+    if (proSettings.pose) {
+      const poseId = proSettings.pose;
+
+      // Detectar si es una pose de pareja (couple)
+      if (poseId.startsWith("couple_")) {
+        systemPrompt += `\n\n🤝 COUPLE POSE SPECIFIED:
+The user has selected a COUPLE/DUO portrait pose: "${poseId}".
+
+CRITICAL INSTRUCTIONS FOR COUPLE PORTRAITS:
+- There are TWO people in this portrait
+- When analyzing the reference image(s), look for @img1 and @img2 markers
+- Describe the INTERACTION and POSITIONING between both subjects
+- Focus on: body positioning, emotional connection, spatial relationship, gaze direction between subjects
+- Each person's pose should complement the other
+- Maintain the emotional dynamic (romantic, friendly, professional, familial)
+
+WHAT TO DESCRIBE:
+✅ Relative positioning (side by side, facing each other, one behind)
+✅ Physical connection points (holding hands, arm around shoulder, standing close)
+✅ Gaze interaction (looking at each other, both looking at camera, looking away)
+✅ Emotional connection (intimate, playful, professional, warm)
+✅ Complementary poses and body language
+✅ Clothing and styling that works together
+
+${
+  !referenceImage
+    ? `
+IMPORTANT: Since there's NO reference image, you can describe both individuals briefly:
+- You may mention basic characteristics that distinguish them
+- Focus more on their interaction and emotional connection
+- Describe their complementary styling and poses
+`
+    : `
+IMPORTANT: With reference image(s), DO NOT describe physical appearance:
+- Focus ONLY on pose, positioning, and interaction
+- Describe emotional connection and body language
+- Never mention physical traits, only the relationship dynamic
+`
+}`;
+      } else {
+        // Pose individual (masculina o femenina)
+        if (gender) {
+          systemPrompt += `\n\n💃 PROFESSIONAL POSE SPECIFIED:
+The user has selected pose ID: "${poseId}" for a ${gender} portrait.
+Apply this professional pose style appropriate for ${
+            gender === "male" ? "masculine" : "feminine"
+          } portraiture.
+
+POSE GUIDANCE:
+- Interpret pose ID: "${poseId}"
+- Body position, posture, and weight distribution
+- Arm and hand placement
+- Head angle and direction
+- Shoulder positioning
+- Overall energy and confidence level
+- The pose should match the ${gender} aesthetic`;
+        } else {
+          systemPrompt += `\n\n💃 PROFESSIONAL POSE SPECIFIED:
+The user has selected pose ID: "${poseId}".
+Apply this professional pose style with gender-neutral body positioning.
+
+POSE GUIDANCE:
+- Interpret pose ID: "${poseId}"
+- Body position, posture, and weight distribution  
+- Arm and hand placement
+- Head angle and direction
+- Shoulder positioning
+- Overall energy and confidence level`;
+        }
+      }
+    } else if (!referenceImage) {
+      // Si NO hay pose seleccionada y NO hay imagen de referencia
+      // Gemini decide basándose en el contexto
+      if (gender) {
+        systemPrompt += `\n\n💃 POSE GUIDANCE:
+Choose an appropriate professional pose that fits the ${gender} aesthetic and matches the scene context.
+${
+  gender === "male"
+    ? "Consider masculine poses: confident stance, power poses, relaxed confidence, professional authority."
+    : "Consider feminine poses: graceful positioning, elegant stances, dynamic confidence, fluid movements."
+}`;
+      } else {
+        systemPrompt += `\n\n💃 POSE GUIDANCE:
+Choose an appropriate professional pose that matches the scene context. Use neutral, versatile body positioning that works for any person.`;
+      }
+    }
+
+    // 7. OUTFIT (usando los nuevos catálogos separados por género)
     if (proSettings.outfit) {
       // El frontend ya filtra por género y envía el outfit ID
       // Los catálogos separados (Outfits_women.js y Outfits_men.js) están en el frontend
       const outfitId = proSettings.outfit;
-      
+
       if (gender) {
         systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
 The user has selected outfit style ID: "${outfitId}" for a ${gender} aesthetic.
-Interpret this outfit style appropriately for ${gender === 'masculine' ? 'masculine' : 'feminine'} fashion.
+Interpret this outfit style appropriately for ${
+          gender === "male" ? "masculine" : "feminine"
+        } fashion.
 Describe the clothing details, style, and accessories that match this outfit ID while maintaining the ${gender} aesthetic.`;
       } else {
         systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
@@ -832,7 +1027,11 @@ Describe the clothing details, style, and accessories appropriate for this outfi
       if (gender) {
         systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
 Choose appropriate outfit that fits the ${gender} aesthetic and matches the scene context logically.
-${gender === 'masculine' ? 'Consider masculine styles: suits, casual wear, streetwear, smart casual, etc.' : 'Consider feminine styles: dresses, elegant wear, casual chic, feminine fashion, etc.'}`;
+${
+  gender === "masculine"
+    ? "Consider masculine styles: suits, casual wear, streetwear, smart casual, etc."
+    : "Consider feminine styles: dresses, elegant wear, casual chic, feminine fashion, etc."
+}`;
       } else {
         systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
 Choose appropriate outfit that matches the scene context logically. Use neutral, versatile clothing that works for any person.`;
@@ -980,15 +1179,19 @@ Interpret this request and create a professional ${platform} prompt incorporatin
 ╚═══════════════════════════════════════════════════════════════╝
 
 Generate the prompt NOW in ENGLISH.
-${platform === 'nano-banana' ? 
-  'Output: ONE continuous paragraph (1000-1800 characters optimal)' : 
-  'Output: Detailed prompt + parameters at the end'}
+${
+  platform === "nano-banana"
+    ? "Output: ONE continuous paragraph (1000-1800 characters optimal)"
+    : "Output: Detailed prompt + parameters at the end"
+}
 
 NO explanations, NO preamble, ONLY the prompt.
 Use professional photography terminology throughout.
 Be specific with technical values (angles, distances, temperatures, f-stops).
 
-${referenceImage ? `
+${
+  referenceImage
+    ? `
 
 ╔═══════════════════════════════════════════════════════════════╗
 ║              🚨 FINAL VERIFICATION REQUIRED 🚨               ║
@@ -1018,7 +1221,9 @@ The user uploaded a photo. The AI will use that EXACT face.
 Your prompt must NOT interfere with this process.
 DO NOT DESCRIBE THE PERSON. ONLY DESCRIBE THE SCENE AND PHOTOGRAPHY SETUP.
 
-` : ''}`;
+`
+    : ""
+}`;
 
   return systemPrompt;
 }
@@ -1065,14 +1270,16 @@ export default async function handler(req, res) {
       outfitStyle,
       environment,
       proSettings, // ✅ AGREGADO: Configuración PRO del usuario
-      platform = 'nano-banana' // ✅ NUEVO: Plataforma seleccionada
+      platform = "nano-banana", // ✅ NUEVO: Plataforma seleccionada
     } = req.body;
 
     const API_KEY = process.env.GEMINI_API_KEY;
 
     if (!API_KEY) {
       console.error("❌ API key no configurada");
-      return res.status(500).json({ error: "API key no configurada en el servidor" });
+      return res
+        .status(500)
+        .json({ error: "API key no configurada en el servidor" });
     }
 
     // MODO: APLICAR SUGERENCIAS (Solo PRO)
@@ -1088,14 +1295,18 @@ SUGGESTIONS TO APPLY (in Spanish, but apply them in English):
 ${suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n")}
 
 PLATFORM: ${platform}
-${platform === 'midjourney' ? 'Maintain all parameters at the end.' : 'Maintain single paragraph format.'}
+${
+  platform === "midjourney"
+    ? "Maintain all parameters at the end."
+    : "Maintain single paragraph format."
+}
 
 OUTPUT: Return ONLY the improved prompt. Apply all suggestions naturally.
 
 CRITICAL: Output ONLY the improved prompt, nothing else.`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1121,7 +1332,7 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       return res.status(200).json({
         prompt: improvedPrompt,
         qualityAnalysis: null,
-        platform
+        platform,
       });
     }
 
@@ -1144,7 +1355,7 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       shotType,
       outfitStyle,
       environment,
-      proSettings // ✅ AGREGADO: Pasar configuración PRO
+      proSettings, // ✅ AGREGADO: Pasar configuración PRO
     });
 
     // Construir body para Gemini
@@ -1165,7 +1376,7 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
     ];
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1191,7 +1402,11 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
     // Si es PRO y pide análisis de calidad
     let qualityAnalysis = null;
     if (isPro && analyzeQuality) {
-      qualityAnalysis = await analyzePromptQuality(generatedPrompt, platform, API_KEY);
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
     }
 
     console.log("✅ Prompt generado");
@@ -1199,7 +1414,7 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       prompt: generatedPrompt,
       qualityAnalysis: qualityAnalysis,
       platform,
-      validation
+      validation,
     });
   } catch (error) {
     console.error("❌ Error en gemini-processor:");
@@ -1220,26 +1435,27 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
 
 function validatePromptLength(prompt, platform) {
   const length = prompt.length;
-  
-  if (platform === 'nano-banana') {
+
+  if (platform === "nano-banana") {
     return {
       length,
       optimal: length >= 1000 && length <= 1800,
       acceptable: length >= 800 && length <= 2500,
-      message: length < 1000 
-        ? '⚠️ Prompt un poco corto. Óptimo: 1200-1600 caracteres.'
-        : length > 1800
-        ? '⚠️ Prompt un poco largo. Óptimo: 1200-1600 caracteres.'
-        : '✅ Longitud óptima para nano-banana'
+      message:
+        length < 1000
+          ? "⚠️ Prompt un poco corto. Óptimo: 1200-1600 caracteres."
+          : length > 1800
+          ? "⚠️ Prompt un poco largo. Óptimo: 1200-1600 caracteres."
+          : "✅ Longitud óptima para nano-banana",
     };
   }
-  
+
   // Midjourney es más flexible
   return {
     length,
     optimal: true,
     acceptable: true,
-    message: '✅ Prompt válido para Midjourney'
+    message: "✅ Prompt válido para Midjourney",
   };
 }
 
@@ -1285,7 +1501,7 @@ ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
 
   try {
     const analysisResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1306,6 +1522,6 @@ ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
   } catch (e) {
     console.error("Error parsing quality analysis:", e);
   }
-  
+
   return null;
 }
