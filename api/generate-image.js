@@ -57,32 +57,36 @@ export default async function handler(req, res) {
     // LLAMADA A IMAGEN 3 VÍA GENERATIVE LANGUAGE API
     // ============================================================================
     
-    // Construir el body de la petición
+    // Construir el body de la petición según la documentación oficial
     const requestBody = {
-      prompt: prompt,
-      number_of_images: Math.min(numberOfImages, 4), // Máximo 4 imágenes
-      aspect_ratio: aspectRatio, // "1:1", "3:4", "4:3", "9:16", "16:9"
-      negative_prompt: negativePrompt || "",
-      safety_filter_level: "block_only_high",
-      person_generation: "allow_adult",
+      instances: [
+        {
+          prompt: prompt,
+        },
+      ],
+      parameters: {
+        sampleCount: Math.min(numberOfImages, 4), // Máximo 4 imágenes
+        aspectRatio: aspectRatio, // "1:1", "3:4", "4:3", "9:16", "16:9"
+        negativePrompt: negativePrompt || "",
+        safetySetting: "block_some",
+        personGeneration: "allow_adult",
+      },
     };
 
-    // Si hay imagen de referencia, añadir configuración de consistencia
+    // Si hay imagen de referencia, añadir configuración
     if (referenceImage) {
-      // Imagen 3 soporta imagen de referencia para mantener el sujeto
-      requestBody.reference_image = {
-        image_bytes: referenceImage,
+      requestBody.instances[0].referenceImage = {
+        bytesBase64Encoded: referenceImage,
       };
-      // Usar alto peso de consistencia del sujeto
-      requestBody.guidance_scale = 100; // Máxima fidelidad a la referencia
     }
 
-    // Usar Generative Language API endpoint con API Key
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generate?key=${API_KEY}`;
+    // Usar el endpoint correcto con :predict
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict`;
     
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
+        "x-goog-api-key": API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
@@ -97,9 +101,9 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     // Extraer las imágenes generadas
-    const images = data.generatedImages.map((img) => ({
-      base64: img.bytesBase64Encoded,
-      mimeType: img.mimeType || "image/png",
+    const images = data.predictions.map((prediction) => ({
+      base64: prediction.bytesBase64Encoded,
+      mimeType: prediction.mimeType || "image/png",
     }));
 
     console.log(`✅ ${images.length} imagen(es) generada(s) exitosamente`);
