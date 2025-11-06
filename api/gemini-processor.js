@@ -599,8 +599,16 @@ You MUST integrate ALL 8 components seamlessly into ONE continuous paragraph:
    ════════════════════════════════════════════════════════════
    THE USER HAS UPLOADED A PHOTO OF THE PERSON WHO WILL APPEAR IN THE FINAL IMAGE.
    
+   🚨🚨🚨 CRITICAL - USE EXACT FACE WITHOUT ANY MODIFICATIONS 🚨🚨🚨
+   
+   YOUR PROMPT MUST EXPLICITLY INSTRUCT:
+   "Using the exact facial features from the provided reference image, 
+    maintaining the person's natural appearance without any modifications, 
+    retouching, or alterations. Preserve the authentic likeness."
+   
    YOUR PROMPT MUST BE COMPLETELY PERSON-AGNOSTIC.
-   The AI will use the EXACT FACE from the uploaded photo.
+   The AI will use the EXACT FACE from the uploaded photo AS-IS.
+   NO MODIFICATIONS. NO RETOUCHING. NO EDITS. EXACT REPLICATION.
    
    ❌ ABSOLUTELY FORBIDDEN TO MENTION:
       - Gender (man, woman, male, female, person, individual, guy, lady, businessman, etc.)
@@ -898,12 +906,21 @@ IMPORTANT: Even with gender specified, when there's a reference image:
 The user has NOT selected a gender preference.
 
 YOUR PROMPT MUST BE COMPLETELY GENDER-NEUTRAL:
-❌ Never use: man, woman, male, female, guy, girl, lady, gentleman
-❌ Never imply gender through pose descriptions
-❌ Never use gendered clothing terms unless neutral (e.g. "suit" is OK)
-✅ Use neutral terms: subject, individual (only if NO reference image)
-✅ Describe pose, expression, outfit WITHOUT gender assumptions
-✅ The aesthetic should work for ANY person`;
+❌ NEVER use: man, woman, male, female, guy, girl, lady, gentleman, he, she, his, her
+❌ NEVER imply gender through pose descriptions
+❌ NEVER use gendered clothing terms
+✅ ALWAYS use: "subject", "the subject", "the person" (only if NO reference image)
+✅ If reference image: Describe pose, expression, outfit WITHOUT any gender terms
+✅ Use "their", "they" as pronouns if needed
+✅ Focus on: pose, expression, clothing, not gender
+✅ The aesthetic must work for ANY person regardless of gender
+
+EXAMPLE WITHOUT GENDER:
+"Subject seated in relaxed pose, wearing neutral-toned casual attire, 
+ direct gaze at camera, confident expression..."
+
+NOT: "A man/woman in..." or "He/She is..."
+YES: "Subject in..." or "The subject is..."`;
     }
 
     // 1. ILUMINACIÓN
@@ -1213,6 +1230,22 @@ DO NOT DESCRIBE THE PERSON. ONLY DESCRIBE THE SCENE AND PHOTOGRAPHY SETUP.
 ╚═══════════════════════════════════════════════════════════════╝
 
 ${prompt}
+
+${
+  referenceImage
+    ? `
+🚨 CRITICAL FINAL REMINDER 🚨
+A reference image is provided. Your prompt MUST include this exact instruction:
+
+"Maintaining the exact facial features, expression, and appearance from the 
+provided reference photograph, without any modifications, retouching, or 
+alterations. Using the person's authentic and natural appearance as shown 
+in the reference image."
+
+This instruction MUST appear in your final prompt.
+`
+    : ""
+}
 
 Generate a complete professional ${platform} prompt following ALL rules above.
 Output ONLY the prompt - no explanations, no meta-commentary.

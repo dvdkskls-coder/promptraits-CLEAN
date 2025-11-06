@@ -12,6 +12,8 @@ import {
   Send,
   Info,
   Image as ImageIcon,
+  Lock,
+  LogIn,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
@@ -41,6 +43,7 @@ const QUICK_FEATURES = [
     id: "professional-lighting",
     name: "Iluminación Profesional",
     description: "Rembrandt, Butterfly o Loop lighting with professional setup",
+    textES: "Iluminación profesional estilo Rembrandt o Butterfly",
     promptText:
       "Professional studio lighting setup with Rembrandt or Butterfly lighting creating gentle shadow modeling, soft diffused key light at 45-degree angle, fill light maintaining detail in shadows",
   },
@@ -48,6 +51,7 @@ const QUICK_FEATURES = [
     id: "bokeh",
     name: "Fondo Desenfocado",
     description: "Shallow depth of field con 85mm",
+    textES: "Fondo desenfocado con efecto bokeh (85mm f/1.8)",
     promptText:
       "Shallow depth of field with 85mm f/1.8 lens creating creamy smooth bokeh, background beautifully blurred with soft out-of-focus areas",
   },
@@ -55,6 +59,7 @@ const QUICK_FEATURES = [
     id: "cinematic",
     name: "Look Cinematográfico",
     description: "Black Pro-Mist effect",
+    textES: "Look cinematográfico con filtro Black Pro-Mist",
     promptText:
       "Cinematic look with soft diffused highlights using Black Pro-Mist filter effect, gentle halation on bright lights, organic film-like quality",
   },
@@ -62,6 +67,7 @@ const QUICK_FEATURES = [
     id: "golden-hour",
     name: "Golden Hour",
     description: "Luz cálida de atardecer",
+    textES: "Luz cálida natural de golden hour",
     promptText:
       "Warm golden hour light with sunset glow, magical warm tones creating romantic atmosphere, soft natural illumination",
   },
@@ -69,6 +75,7 @@ const QUICK_FEATURES = [
     id: "smooth-skin",
     name: "Piel Suave y Uniforme",
     description: "Skin tone uniformity",
+    textES: "Textura de piel suave y natural",
     promptText:
       "Skin tone uniformity with subtle texture preservation, even complexion, natural beauty retouching maintaining realistic appearance",
   },
@@ -76,6 +83,7 @@ const QUICK_FEATURES = [
     id: "teal-orange",
     name: "Teal & Orange",
     description: "Color grading Hollywood",
+    textES: "Color grading cinematográfico teal & orange",
     promptText:
       "Cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
@@ -85,9 +93,9 @@ const QUICK_FEATURES = [
 // ✨ OPCIONES DE GÉNERO (Actualizado con PAREJA)
 // ============================================================================
 const GENDER_OPTIONS = [
-  { id: "masculine", name: "👨 Masculino", emoji: "👨" },
-  { id: "feminine", name: "👩 Femenino", emoji: "👩" },
-  { id: "couple", name: "💑 Pareja", emoji: "💑" },
+  { id: "masculine", name: "Masculino" },
+  { id: "feminine", name: "Femenino" },
+  { id: "couple", name: "Pareja" },
 ];
 
 // ============================================================================
@@ -121,7 +129,15 @@ const PLATFORM_INFO = {
 export default function AdvancedGenerator() {
   const { user, profile, refreshProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
+  const [userPrompt, setUserPrompt] = useState(""); // ✅ Lo que escribe el usuario
   const [response, setResponse] = useState("");
+  
+  // Estados para el generador de imágenes
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState([]);
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1");
+  const [numberOfImages, setNumberOfImages] = useState(1);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [referenceImage, setReferenceImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -455,32 +471,197 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
+  // ✨ CONSTRUIR PREVIEW EN ESPAÑOL
+  // ============================================================================
+  const buildSpanishPreview = () => {
+    const parts = [];
+
+    // Característica rápida
+    if (selectedFeature) {
+      const feature = QUICK_FEATURES.find((f) => f.id === selectedFeature);
+      if (feature?.textES) parts.push(feature.textES);
+    }
+
+    // Entorno
+    if (autoSelections.autoEnvironment) {
+      parts.push("Entorno: [la IA decidirá el mejor]");
+    } else if (proSettings.customEnvironment) {
+      parts.push(`Entorno: ${proSettings.customEnvironment}`);
+    } else if (proSettings.environment) {
+      const env = Object.values(ENVIRONMENTS).find((e) => e.id === proSettings.environment);
+      if (env) parts.push(`Entorno: ${env.name}`);
+    }
+
+    // Tipo de plano
+    if (autoSelections.autoShotType) {
+      parts.push("Tipo de plano: [la IA decidirá]");
+    } else if (proSettings.shotType) {
+      const shot = SHOT_TYPES.find((s) => s.id === proSettings.shotType);
+      if (shot) parts.push(`Tipo de plano: ${shot.nameES}`);
+    }
+
+    // Ángulo
+    if (autoSelections.autoAngle) {
+      parts.push("Ángulo de cámara: [la IA decidirá]");
+    } else if (proSettings.cameraAngle) {
+      const angle = CAMERA_ANGLES.find((a) => a.id === proSettings.cameraAngle);
+      if (angle) parts.push(`Ángulo: ${angle.nameES}`);
+    }
+
+    // Género
+    if (proSettings.gender) {
+      const gender = GENDER_OPTIONS.find((g) => g.id === proSettings.gender);
+      if (gender) parts.push(`Estética: ${gender.name}`);
+    }
+
+    // Pose
+    if (autoSelections.autoPose) {
+      parts.push("Pose: [la IA decidirá]");
+    } else if (proSettings.pose) {
+      const allPoses = [...POSES.masculine, ...POSES.feminine, ...POSES.couple];
+      const pose = allPoses.find((p) => p.id === proSettings.pose);
+      if (pose) parts.push(`Pose: ${pose.name}`);
+    }
+
+    // Outfit
+    if (autoSelections.autoOutfit) {
+      parts.push("Outfit: [la IA decidirá]");
+    } else if (proSettings.outfit) {
+      const allOutfits = [...Outfits_men, ...Outfits_women];
+      const outfit = allOutfits.find((o) => o.id === proSettings.outfit);
+      if (outfit) parts.push(`Vestuario: ${outfit.name}`);
+    }
+
+    // Iluminación
+    if (autoSelections.autoLighting) {
+      parts.push("Iluminación: [la IA decidirá]");
+    } else if (proSettings.lighting) {
+      const light = LIGHTING_SETUPS.find((l) => l.id === proSettings.lighting);
+      if (light) parts.push(`Iluminación: ${light.name}`);
+    }
+
+    // Color grading
+    if (autoSelections.autoColorGrading) {
+      parts.push("Corrección de color: [la IA decidirá]");
+    } else if (proSettings.colorGrading) {
+      const filter = COLOR_GRADING_FILTERS.find((f) => f.id === proSettings.colorGrading);
+      if (filter) parts.push(`Color: ${filter.name}`);
+    }
+
+    return parts.join(". ");
+  };
+
+  // ✅ Actualizar preview automáticamente
+  useEffect(() => {
+    const preview = buildSpanishPreview();
+    if (preview) {
+      setPrompt(userPrompt ? `${userPrompt}\n\n---PARÁMETROS SELECCIONADOS---\n${preview}` : preview);
+    } else {
+      setPrompt(userPrompt);
+    }
+  }, [userPrompt, selectedFeature, autoSelections, proSettings]);
+
+  // ============================================================================
+  // ✨ GENERAR IMAGEN CON IMAGEN 3
+  // ============================================================================
+  const handleGenerateImage = async () => {
+    if (!response?.prompt) {
+      alert("Primero genera un prompt profesional");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    setGeneratedImages([]);
+
+    try {
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: response.prompt,
+          referenceImage: imageBase64,
+          aspectRatio: selectedAspectRatio,
+          numberOfImages: numberOfImages,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.details || data.error || "Error desconocido");
+      }
+
+      setGeneratedImages(data.images);
+      console.log("✅ Imágenes generadas:", data.images.length);
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Error al generar imagen: ${error.message}`);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  // ============================================================================
   // RENDER
   // ============================================================================
+
+  // ✅ SI NO HAY USER - MOSTRAR MENSAJE DE LOGIN
+  if (!user) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-6 px-4 py-8">
+        <AnimatedSection delay={0}>
+          <div className="bg-[#2D2D2D] rounded-xl p-12 border border-[#2D2D2D] text-center">
+            <Lock className="w-16 h-16 mx-auto mb-4 text-[#D8C780]" />
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Generador de Prompts Profesional
+            </h2>
+            <p className="text-[#C1C1C1] mb-6">
+              Para utilizar el generador de prompts necesitas registrarte o iniciar sesión
+            </p>
+            <div className="flex gap-4 justify-center">
+              <a
+                href="/login"
+                className="px-6 py-3 bg-[#D8C780] hover:bg-[#C4B66D] text-[#06060C] rounded-xl font-medium transition-all flex items-center gap-2"
+              >
+                <LogIn className="w-5 h-5" />
+                Iniciar Sesión
+              </a>
+              <a
+                href="/register"
+                className="px-6 py-3 bg-[#2D2D2D] hover:bg-[#3D3D3D] border border-[#D8C780] text-[#D8C780] rounded-xl font-medium transition-all"
+              >
+                Registrarse
+              </a>
+            </div>
+          </div>
+        </AnimatedSection>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <AnimatedSection delay={0}>
         {/* Header Section */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 text-transparent bg-clip-text">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#D8C780] via-[#D8C780] to-[#D8C780] text-transparent bg-clip-text">
             Generador Avanzado de Prompts
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-[#C1C1C1] text-lg">
             Crea prompts profesionales con IA y herramientas PRO
           </p>
         </div>
 
         {/* Platform Selection */}
-        <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+        <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
           <div className="flex items-center justify-between mb-4">
-            <label className="text-sm font-medium text-gray-300">
+            <label className="text-sm font-medium text-[#C1C1C1]">
               Plataforma de destino
             </label>
             <button
               type="button"
               onClick={() => setShowPlatformInfo(!showPlatformInfo)}
-              className="text-purple-400 hover:text-purple-300 transition-colors"
+              className="text-[#D8C780] hover:text-purple-300 transition-colors"
             >
               <Info className="w-5 h-5" />
             </button>
@@ -494,12 +675,12 @@ export default function AdvancedGenerator() {
                 onClick={() => setSelectedPlatform(key)}
                 className={`p-4 rounded-lg border transition-all ${
                   selectedPlatform === key
-                    ? "border-purple-500 bg-purple-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    ? "border-[#D8C780] bg-[#D8C780]/20"
+                    : "border-[#2D2D2D] bg-white/5 hover:border-[#D8C780]/50"
                 }`}
               >
                 <div className="font-medium text-white">{info.name}</div>
-                <div className="text-sm text-gray-400 mt-1">
+                <div className="text-sm text-[#C1C1C1] mt-1">
                   {info.description}
                 </div>
               </button>
@@ -507,16 +688,16 @@ export default function AdvancedGenerator() {
           </div>
 
           {showPlatformInfo && (
-            <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="mt-4 p-4 bg-white/5 rounded-lg border border-[#2D2D2D]">
               <h3 className="font-medium text-white mb-2">
                 {PLATFORM_INFO[selectedPlatform].name}
               </h3>
-              <ul className="space-y-1 text-sm text-gray-400">
+              <ul className="space-y-1 text-sm text-[#C1C1C1]">
                 {PLATFORM_INFO[selectedPlatform].features.map((feature, idx) => (
                   <li key={idx}>• {feature}</li>
                 ))}
               </ul>
-              <p className="mt-2 text-sm text-purple-400">
+              <p className="mt-2 text-sm text-[#D8C780]">
                 💡 {PLATFORM_INFO[selectedPlatform].tips}
               </p>
             </div>
@@ -524,7 +705,7 @@ export default function AdvancedGenerator() {
         </div>
 
         {/* Características Rápidas */}
-        <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+        <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
           <h3 className="text-lg font-medium text-white mb-4">
             ⚡ Características Rápidas
           </h3>
@@ -536,14 +717,14 @@ export default function AdvancedGenerator() {
                 onClick={() => selectFeature(feature.id)}
                 className={`p-3 rounded-lg border transition-all text-left ${
                   selectedFeature === feature.id
-                    ? "border-purple-500 bg-purple-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    ? "border-[#D8C780] bg-[#D8C780]/20"
+                    : "border-[#2D2D2D] bg-white/5 hover:border-[#D8C780]/50"
                 }`}
               >
                 <div className="font-medium text-sm text-white">
                   {feature.name}
                 </div>
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs text-[#C1C1C1] mt-1">
                   {feature.description}
                 </div>
               </button>
@@ -563,8 +744,8 @@ export default function AdvancedGenerator() {
             }}
             className={`w-full py-4 px-6 rounded-xl font-medium transition-all flex items-center justify-between ${
               isPro
-                ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                : "bg-gray-700 hover:bg-gray-600"
+                ? "bg-gradient-to-r from-[#D8C780] to-[#D8C780] hover:from-[#C4B66D] hover:to-[#C4B66D]"
+                : "bg-[#2D2D2D] hover:bg-gray-600"
             }`}
           >
             <span className="flex items-center gap-2">
@@ -589,7 +770,7 @@ export default function AdvancedGenerator() {
 
         {/* Herramientas PRO Expandidas */}
         {showProTools && isPro && (
-          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10 space-y-4">
+          <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D] space-y-4">
             
             {/* 1. ENTORNO */}
             <ProSection
@@ -613,8 +794,8 @@ export default function AdvancedGenerator() {
                   }}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     autoSelections.autoEnvironment
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-[#D8C780] text-white"
+                      : "bg-[#2D2D2D] text-[#C1C1C1] hover:bg-gray-600"
                   }`}
                 >
                   Automático
@@ -627,7 +808,7 @@ export default function AdvancedGenerator() {
                     <select
                       value={proSettings.environment || ""}
                       onChange={(e) => updateProSetting("environment", e.target.value)}
-                      className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                      className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                     >
                       <option value="">-- Selecciona entorno --</option>
                       {Object.values(ENVIRONMENTS).map((env) => (
@@ -638,7 +819,7 @@ export default function AdvancedGenerator() {
                     </select>
 
                     <div className="pt-2">
-                      <label className="text-sm text-gray-400 block mb-1">
+                      <label className="text-sm text-[#C1C1C1] block mb-1">
                         O escribe tu propio entorno:
                       </label>
                       <input
@@ -652,7 +833,7 @@ export default function AdvancedGenerator() {
                           }));
                         }}
                         placeholder="Ej: En el columpio de un parque"
-                        className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                        className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                       />
                     </div>
                   </>
@@ -678,8 +859,8 @@ export default function AdvancedGenerator() {
                   }}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     autoSelections.autoShotType
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-[#D8C780] text-white"
+                      : "bg-[#2D2D2D] text-[#C1C1C1] hover:bg-gray-600"
                   }`}
                 >
                   Automático
@@ -691,12 +872,12 @@ export default function AdvancedGenerator() {
                   <select
                     value={proSettings.shotType || ""}
                     onChange={(e) => updateProSetting("shotType", e.target.value)}
-                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                    className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona plano --</option>
                     {SHOT_TYPES.map((shot) => (
                       <option key={shot.id} value={shot.id}>
-                        {shot.nameES} - {shot.description}
+                        {shot.nameES.toUpperCase()} :: {shot.description}
                       </option>
                     ))}
                   </select>
@@ -722,8 +903,8 @@ export default function AdvancedGenerator() {
                   }}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     autoSelections.autoAngle
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-[#D8C780] text-white"
+                      : "bg-[#2D2D2D] text-[#C1C1C1] hover:bg-gray-600"
                   }`}
                 >
                   Automático
@@ -735,12 +916,12 @@ export default function AdvancedGenerator() {
                   <select
                     value={proSettings.cameraAngle || ""}
                     onChange={(e) => updateProSetting("cameraAngle", e.target.value)}
-                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                    className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona ángulo --</option>
                     {CAMERA_ANGLES.map((angle) => (
                       <option key={angle.id} value={angle.id}>
-                        {angle.nameES} - {angle.description}
+                        {angle.nameES.toUpperCase()} :: {angle.description}
                       </option>
                     ))}
                   </select>
@@ -763,12 +944,11 @@ export default function AdvancedGenerator() {
                     onClick={() => updateProSetting("gender", gender.id)}
                     className={`py-3 px-4 rounded-lg border transition-all ${
                       proSettings.gender === gender.id
-                        ? "border-purple-500 bg-purple-500/20"
-                        : "border-white/10 bg-white/5 hover:border-white/20"
+                        ? "border-[#D8C780] bg-[#D8C780]/20"
+                        : "border-[#2D2D2D] bg-white/5 hover:border-[#D8C780]/50"
                     }`}
                   >
-                    <div className="text-2xl mb-1">{gender.emoji}</div>
-                    <div className="text-sm">{gender.name.split(" ")[1]}</div>
+                    <div className="text-sm font-medium text-white">{gender.name}</div>
                   </button>
                 ))}
               </div>
@@ -792,8 +972,8 @@ export default function AdvancedGenerator() {
                   }}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     autoSelections.autoPose
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-[#D8C780] text-white"
+                      : "bg-[#2D2D2D] text-[#C1C1C1] hover:bg-gray-600"
                   }`}
                 >
                   Automático
@@ -805,12 +985,12 @@ export default function AdvancedGenerator() {
                   <select
                     value={proSettings.pose || ""}
                     onChange={(e) => updateProSetting("pose", e.target.value)}
-                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                    className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona pose --</option>
                     {currentPoses.map((pose) => (
                       <option key={pose.id} value={pose.id}>
-                        {pose.name} - {pose.description}
+                        {pose.name.toUpperCase()} :: {pose.description}
                       </option>
                     ))}
                   </select>
@@ -836,8 +1016,8 @@ export default function AdvancedGenerator() {
                   }}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     autoSelections.autoOutfit
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-[#D8C780] text-white"
+                      : "bg-[#2D2D2D] text-[#C1C1C1] hover:bg-gray-600"
                   }`}
                 >
                   Automático
@@ -849,7 +1029,7 @@ export default function AdvancedGenerator() {
                   <select
                     value={proSettings.outfit || ""}
                     onChange={(e) => updateProSetting("outfit", e.target.value)}
-                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                    className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona outfit --</option>
                     {currentOutfits.map((outfit) => (
@@ -880,8 +1060,8 @@ export default function AdvancedGenerator() {
                   }}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     autoSelections.autoLighting
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-[#D8C780] text-white"
+                      : "bg-[#2D2D2D] text-[#C1C1C1] hover:bg-gray-600"
                   }`}
                 >
                   Automático
@@ -893,12 +1073,12 @@ export default function AdvancedGenerator() {
                   <select
                     value={proSettings.lighting || ""}
                     onChange={(e) => updateProSetting("lighting", e.target.value)}
-                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                    className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona iluminación --</option>
                     {LIGHTING_SETUPS.map((light) => (
                       <option key={light.id} value={light.id}>
-                        {light.name} - {light.description}
+                        {light.name.toUpperCase()} :: {light.description}
                       </option>
                     ))}
                   </select>
@@ -924,8 +1104,8 @@ export default function AdvancedGenerator() {
                   }}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     autoSelections.autoColorGrading
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      ? "bg-[#D8C780] text-white"
+                      : "bg-[#2D2D2D] text-[#C1C1C1] hover:bg-gray-600"
                   }`}
                 >
                   Automático
@@ -937,12 +1117,12 @@ export default function AdvancedGenerator() {
                   <select
                     value={proSettings.colorGrading || ""}
                     onChange={(e) => updateProSetting("colorGrading", e.target.value)}
-                    className="w-full bg-gray-800 text-white rounded-lg p-2 border border-white/10"
+                    className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona filtro --</option>
                     {COLOR_GRADING_FILTERS.map((filter) => (
                       <option key={filter.id} value={filter.id}>
-                        {filter.name} - {filter.description}
+                        {filter.name.toUpperCase()} :: {filter.description}
                       </option>
                     ))}
                   </select>
@@ -955,18 +1135,18 @@ export default function AdvancedGenerator() {
 
         {/* Prompt Input + Image Upload */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Imagen de referencia - Columna pequeña */}
               <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-[#C1C1C1] mb-3">
                   Imagen de referencia
                 </label>
                 
                 {!imagePreview ? (
-                  <label className="flex flex-col items-center justify-center w-full h-full min-h-[200px] border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors">
-                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                    <span className="text-xs text-gray-400 text-center px-2">
+                  <label className="flex flex-col items-center justify-center w-full h-full min-h-[200px] border-2 border-dashed border-[#D8C780]/50 rounded-lg cursor-pointer hover:border-[#D8C780]/50 transition-colors">
+                    <Upload className="w-8 h-8 text-[#C1C1C1] mb-2" />
+                    <span className="text-xs text-[#C1C1C1] text-center px-2">
                       Sube una imagen (máx 4MB)
                     </span>
                     <input
@@ -996,14 +1176,19 @@ export default function AdvancedGenerator() {
 
               {/* Textarea - Columna grande */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-[#C1C1C1] mb-3">
                   Describe lo que quieres generar
                 </label>
                 <textarea
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Ej: Mujer joven en estudio con iluminación Rembrandt..."
-                  className="w-full h-full min-h-[200px] bg-gray-900/50 text-white rounded-lg p-4 border border-white/10 focus:border-purple-500 focus:outline-none resize-none"
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    // Extraer solo lo que escribe el usuario (antes del separador)
+                    const userText = text.split("---PARÁMETROS SELECCIONADOS---")[0].trim();
+                    setUserPrompt(userText);
+                  }}
+                  placeholder="Ej: Retrato profesional en estudio..."
+                  className="w-full h-full min-h-[200px] bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] focus:outline-none resize-none"
                   required
                 />
               </div>
@@ -1013,7 +1198,7 @@ export default function AdvancedGenerator() {
           <button
             type="submit"
             disabled={isLoading || !prompt.trim()}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 bg-gradient-to-r from-[#D8C780] to-[#D8C780] hover:from-[#C4B66D] hover:to-[#C4B66D] disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-medium transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -1031,7 +1216,7 @@ export default function AdvancedGenerator() {
 
         {/* Response */}
         {response && (
-          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-white">
                 ✨ Prompt Generado
@@ -1039,7 +1224,7 @@ export default function AdvancedGenerator() {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[#D8C780] hover:bg-[#C4B66D] rounded-lg transition-colors"
               >
                 {copied ? (
                   <>
@@ -1054,8 +1239,114 @@ export default function AdvancedGenerator() {
                 )}
               </button>
             </div>
-            <div className="bg-gray-900/50 rounded-lg p-4 text-gray-300 whitespace-pre-wrap">
+            <div className="bg-[#06060C]/50 rounded-lg p-4 text-[#C1C1C1] whitespace-pre-wrap">
               {response}
+            </div>
+          </div>
+        )}
+
+        {/* Generador de Imágenes con Imagen 3 */}
+        {response && (
+          <div className="bg-[#2D2D2D] rounded-xl p-6 border border-[#2D2D2D]">
+            <h3 className="text-lg font-medium text-white mb-4">
+              🎨 Generar Imagen con Imagen 3
+            </h3>
+            
+            <div className="space-y-4">
+              {/* Aspect Ratio */}
+              <div>
+                <label className="text-sm font-medium text-[#C1C1C1] mb-2 block">
+                  Formato de imagen
+                </label>
+                <div className="grid grid-cols-5 gap-2">
+                  {["1:1", "3:4", "4:3", "9:16", "16:9"].map((ratio) => (
+                    <button
+                      key={ratio}
+                      type="button"
+                      onClick={() => setSelectedAspectRatio(ratio)}
+                      className={`py-2 px-3 rounded-lg border transition-all text-sm ${
+                        selectedAspectRatio === ratio
+                          ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                          : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                      }`}
+                    >
+                      {ratio}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Número de imágenes */}
+              <div>
+                <label className="text-sm font-medium text-[#C1C1C1] mb-2 block">
+                  Cantidad de imágenes
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setNumberOfImages(num)}
+                      className={`py-2 px-3 rounded-lg border transition-all ${
+                        numberOfImages === num
+                          ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                          : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botón generar */}
+              <button
+                type="button"
+                onClick={handleGenerateImage}
+                disabled={isGeneratingImage}
+                className="w-full py-4 bg-[#D8C780] hover:bg-[#C4B66D] disabled:bg-[#2D2D2D] disabled:cursor-not-allowed rounded-xl font-medium text-[#06060C] disabled:text-[#C1C1C1] transition-all flex items-center justify-center gap-2"
+              >
+                {isGeneratingImage ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Generando imagen...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    Generar Imagen
+                  </>
+                )}
+              </button>
+
+              {/* Galería de imágenes generadas */}
+              {generatedImages.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-medium text-white mb-3">
+                    Imágenes generadas:
+                  </h4>
+                  <div className={`grid gap-4 ${
+                    generatedImages.length === 1 ? "grid-cols-1" : "grid-cols-2"
+                  }`}>
+                    {generatedImages.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={`data:${img.mimeType};base64,${img.base64}`}
+                          alt={`Generada ${idx + 1}`}
+                          className="w-full rounded-lg border border-[#2D2D2D]"
+                        />
+                        <a
+                          href={`data:${img.mimeType};base64,${img.base64}`}
+                          download={`promptraits-${Date.now()}-${idx}.png`}
+                          className="absolute bottom-2 right-2 px-3 py-2 bg-[#D8C780] hover:bg-[#C4B66D] rounded-lg text-[#06060C] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Descargar
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1073,15 +1364,15 @@ export default function AdvancedGenerator() {
 // ============================================================================
 function ProSection({ title, description, isOpen, onToggle, autoButton, children }) {
   return (
-    <div className="border border-white/10 rounded-lg overflow-hidden">
+    <div className="border border-[#2D2D2D] rounded-lg overflow-hidden">
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 bg-gray-900/50 hover:bg-gray-900 transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-[#06060C]/50 hover:bg-[#06060C] transition-colors"
       >
         <div className="text-left flex-1">
           <div className="font-medium text-white">{title}</div>
-          <div className="text-sm text-gray-400">{description}</div>
+          <div className="text-sm text-[#C1C1C1]">{description}</div>
         </div>
         
         <div className="flex items-center gap-3">
