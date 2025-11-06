@@ -67,7 +67,6 @@ export default async function handler(req, res) {
       parameters: {
         sampleCount: Math.min(numberOfImages, 4), // Máximo 4 imágenes
         aspectRatio: aspectRatio, // "1:1", "3:4", "4:3", "9:16", "16:9"
-        negativePrompt: negativePrompt || "",
         safetySetting: "block_low_and_above", // ✅ Valor correcto
         personGeneration: "allow_adult",
       },

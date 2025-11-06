@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import {
   Upload,
   Trash2,
@@ -14,7 +13,6 @@ import {
   Info,
   Image as ImageIcon,
   Lock,
-  LogIn,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
@@ -132,13 +130,13 @@ export default function AdvancedGenerator() {
   const [prompt, setPrompt] = useState("");
   const [userPrompt, setUserPrompt] = useState(""); // ✅ Lo que escribe el usuario
   const [response, setResponse] = useState("");
-  
+
   // Estados para el generador de imágenes
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1");
   const [numberOfImages, setNumberOfImages] = useState(1);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [referenceImage, setReferenceImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -255,13 +253,17 @@ export default function AdvancedGenerator() {
 
       // Camera Angle
       if (!autoSelections.autoAngle && proSettings.cameraAngle) {
-        const angle = CAMERA_ANGLES.find((a) => a.id === proSettings.cameraAngle);
+        const angle = CAMERA_ANGLES.find(
+          (a) => a.id === proSettings.cameraAngle
+        );
         if (angle) parts.push(`Ángulo: ${angle.nameES}`);
       }
 
       // Gender
       if (proSettings.gender) {
-        const genderOption = GENDER_OPTIONS.find((g) => g.id === proSettings.gender);
+        const genderOption = GENDER_OPTIONS.find(
+          (g) => g.id === proSettings.gender
+        );
         if (genderOption) parts.push(`Género: ${genderOption.name}`);
       }
 
@@ -279,28 +281,44 @@ export default function AdvancedGenerator() {
 
       // Lighting
       if (!autoSelections.autoLighting && proSettings.lighting) {
-        const lighting = LIGHTING_SETUPS.find((l) => l.id === proSettings.lighting);
+        const lighting = LIGHTING_SETUPS.find(
+          (l) => l.id === proSettings.lighting
+        );
         if (lighting) parts.push(`Iluminación: ${lighting.name}`);
       }
 
       // Color Grading
       if (!autoSelections.autoColorGrading && proSettings.colorGrading) {
-        const grading = COLOR_GRADING_FILTERS.find((g) => g.id === proSettings.colorGrading);
+        const grading = COLOR_GRADING_FILTERS.find(
+          (g) => g.id === proSettings.colorGrading
+        );
         if (grading) parts.push(`Color: ${grading.name}`);
       }
     }
 
     // Construir preview para mostrar al usuario
     const previewText = parts.length > 0 ? parts.join(" | ") : "";
-    
+
     // Actualizar el estado prompt que se enviará a la API
     // Combina lo que el usuario escribió + los parámetros seleccionados
     if (previewText) {
-      setPrompt(userPrompt ? `${userPrompt}\n\n[Parámetros: ${previewText}]` : previewText);
+      setPrompt(
+        userPrompt
+          ? `${userPrompt}\n\n[Parámetros: ${previewText}]`
+          : previewText
+      );
     } else {
       setPrompt(userPrompt);
     }
-  }, [userPrompt, selectedFeature, showProTools, proSettings, autoSelections, currentOutfits, currentPoses]);
+  }, [
+    userPrompt,
+    selectedFeature,
+    showProTools,
+    proSettings,
+    autoSelections,
+    currentOutfits,
+    currentPoses,
+  ]);
 
   // ============================================================================
   // HANDLERS
@@ -449,7 +467,7 @@ export default function AdvancedGenerator() {
 
       console.log("✅ Prompt recibido exitosamente");
       setResponse(data.prompt);
-      
+
       if (data.qualityAnalysis) {
         setQualityAnalysis(data.qualityAnalysis);
       }
@@ -463,11 +481,11 @@ export default function AdvancedGenerator() {
         try {
           // Descontar crédito
           const { error: creditError } = await supabase
-            .from('profiles')
-            .update({ 
-              credits: profile.credits - 1 
+            .from("profiles")
+            .update({
+              credits: profile.credits - 1,
             })
-            .eq('id', user.id);
+            .eq("id", user.id);
 
           if (creditError) {
             console.error("Error al descontar crédito:", creditError);
@@ -475,7 +493,7 @@ export default function AdvancedGenerator() {
 
           // Guardar en historial
           const { error: historyError } = await supabase
-            .from('prompt_history')
+            .from("prompt_history")
             .insert({
               user_id: user.id,
               prompt: prompt,
@@ -496,7 +514,6 @@ export default function AdvancedGenerator() {
           console.error("Error en post-generación:", error);
         }
       }
-
     } catch (error) {
       console.error("❌ Error en handleSubmit:", error);
       setResponse(`Error: ${error.message}`);
@@ -529,7 +546,9 @@ export default function AdvancedGenerator() {
     } else if (proSettings.customEnvironment) {
       parts.push(`Entorno: ${proSettings.customEnvironment}`);
     } else if (proSettings.environment) {
-      const env = Object.values(ENVIRONMENTS).find((e) => e.id === proSettings.environment);
+      const env = Object.values(ENVIRONMENTS).find(
+        (e) => e.id === proSettings.environment
+      );
       if (env) parts.push(`Entorno: ${env.name}`);
     }
 
@@ -585,7 +604,9 @@ export default function AdvancedGenerator() {
     if (autoSelections.autoColorGrading) {
       parts.push("Corrección de color: [la IA decidirá]");
     } else if (proSettings.colorGrading) {
-      const filter = COLOR_GRADING_FILTERS.find((f) => f.id === proSettings.colorGrading);
+      const filter = COLOR_GRADING_FILTERS.find(
+        (f) => f.id === proSettings.colorGrading
+      );
       if (filter) parts.push(`Color: ${filter.name}`);
     }
 
@@ -596,7 +617,11 @@ export default function AdvancedGenerator() {
   useEffect(() => {
     const preview = buildSpanishPreview();
     if (preview) {
-      setPrompt(userPrompt ? `${userPrompt}\n\n---PARÁMETROS SELECCIONADOS---\n${preview}` : preview);
+      setPrompt(
+        userPrompt
+          ? `${userPrompt}\n\n---PARÁMETROS SELECCIONADOS---\n${preview}`
+          : preview
+      );
     } else {
       setPrompt(userPrompt);
     }
@@ -613,7 +638,9 @@ export default function AdvancedGenerator() {
 
     // ✅ VERIFICAR CRÉDITOS ANTES DE GENERAR
     if (profile && profile.credits < 1) {
-      alert("No tienes suficientes créditos para generar la imagen. Por favor, recarga tu cuenta.");
+      alert(
+        "No tienes suficientes créditos para generar la imagen. Por favor, recarga tu cuenta."
+      );
       return;
     }
 
@@ -645,11 +672,11 @@ export default function AdvancedGenerator() {
       if (user && profile) {
         try {
           const { error: creditError } = await supabase
-            .from('profiles')
-            .update({ 
-              credits: profile.credits - 1 
+            .from("profiles")
+            .update({
+              credits: profile.credits - 1,
             })
-            .eq('id', user.id);
+            .eq("id", user.id);
 
           if (creditError) {
             console.error("Error al descontar crédito:", creditError);
@@ -661,7 +688,6 @@ export default function AdvancedGenerator() {
           console.error("Error al descontar crédito:", error);
         }
       }
-
     } catch (error) {
       console.error("Error:", error);
       alert(`Error al generar imagen: ${error.message}`);
@@ -684,24 +710,12 @@ export default function AdvancedGenerator() {
             <h2 className="text-2xl font-bold text-white mb-3">
               Generador de Prompts Profesional
             </h2>
-            <p className="text-[#C1C1C1] mb-6">
-              Para utilizar el generador de prompts necesitas registrarte o iniciar sesión
+            <p className="text-[#C1C1C1] mb-2">
+              Para utilizar el generador de prompts necesitas iniciar sesión
             </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                to="/login"
-                className="px-6 py-3 bg-[#D8C780] hover:bg-[#C4B66D] text-[#06060C] rounded-xl font-medium transition-all flex items-center gap-2"
-              >
-                <LogIn className="w-5 h-5" />
-                Iniciar Sesión
-              </Link>
-              <Link
-                to="/register"
-                className="px-6 py-3 bg-[#2D2D2D] hover:bg-[#3D3D3D] border border-[#D8C780] text-[#D8C780] rounded-xl font-medium transition-all"
-              >
-                Registrarse
-              </Link>
-            </div>
+            <p className="text-[#D8C780] text-sm">
+              👆 Usa el menú superior para Iniciar Sesión o Registrarte
+            </p>
           </div>
         </AnimatedSection>
       </div>
@@ -762,9 +776,11 @@ export default function AdvancedGenerator() {
                 {PLATFORM_INFO[selectedPlatform].name}
               </h3>
               <ul className="space-y-1 text-sm text-[#C1C1C1]">
-                {PLATFORM_INFO[selectedPlatform].features.map((feature, idx) => (
-                  <li key={idx}>• {feature}</li>
-                ))}
+                {PLATFORM_INFO[selectedPlatform].features.map(
+                  (feature, idx) => (
+                    <li key={idx}>• {feature}</li>
+                  )
+                )}
               </ul>
               <p className="mt-2 text-sm text-[#D8C780]">
                 💡 {PLATFORM_INFO[selectedPlatform].tips}
@@ -818,7 +834,11 @@ export default function AdvancedGenerator() {
             }`}
           >
             <span className="flex items-center gap-2">
-              {isPro ? <Crown className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+              {isPro ? (
+                <Crown className="w-5 h-5" />
+              ) : (
+                <Lock className="w-5 h-5" />
+              )}
               Herramientas PRO
             </span>
             {showProTools ? (
@@ -840,7 +860,6 @@ export default function AdvancedGenerator() {
         {/* Herramientas PRO Expandidas */}
         {showProTools && isPro && (
           <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D] space-y-4">
-            
             {/* 1. ENTORNO */}
             <ProSection
               title="Entorno"
@@ -876,7 +895,9 @@ export default function AdvancedGenerator() {
                   <>
                     <select
                       value={proSettings.environment || ""}
-                      onChange={(e) => updateProSetting("environment", e.target.value)}
+                      onChange={(e) =>
+                        updateProSetting("environment", e.target.value)
+                      }
                       className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                     >
                       <option value="">-- Selecciona entorno --</option>
@@ -898,7 +919,9 @@ export default function AdvancedGenerator() {
                           setProSettings((prev) => ({
                             ...prev,
                             customEnvironment: e.target.value,
-                            environment: e.target.value ? null : prev.environment,
+                            environment: e.target.value
+                              ? null
+                              : prev.environment,
                           }));
                         }}
                         placeholder="Ej: En el columpio de un parque"
@@ -940,7 +963,9 @@ export default function AdvancedGenerator() {
                 {!autoSelections.autoShotType && (
                   <select
                     value={proSettings.shotType || ""}
-                    onChange={(e) => updateProSetting("shotType", e.target.value)}
+                    onChange={(e) =>
+                      updateProSetting("shotType", e.target.value)
+                    }
                     className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona plano --</option>
@@ -984,7 +1009,9 @@ export default function AdvancedGenerator() {
                 {!autoSelections.autoAngle && (
                   <select
                     value={proSettings.cameraAngle || ""}
-                    onChange={(e) => updateProSetting("cameraAngle", e.target.value)}
+                    onChange={(e) =>
+                      updateProSetting("cameraAngle", e.target.value)
+                    }
                     className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona ángulo --</option>
@@ -1017,7 +1044,9 @@ export default function AdvancedGenerator() {
                         : "border-[#2D2D2D] bg-white/5 hover:border-[#D8C780]/50"
                     }`}
                   >
-                    <div className="text-sm font-medium text-white">{gender.name}</div>
+                    <div className="text-sm font-medium text-white">
+                      {gender.name}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -1141,7 +1170,9 @@ export default function AdvancedGenerator() {
                 {!autoSelections.autoLighting && (
                   <select
                     value={proSettings.lighting || ""}
-                    onChange={(e) => updateProSetting("lighting", e.target.value)}
+                    onChange={(e) =>
+                      updateProSetting("lighting", e.target.value)
+                    }
                     className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona iluminación --</option>
@@ -1185,7 +1216,9 @@ export default function AdvancedGenerator() {
                 {!autoSelections.autoColorGrading && (
                   <select
                     value={proSettings.colorGrading || ""}
-                    onChange={(e) => updateProSetting("colorGrading", e.target.value)}
+                    onChange={(e) =>
+                      updateProSetting("colorGrading", e.target.value)
+                    }
                     className="w-full bg-[#2D2D2D] text-white rounded-lg p-2 border border-[#2D2D2D]"
                   >
                     <option value="">-- Selecciona filtro --</option>
@@ -1198,7 +1231,6 @@ export default function AdvancedGenerator() {
                 )}
               </div>
             </ProSection>
-
           </div>
         )}
 
@@ -1211,7 +1243,7 @@ export default function AdvancedGenerator() {
                 <label className="block text-sm font-medium text-[#C1C1C1] mb-3">
                   Imagen de referencia
                 </label>
-                
+
                 {!imagePreview ? (
                   <label className="flex flex-col items-center justify-center w-full h-full min-h-[200px] border-2 border-dashed border-[#D8C780]/50 rounded-lg cursor-pointer hover:border-[#D8C780]/50 transition-colors">
                     <Upload className="w-8 h-8 text-[#C1C1C1] mb-2" />
@@ -1254,7 +1286,7 @@ export default function AdvancedGenerator() {
                   placeholder="Ej: Retrato profesional en estudio... (Los parámetros PRO seleccionados se añadirán automáticamente)"
                   className="w-full h-full min-h-[200px] bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] focus:outline-none resize-none"
                 />
-                
+
                 {/* Vista previa de parámetros seleccionados */}
                 {prompt !== userPrompt && (
                   <div className="mt-2 p-3 bg-[#D8C780]/10 border border-[#D8C780]/30 rounded-lg">
@@ -1326,7 +1358,7 @@ export default function AdvancedGenerator() {
             <h3 className="text-lg font-medium text-white mb-4">
               🎨 Generar Imagen con Imagen 3
             </h3>
-            
+
             <div className="space-y-4">
               {/* Aspect Ratio */}
               <div>
@@ -1377,9 +1409,13 @@ export default function AdvancedGenerator() {
                   <h4 className="text-sm font-medium text-white mb-3">
                     Imágenes generadas:
                   </h4>
-                  <div className={`grid gap-4 ${
-                    generatedImages.length === 1 ? "grid-cols-1" : "grid-cols-2"
-                  }`}>
+                  <div
+                    className={`grid gap-4 ${
+                      generatedImages.length === 1
+                        ? "grid-cols-1"
+                        : "grid-cols-2"
+                    }`}
+                  >
                     {generatedImages.map((img, idx) => (
                       <div key={idx} className="relative group">
                         <img
@@ -1405,7 +1441,6 @@ export default function AdvancedGenerator() {
 
         {/* Quality Analysis */}
         {qualityAnalysis && <QualityAnalysis analysis={qualityAnalysis} />}
-
       </AnimatedSection>
     </div>
   );
@@ -1414,7 +1449,14 @@ export default function AdvancedGenerator() {
 // ============================================================================
 // COMPONENTE HELPER: ProSection
 // ============================================================================
-function ProSection({ title, description, isOpen, onToggle, autoButton, children }) {
+function ProSection({
+  title,
+  description,
+  isOpen,
+  onToggle,
+  autoButton,
+  children,
+}) {
   return (
     <div className="border border-[#2D2D2D] rounded-lg overflow-hidden">
       <button
@@ -1426,20 +1468,20 @@ function ProSection({ title, description, isOpen, onToggle, autoButton, children
           <div className="font-medium text-white">{title}</div>
           <div className="text-sm text-[#C1C1C1]">{description}</div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {autoButton}
           <span className="text-xl">
-            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            {isOpen ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
           </span>
         </div>
       </button>
 
-      {isOpen && (
-        <div className="p-4 bg-black/20">
-          {children}
-        </div>
-      )}
+      {isOpen && <div className="p-4 bg-black/20">{children}</div>}
     </div>
   );
 }
