@@ -369,6 +369,13 @@ export default function AdvancedGenerator() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ VERIFICAR CRÉDITOS ANTES DE GENERAR
+    if (profile && profile.credits < 1) {
+      alert("No tienes suficientes créditos. Por favor, recarga tu cuenta.");
+      return;
+    }
+
     setIsLoading(true);
     setResponse("");
     setQualityAnalysis(null);
@@ -452,8 +459,43 @@ export default function AdvancedGenerator() {
         setValidation(data.validation);
       }
 
-      if (user && profile) {
-        await refreshProfile();
+      // ✅ DESCONTAR 1 CRÉDITO Y GUARDAR EN HISTORIAL
+      if (user) {
+        try {
+          // Descontar crédito
+          const { error: creditError } = await supabase
+            .from('profiles')
+            .update({ 
+              credits: profile.credits - 1 
+            })
+            .eq('id', user.id);
+
+          if (creditError) {
+            console.error("Error al descontar crédito:", creditError);
+          }
+
+          // Guardar en historial
+          const { error: historyError } = await supabase
+            .from('prompt_history')
+            .insert({
+              user_id: user.id,
+              prompt: prompt,
+              generated_prompt: data.prompt,
+              platform: selectedPlatform,
+              has_image: !!referenceImage,
+              pro_settings: proSettings,
+              auto_selections: autoSelections,
+            });
+
+          if (historyError) {
+            console.error("Error al guardar en historial:", historyError);
+          }
+
+          // Refrescar perfil para mostrar créditos actualizados
+          await refreshProfile();
+        } catch (error) {
+          console.error("Error en post-generación:", error);
+        }
       }
 
     } catch (error) {
@@ -565,8 +607,14 @@ export default function AdvancedGenerator() {
   // ✨ GENERAR IMAGEN CON IMAGEN 3
   // ============================================================================
   const handleGenerateImage = async () => {
-    if (!response?.prompt) {
+    if (!response) {
       alert("Primero genera un prompt profesional");
+      return;
+    }
+
+    // ✅ VERIFICAR CRÉDITOS ANTES DE GENERAR
+    if (profile && profile.credits < 1) {
+      alert("No tienes suficientes créditos para generar la imagen. Por favor, recarga tu cuenta.");
       return;
     }
 
@@ -578,10 +626,10 @@ export default function AdvancedGenerator() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: response.prompt,
-          referenceImage: imageBase64,
+          prompt: response, // response es el string del prompt
+          referenceImage: referenceImage,
           aspectRatio: selectedAspectRatio,
-          numberOfImages: numberOfImages,
+          numberOfImages: 1, // Siempre 1 imagen
         }),
       });
 
@@ -593,6 +641,28 @@ export default function AdvancedGenerator() {
 
       setGeneratedImages(data.images);
       console.log("✅ Imágenes generadas:", data.images.length);
+
+      // ✅ DESCONTAR 1 CRÉDITO
+      if (user && profile) {
+        try {
+          const { error: creditError } = await supabase
+            .from('profiles')
+            .update({ 
+              credits: profile.credits - 1 
+            })
+            .eq('id', user.id);
+
+          if (creditError) {
+            console.error("Error al descontar crédito:", creditError);
+          }
+
+          // Refrescar perfil
+          await refreshProfile();
+        } catch (error) {
+          console.error("Error al descontar crédito:", error);
+        }
+      }
+
     } catch (error) {
       console.error("Error:", error);
       alert(`Error al generar imagen: ${error.message}`);
@@ -619,19 +689,19 @@ export default function AdvancedGenerator() {
               Para utilizar el generador de prompts necesitas registrarte o iniciar sesión
             </p>
             <div className="flex gap-4 justify-center">
-              <a
-                href="/login"
+              <button
+                onClick={() => window.location.href = "/login"}
                 className="px-6 py-3 bg-[#D8C780] hover:bg-[#C4B66D] text-[#06060C] rounded-xl font-medium transition-all flex items-center gap-2"
               >
                 <LogIn className="w-5 h-5" />
                 Iniciar Sesión
-              </a>
-              <a
-                href="/register"
+              </button>
+              <button
+                onClick={() => window.location.href = "/register"}
                 className="px-6 py-3 bg-[#2D2D2D] hover:bg-[#3D3D3D] border border-[#D8C780] text-[#D8C780] rounded-xl font-medium transition-all"
               >
                 Registrarse
-              </a>
+              </button>
             </div>
           </div>
         </AnimatedSection>
@@ -1135,7 +1205,7 @@ export default function AdvancedGenerator() {
 
         {/* Prompt Input + Image Upload */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
+          <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D] overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Imagen de referencia - Columna pequeña */}
               <div className="md:col-span-1">
@@ -1271,29 +1341,6 @@ export default function AdvancedGenerator() {
                       }`}
                     >
                       {ratio}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Número de imágenes */}
-              <div>
-                <label className="text-sm font-medium text-[#C1C1C1] mb-2 block">
-                  Cantidad de imágenes
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setNumberOfImages(num)}
-                      className={`py-2 px-3 rounded-lg border transition-all ${
-                        numberOfImages === num
-                          ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
-                          : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
-                      }`}
-                    >
-                      {num}
                     </button>
                   ))}
                 </div>
