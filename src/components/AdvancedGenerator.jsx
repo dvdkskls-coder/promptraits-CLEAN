@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Upload,
   Trash2,
@@ -687,19 +688,19 @@ export default function AdvancedGenerator() {
               Para utilizar el generador de prompts necesitas registrarte o iniciar sesión
             </p>
             <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => window.location.href = "/login"}
+              <Link
+                to="/login"
                 className="px-6 py-3 bg-[#D8C780] hover:bg-[#C4B66D] text-[#06060C] rounded-xl font-medium transition-all flex items-center gap-2"
               >
                 <LogIn className="w-5 h-5" />
                 Iniciar Sesión
-              </button>
-              <button
-                onClick={() => window.location.href = "/register"}
+              </Link>
+              <Link
+                to="/register"
                 className="px-6 py-3 bg-[#2D2D2D] hover:bg-[#3D3D3D] border border-[#D8C780] text-[#D8C780] rounded-xl font-medium transition-all"
               >
                 Registrarse
-              </button>
+              </Link>
             </div>
           </div>
         </AnimatedSection>
