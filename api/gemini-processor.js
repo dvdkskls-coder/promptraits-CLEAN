@@ -1,12 +1,12 @@
 // ============================================================================
-// PROMPTRAITS V2.5 PRO - GEMINI PROCESSOR (FLASH-LITE + PRO V2.0)
+// PROMPTRAITS V2.5 PRO - GEMINI PROCESSOR (FIXED & WORKING)
 // ============================================================================
 // ✅ Actualizado a gemini-2.5-flash-lite (88% más barato)
-// ✅ Sistema PRO con 8 secciones completas
-// ✅ Lógica de pareja con @img1/@img2
-// ✅ Sistema "Decide tú" implementado
-// ✅ Base de conocimientos completa preservada
+// ✅ Sistema PRO V2.0 completo
+// ✅ Todas las funciones implementadas correctamente
 // ============================================================================
+
+// Importar la base de conocimientos del archivo original
 // ============================================================================
 // PROMPTRAITS V2.0 - GEMINI PROCESSOR CON CONOCIMIENTOS PROFESIONALES
 // ============================================================================
@@ -456,11 +456,7 @@ const KNOWLEDGE_BASE = {
 
 
 // ============================================================================
-// ✨ NUEVAS FUNCIONES PRO V2.0
-// ============================================================================
-
-// ============================================================================
-// FUNCIÓN: FORMATEAR PARÁMETROS PRO (NUEVA)
+// ✨ FUNCIÓN NUEVA: FORMATEAR PARÁMETROS PRO V2.0
 // ============================================================================
 function formatProParameters(proSettings, autoSelections) {
   if (!proSettings) return "";
@@ -496,7 +492,7 @@ function formatProParameters(proSettings, autoSelections) {
   if (proSettings.gender) {
     params.push(`👤 Gender Aesthetic: ${proSettings.gender}`);
     
-    // ✨ LÓGICA ESPECIAL PARA PAREJA
+    // LÓGICA ESPECIAL PARA PAREJA
     if (proSettings.gender === "couple") {
       params.push(`💑 COUPLE PORTRAIT MODE ACTIVE`);
       params.push(`NOTE: This is a COUPLE portrait. If 2 images provided, use @img1 and @img2 to reference each person.`);
@@ -549,148 +545,82 @@ selected gender aesthetic, and other specified parameters.
 `;
 }
 
-t jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-    }
-  } catch (e) {
-    console.error("Error parsing quality analysis:", e);
-  }
+function generateSystemPrompt(platform, userData) {
+  const {
+    prompt,
+    referenceImage,
+    preset,
+    scenario,
+    sliders,
+    shotType,
+    outfitStyle,
+    environment,
+    proSettings, // ✅ AGREGADO: Extraer proSettings
+    autoSelections, // ✅ NUEVO: Selecciones automáticas
+  } = userData;
 
-  return null;
-}
-response.json();
+  // ✨ NUEVO: Formatear parámetros PRO si existen
+  const proParamsFormatted = formatProParameters(proSettings, autoSelections);
 
-    if (!response.ok) {
-      console.error("❌ Error de Gemini:", data);
-      return res.status(response.status).json({
-        error: "Error al procesar con Gemini",
-        details: data.error?.message || "Error desconocido",
-      });
-    }
+  // BASE COMÚN PARA AMBAS PLATAFORMAS
+  let systemPrompt = `You are Promptraits V2.0, an expert AI prompt engineer specializing in hyper-realistic photography prompts.
 
-    let generatedPrompt = data.candidates[0].content.parts[0].text;
+You have DEEP PROFESSIONAL KNOWLEDGE in:
+- Professional photography lighting techniques (Rembrandt, Butterfly, Loop, Split lighting)
+- Camera technical specifications (sensor types, focal lengths, aperture, ISO, white balance)
+- Cinematographic filters (Black Pro-Mist, ND filters, Polarizers, Anamorphic flares)
+- Color grading workflows (Capture One, teal & orange, vintage film looks)
+- Composition rules (rule of thirds, golden ratio, shot types, camera angles)
+- Emotional expression and mood creation
+- Professional retrato, moda, and editorial photography
 
-    // Validar longitud según plataforma
-    const validation = validatePromptLength(generatedPrompt, platform);
+CRITICAL KNOWLEDGE BASE:
+${JSON.stringify(KNOWLEDGE_BASE, null, 2)}
 
-    // Si es PRO y pide análisis de calidad
-    let qualityAnalysis = null;
-    if (isPro && analyzeQuality) {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-    }
+`;
 
-    console.log("✅ Prompt generado");
-    return res.status(200).json({
-      prompt: generatedPrompt,
-      qualityAnalysis: qualityAnalysis,
-      platform,
-      validation,
-    });
-  } catch (error) {
-    console.error("❌ Error en gemini-processor:");
-    console.error("Message:", error.message);
-    console.error("Stack:", error.stack);
-
-    return res.status(500).json({
-      error: "Error al procesar la solicitud",
-      details: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
-    });
-  }
-}
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-function validatePromptLength(prompt, platform) {
-  const length = prompt.length;
-
+  // ============================================================================
+  // NANO-BANANA (GOOGLE GEMINI) - SYSTEM PROMPT
+  // ============================================================================
   if (platform === "nano-banana") {
-    return {
-      length,
-      optimal: length >= 1000 && length <= 1800,
-      acceptable: length >= 800 && length <= 2500,
-      message:
-        length < 1000
-          ? "⚠️ Prompt un poco corto. Óptimo: 1200-1600 caracteres."
-          : length > 1800
-          ? "⚠️ Prompt un poco largo. Óptimo: 1200-1600 caracteres."
-          : "✅ Longitud óptima para nano-banana",
-    };
-  }
+    systemPrompt += `
+╔═══════════════════════════════════════════════════════════════╗
+║              PLATFORM: NANO-BANANA (GOOGLE GEMINI)            ║
+╚═══════════════════════════════════════════════════════════════╝
 
-  // Midjourney es más flexible
-  return {
-    length,
-    optimal: true,
-    acceptable: true,
-    message: "✅ Prompt válido para Midjourney",
-  };
-}
+PROMPT STRUCTURE (8 Essential Components):
+You MUST integrate ALL 8 components seamlessly into ONE continuous paragraph:
 
-async function analyzePromptQuality(generatedPrompt, platform, API_KEY) {
-  const analysisPrompt = `You are an expert photography director. Analyze this ${platform} prompt:
+1. SUJETO: Subject description
 
-PROMPT TO ANALYZE:
-${generatedPrompt}
-
-Evaluate completeness and professional quality IN SPANISH.
-
-CRITERIA:
-1. LIGHTING (25%): Setup detail, ratios, temperatures
-2. CAMERA SPECS (25%): Sensor, lens, aperture, ISO, WB
-3. COMPOSITION (20%): Framing, orientation, placement
-4. POST-PROCESSING (15%): Color grading, contrast, effects
-5. TECHNICAL KEYWORDS (15%): Relevant photography terms
-
-Score 0-10.
-
-Provide ONLY valid JSON:
-{
-  "score": 9.2,
-  "included": [
-    "Setup de iluminación Rembrandt completo con ratios especificados",
-    "Especificaciones de cámara profesionales completas",
-    "Composición clara con regla de tercios y headroom"
-  ],
-  "suggestions": [
-    "Añade temperatura de color específica para fill light",
-    "Especifica tratamiento de sombras en post",
-    "Incluye referencias de color más precisas"
-  ]
-}
-
-Score 9.0-10.0: Editorial quality
-Score 7.5-8.9: Very good
-Score 6.0-7.4: Good foundation
-Score 4.0-5.9: Needs detail
-Score 0.0-3.9: Insufficient
-
-ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
-
-  try {
-    const analysisResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: analysisPrompt }] }],
-        }),
-      }
-    );
-
-    const analysisData = await analysisResponse.json();
-    if (analysisResponse.ok) {
-      const analysisText = analysisData.candidates[0].content.parts[0].text;
-      consccessories (watch, ring, necklace, etc.)
+   🚨🚨🚨 CRITICAL RULE - REFERENCE IMAGE HANDLING 🚨🚨🚨
+   
+   IF REFERENCE IMAGE PROVIDED:
+   ════════════════════════════════════════════════════════════
+   THE USER HAS UPLOADED A PHOTO OF THE PERSON WHO WILL APPEAR IN THE FINAL IMAGE.
+   
+   YOUR PROMPT MUST BE COMPLETELY PERSON-AGNOSTIC.
+   The AI will use the EXACT FACE from the uploaded photo.
+   
+   ❌ ABSOLUTELY FORBIDDEN TO MENTION:
+      - Gender (man, woman, male, female, person, individual, guy, lady, businessman, etc.)
+      - Age (young, old, 30 years old, teenager, mature, elderly, etc.)
+      - Hair (blonde, short hair, long hair, curly, straight, bald, haircut, hairstyle, etc.)
+      - Facial hair (beard, mustache, goatee, clean-shaven, stubble, etc.)
+      - Skin (pale, tan, dark, fair, complexion, skin tone, etc.)
+      - Ethnicity or race (caucasian, asian, latino, etc.)
+      - Facial features (blue eyes, sharp nose, full lips, high cheekbones, etc.)
+      - Body type (slim, athletic, muscular, curvy, body build, physique, etc.)
+      - Physical descriptions of ANY kind
+   
+   ✅ WHAT YOU MUST DESCRIBE:
+      - Body pose ONLY (seated, standing, leaning, torso angle, etc.)
+      - Head position ONLY (head tilted, facing camera, turned left, etc.)
+      - Facial expression ONLY (confident, seductive, friendly, serious, etc.)
+      - Gaze direction ONLY (direct eye contact, looking away, gazing into distance, etc.)
+      - Hand/arm position (arms crossed, hands on table, etc.)
+      - Outfit and clothing (dark sweater, navy suit, elegant dress, etc.)
+      - Accessories (watch, ring, necklace, etc.)
    
    IF NO REFERENCE IMAGE:
       - You may describe: age range, gender, basic physical traits
@@ -916,23 +846,144 @@ ${scenario}`;
   }
 
   // ============================================================================
-  // ✨ HERRAMIENTAS PRO V2.0 (ACTUALIZADO CON NUEVAS FUNCIONES)
+  // HERRAMIENTAS PRO (OPCIONAL) - SIMPLIFICADAS
   // ============================================================================
   if (proSettings) {
-    // ✨ AÑADIR PARÁMETROS FORMATEADOS SI EXISTEN
-    if (proParamsFormatted) {
-      systemPrompt += proParamsFormatted;
-    }
-
-    // Mantener lógica original para compatibilidad
+    // 0. GÉNERO (SOLO SI EL USUARIO LO SELECCIONÓ EXPLÍCITAMENTE)
+    // Si el usuario no selecciona género, el prompt debe ser completamente neutro
     let gender = null;
+    let genderInstruction = "";
+
     if (proSettings.gender && proSettings.gender !== "neutral") {
-      gender = proSettings.gender;
+      gender = proSettings.gender; // 'male' o 'female'
+
+      genderInstruction = `\n\n
+╔═══════════════════════════════════════════════════════════════╗
+║               🚹🚺 GENDER SPECIFICATION ACTIVE                ║
+╚═══════════════════════════════════════════════════════════════╝
+
+The user has EXPLICITLY selected: ${gender.toUpperCase()}
+
+${
+  gender === "male"
+    ? `
+FOR MALE AESTHETIC:
+- Poses: More structured, confident, powerful stances
+- Expressions: Strong, determined, assertive (or relaxed confidence)
+- Outfit context: Typically masculine clothing styles
+- Composition: Strong lines, bold framing
+`
+    : `
+FOR FEMALE AESTHETIC:
+- Poses: Can include more fluid, graceful movements
+- Expressions: Range from soft elegance to powerful confidence
+- Outfit context: Typically feminine clothing styles  
+- Composition: Can use softer framing, elegant lines
+`
+}
+
+IMPORTANT: Even with gender specified, when there's a reference image:
+❌ Still NEVER mention "man", "woman", "male", "female" in the prompt
+✅ Instead, adapt pose style and composition to the selected aesthetic
+✅ The face comes from the photo - gender only guides the overall aesthetic`;
+
+      systemPrompt += genderInstruction;
+    } else {
+      // Sin género seleccionado = prompt completamente neutro
+      systemPrompt += `\n\n
+╔═══════════════════════════════════════════════════════════════╗
+║                   🚫 NO GENDER SPECIFIED                     ║
+╚═══════════════════════════════════════════════════════════════╝
+
+The user has NOT selected a gender preference.
+
+YOUR PROMPT MUST BE COMPLETELY GENDER-NEUTRAL:
+❌ Never use: man, woman, male, female, guy, girl, lady, gentleman
+❌ Never imply gender through pose descriptions
+❌ Never use gendered clothing terms unless neutral (e.g. "suit" is OK)
+✅ Use neutral terms: subject, individual (only if NO reference image)
+✅ Describe pose, expression, outfit WITHOUT gender assumptions
+✅ The aesthetic should work for ANY person`;
     }
 
-    // Outfit (mantener lógica original)
-    if (proSettings.outfit && !proParamsFormatted.includes("Outfit ID")) {
+    // 1. ILUMINACIÓN
+    if (proSettings.lighting) {
+      const lightingNames = {
+        rembrandt: "Rembrandt",
+        butterfly: "Butterfly",
+        loop: "Loop",
+        split: "Split",
+        broad: "Broad",
+        short: "Short",
+      };
+      const lightName =
+        lightingNames[proSettings.lighting] || proSettings.lighting;
+      systemPrompt += `\n\n💡 LIGHTING SCHEME SPECIFIED:
+Apply ${lightName} lighting setup from KNOWLEDGE_BASE.lighting.classicSchemes`;
+    }
+
+    // 2. LENTE
+    if (proSettings.lens) {
+      systemPrompt += `\n\n🎯 LENS SPECIFIED:
+Use ${proSettings.lens} lens from KNOWLEDGE_BASE.lenses`;
+    }
+
+    // 3. COLOR GRADING
+    if (proSettings.colorGrading) {
+      const gradingNames = {
+        "teal-orange": "Teal & Orange",
+        vintage: "Vintage Film",
+        "high-key": "High-Key",
+        "low-key": "Low-Key",
+        warm: "Warm Tones",
+        cool: "Cool Tones",
+      };
+      const gradingName =
+        gradingNames[proSettings.colorGrading] || proSettings.colorGrading;
+      systemPrompt += `\n\n🎨 COLOR GRADING SPECIFIED:
+Apply ${gradingName} color grading from KNOWLEDGE_BASE.colorGrading`;
+    }
+
+    // 4. FILTRO
+    if (proSettings.filter) {
+      const filterNames = {
+        "black-pro-mist": "Black Pro-Mist",
+        nd: "ND Filter",
+        polarizer: "Polarizer (CPL)",
+        anamorphic: "Anamorphic Flare",
+      };
+      const filterName = filterNames[proSettings.filter] || proSettings.filter;
+      systemPrompt += `\n\n🎬 FILTER SPECIFIED:
+Apply ${filterName} filter effect from KNOWLEDGE_BASE.filters`;
+    }
+
+    // 5. ASPECT RATIO
+    if (proSettings.aspectRatio) {
+      if (platform === "nano-banana") {
+        // Para nano-banana, traducir a orientación en lenguaje natural
+        const orientationMap = {
+          "1:1": "square composition format",
+          "3:4": "vertical portrait format",
+          "4:5": "vertical portrait format",
+          "9:16": "vertical portrait format for mobile/stories",
+          "16:9": "wide horizontal composition",
+          "4:3": "horizontal landscape format",
+        };
+        systemPrompt += `\n\n📱 ASPECT RATIO SPECIFIED: ${
+          orientationMap[proSettings.aspectRatio]
+        }`;
+      } else if (platform === "midjourney") {
+        // Para Midjourney, añadir como instrucción (el parámetro se añade al final automáticamente)
+        systemPrompt += `\n\n📱 ASPECT RATIO SPECIFIED: Use --ar ${proSettings.aspectRatio} parameter`;
+      }
+    }
+
+    // 6. OUTFIT (usando los nuevos catálogos separados por género)
+    if (proSettings.outfit) {
+      // El frontend ya filtra por género y envía el outfit ID
+      // Los catálogos separados (Outfits_women.js y Outfits_men.js) están en el frontend
       const outfitId = proSettings.outfit;
+
       if (gender) {
         systemPrompt += `\n\n👔 OUTFIT STYLE SPECIFIED:
 The user has selected outfit style ID: "${outfitId}" for a ${gender} aesthetic.
@@ -946,12 +997,216 @@ The user has selected outfit style ID: "${outfitId}".
 Interpret this outfit style with gender-neutral fashion elements.
 Describe the clothing details, style, and accessories appropriate for this outfit ID.`;
       }
+    } else if (!referenceImage) {
+      // Si NO hay outfit seleccionado y NO hay imagen de referencia
+      // Gemini decide basándose en el contexto (y género si fue seleccionado)
+      if (gender) {
+        systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
+Choose appropriate outfit that fits the ${gender} aesthetic and matches the scene context logically.
+${
+  gender === "masculine"
+    ? "Consider masculine styles: suits, casual wear, streetwear, smart casual, etc."
+    : "Consider feminine styles: dresses, elegant wear, casual chic, feminine fashion, etc."
+}`;
+      } else {
+        systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
+Choose appropriate outfit that matches the scene context logically. Use neutral, versatile clothing that works for any person.`;
+      }
     }
   }
+  // Reference Image Instructions
+  if (referenceImage) {
+    systemPrompt += `\n\n
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║     🚨🚨🚨 CRITICAL: REFERENCE IMAGE PROVIDED - FOLLOW STRICTLY 🚨🚨🚨        ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
 
-  // ============================================================================
-  // USER REQUEST (FINAL)
-  // ============================================================================
+The user has uploaded a REFERENCE PHOTO of a person.
+
+══════════════════════════════════════════════════════════════════════════════
+                            YOUR ABSOLUTE MISSION
+══════════════════════════════════════════════════════════════════════════════
+
+The AI image generator will take the EXACT FACE from the uploaded photo and place it
+in the scene you describe. Your prompt must NEVER interfere with this process.
+
+THINK OF IT THIS WAY:
+You are NOT describing a person. You are describing a PHOTOGRAPHY SETUP where ANY
+person could stand. The person's identity comes from the photo, not from your words.
+
+══════════════════════════════════════════════════════════════════════════════
+                      ❌ ABSOLUTELY FORBIDDEN WORDS ❌
+══════════════════════════════════════════════════════════════════════════════
+
+NEVER use these words or their variations in your prompt:
+❌ Gender words: man, woman, male, female, guy, girl, lady, gentleman, person, individual
+❌ Age words: young, old, 25 years, teenager, mature, elderly, youth, adult
+❌ Hair words: blonde, brunette, short hair, long hair, curly, straight, bald, haircut
+❌ Facial hair: beard, mustache, goatee, clean-shaven, stubble, facial hair
+❌ Skin: pale, tan, dark, fair, complexion, skin tone, caucasian, asian, latino
+❌ Face: blue eyes, brown eyes, sharp nose, full lips, high cheekbones, facial features
+❌ Body: slim, athletic, muscular, curvy, body type, physique, build
+
+══════════════════════════════════════════════════════════════════════════════
+                        ✅ WHAT YOU MUST DESCRIBE ✅
+══════════════════════════════════════════════════════════════════════════════
+
+Focus ONLY on these elements:
+
+📍 POSE & POSITION:
+   - Body orientation (seated sideways, standing facing camera, leaning against wall)
+   - Torso angle (tilted right, straight, leaning forward)
+   - Shoulder position (relaxed, level, one raised)
+   - Head angle (tilted left, straight, chin up/down)
+
+😊 EXPRESSION & GAZE:
+   - Facial expression (confident, seductive, friendly, serious, contemplative)
+   - Gaze direction (direct eye contact, looking away, gazing into distance, eyes closed)
+   - Emotional tone (relaxed, intense, playful, mysterious)
+
+👔 CLOTHING & ACCESSORIES:
+   - Outfit description (dark charcoal sweater, navy tailored suit, casual denim jacket)
+   - Clothing details (turtleneck, v-neck, buttons, collar style, sleeves)
+   - Accessories (silver watch, leather bracelet, simple ring, necklace)
+   - Colors and textures (soft cashmere, rough denim, smooth silk)
+
+🤲 HAND & ARM POSITION:
+   - Arm placement (arms crossed, hands in pockets, one hand on hip)
+   - Hand position (resting on table, touching face, relaxed at sides)
+   - Gesture (pointing, open palm, fist, fingers interlaced)
+
+📸 TECHNICAL PHOTOGRAPHY SETUP (CRITICAL):
+   - Camera specs (Canon 85mm f/1.2, full-frame sensor, aperture)
+   - Lighting setup (Rembrandt lighting, soft key light from front-left)
+   - Composition (medium close-up, rule of thirds, vertical format)
+   - Background (blurred urban café, soft bokeh, minimalist studio)
+   - Color grading (cinematic teal & orange, warm tones, vintage film)
+
+══════════════════════════════════════════════════════════════════════════════
+                           📋 PERFECT PROMPT EXAMPLE
+══════════════════════════════════════════════════════════════════════════════
+
+✅ CORRECT PROMPT (Notice: NO gender, age, hair, face, skin mentioned):
+
+"Ultra-realistic portrait in an urban café setting with soft natural window light. 
+Subject seated at dark wooden table, torso angled 20° right, shoulders relaxed and 
+level. Head position straight with subtle tilt left, gaze directed at camera with 
+confident and slightly seductive expression. Both forearms resting gently on table 
+surface, hands relaxed one over the other. Wearing dark charcoal chunky-knit 
+crewneck sweater with minimalist silver wrist accessories. Soft diffused key light 
+from front-left at 45° creating modified Rembrandt lighting pattern with 2:1 fill 
+ratio. Warm ambient café lights in background creating subtle rim light accents. 
+Shot on full-frame sensor with 85mm f/1.8 lens at 1.5m distance, aperture f/1.8, 
+shutter 1/160s, ISO 200. Medium close-up vertical 4:5 composition following rule of 
+thirds. Background features warm bokeh from café lights with soft focus. Post-
+processing: subtle S-curve contrast, slight warm color grade, natural skin texture 
+preserved, cinematic film grain, soft vignette. Professional editorial portrait 
+style with intimate urban atmosphere."
+
+══════════════════════════════════════════════════════════════════════════════
+
+☝️ ANALYZE THIS PERFECT EXAMPLE:
+   ✅ Describes pose, expression, outfit, technical setup
+   ❌ Never mentions if subject is man/woman, young/old, or any physical traits
+   ✅ Works perfectly with ANY person's face from the uploaded photo
+
+══════════════════════════════════════════════════════════════════════════════
+                              🎯 YOUR TASK NOW
+══════════════════════════════════════════════════════════════════════════════
+
+ANALYZE THE REFERENCE IMAGE FOR:
+- What is the body pose and angle?
+- What facial expression do you see? (NOT facial features)
+- What outfit and colors are visible?
+- What lighting quality is in the photo? (soft/hard, direction)
+- What is the background environment?
+- What mood does the photo convey?
+
+THEN CREATE YOUR PROMPT:
+- Describe the pose, expression, outfit, and technical photography setup
+- NEVER describe the person's physical appearance
+- The prompt must work with ANY face transplanted into the scene
+- Focus on: photography technique, lighting, composition, atmosphere
+
+CRITICAL FINAL CHECK:
+Before outputting your prompt, verify:
+❌ Does it mention gender? → DELETE IT
+❌ Does it mention age? → DELETE IT  
+❌ Does it mention hair? → DELETE IT
+❌ Does it mention facial features? → DELETE IT
+❌ Does it mention skin tone? → DELETE IT
+✅ Does it only describe pose, expression, outfit, and technical setup? → PERFECT!
+
+START GENERATING YOUR PROMPT NOW.`;
+  }
+
+  // User's Custom Prompt
+  if (prompt && !referenceImage) {
+    systemPrompt += `\n\n💬 USER'S CUSTOM REQUEST:
+"${prompt}"
+
+Interpret this request and create a professional ${platform} prompt incorporating all the photography knowledge above.`;
+  }
+
+  // Final instructions
+  systemPrompt += `\n\n
+╔═══════════════════════════════════════════════════════════════╗
+║                     FINAL INSTRUCTIONS                        ║
+╚═══════════════════════════════════════════════════════════════╝
+
+Generate the prompt NOW in ENGLISH.
+${
+  platform === "nano-banana"
+    ? "Output: ONE continuous paragraph (1000-1800 characters optimal)"
+    : "Output: Detailed prompt + parameters at the end"
+}
+
+NO explanations, NO preamble, ONLY the prompt.
+Use professional photography terminology throughout.
+Be specific with technical values (angles, distances, temperatures, f-stops).
+
+${
+  referenceImage
+    ? `
+
+╔═══════════════════════════════════════════════════════════════╗
+║              🚨 FINAL VERIFICATION REQUIRED 🚨               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+BEFORE YOU OUTPUT YOUR PROMPT, CHECK:
+
+❌ Does your prompt mention: man, woman, male, female, guy, girl?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: age, young, old, 30 years, teenager?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: hair color, hairstyle, haircut, beard, mustache?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: skin tone, pale, tan, dark, ethnicity?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+❌ Does your prompt mention: facial features like eyes, nose, lips, cheekbones?
+   → If YES, DELETE THOSE WORDS IMMEDIATELY
+
+✅ Does your prompt ONLY describe: pose, expression, outfit, camera, lighting, composition?
+   → If YES, YOU'RE READY TO OUTPUT
+
+The user uploaded a photo. The AI will use that EXACT face.
+Your prompt must NOT interfere with this process.
+DO NOT DESCRIBE THE PERSON. ONLY DESCRIBE THE SCENE AND PHOTOGRAPHY SETUP.
+
+`
+    : ""
+}`;
+
+  // ✨ AÑADIR PARÁMETROS PRO FORMATEADOS SI EXISTEN
+  if (proParamsFormatted) {
+    systemPrompt += proParamsFormatted;
+  }
+
+  // Añadir prompt del usuario al final
   systemPrompt += `\n\n
 ╔═══════════════════════════════════════════════════════════════╗
 ║                       USER'S REQUEST                          ║
@@ -966,10 +1221,10 @@ Output ONLY the prompt - no explanations, no meta-commentary.
   return systemPrompt;
 }
 
+// ============================================================================
+// MAIN HANDLER FUNCTION
+// ============================================================================
 
-// ============================================================================
-// ✨ POST HANDLER PRINCIPAL (ACTUALIZADO PARA V2.0)
-// ============================================================================
 export default async function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Credentials", true);
@@ -1084,7 +1339,7 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
 
     console.log(`✅ Generando prompt profesional para ${platform}...`);
 
-    // ✨ CONSTRUIR SYSTEM PROMPT CON FUNCIÓN ACTUALIZADA
+    // Construir system prompt dinámico según plataforma
     const systemPrompt = generateSystemPrompt(platform, {
       prompt,
       referenceImage,
@@ -1115,7 +1370,6 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       },
     ];
 
-    // ✅ LLAMADA A GEMINI-2.5-FLASH-LITE (YA ACTUALIZADO)
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
       {
@@ -1130,21 +1384,19 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
     if (!response.ok) {
       console.error("❌ Error de Gemini:", data);
       return res.status(response.status).json({
-        error: "Error al generar el prompt",
+        error: "Error al procesar con Gemini",
         details: data.error?.message || "Error desconocido",
       });
     }
 
-    const generatedPrompt = data.candidates[0].content.parts[0].text;
+    let generatedPrompt = data.candidates[0].content.parts[0].text;
 
-    console.log("✅ Prompt generado exitosamente");
+    // Validar longitud según plataforma
+    const validation = validatePromptLength(generatedPrompt, platform);
 
-    // ============================================================================
-    // ANÁLISIS DE CALIDAD (Solo PRO)
-    // ============================================================================
+    // Si es PRO y pide análisis de calidad
     let qualityAnalysis = null;
     if (isPro && analyzeQuality) {
-      console.log("🔍 Analizando calidad del prompt...");
       qualityAnalysis = await analyzePromptQuality(
         generatedPrompt,
         platform,
@@ -1152,17 +1404,10 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       );
     }
 
-    // ============================================================================
-    // VALIDACIÓN DE LONGITUD
-    // ============================================================================
-    const validation = validatePromptLength(generatedPrompt, platform);
-
-    // ============================================================================
-    // RESPUESTA EXITOSA
-    // ============================================================================
+    console.log("✅ Prompt generado");
     return res.status(200).json({
       prompt: generatedPrompt,
-      qualityAnalysis,
+      qualityAnalysis: qualityAnalysis,
       platform,
       validation,
     });
@@ -1250,7 +1495,6 @@ Score 0.0-3.9: Insufficient
 ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
 
   try {
-    // ✅ ACTUALIZADO A FLASH-LITE TAMBIÉN PARA ANÁLISIS
     const analysisResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`,
       {
