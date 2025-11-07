@@ -1,10 +1,11 @@
 // ============================================================================
-// 🍌 ENDPOINT: Generar Imagen con Nano Banana (Google Gemini Imagen 3)
+// 🌟 ENDPOINT: Generar Imagen con Vertex AI Imagen 3 (Google Cloud)
 // ============================================================================
 // Ruta: /api/generate-image.js (Vercel)
 
 import formidable from 'formidable';
 import fs from 'fs';
+import { GoogleAuth } from 'google-auth-library';
 
 // ✅ Configuración para Vercel - desactivar bodyParser
 export const config = {
@@ -40,7 +41,7 @@ export default async function handler(req, res) {
     
     const selfieFile = Array.isArray(files.selfieImage) ? files.selfieImage[0] : files.selfieImage;
 
-    console.log("🍌 Nano Banana - Datos recibidos:");
+    console.log("🌟 Vertex AI Imagen 3 - Datos recibidos:");
     console.log("- Prompt:", prompt ? `${prompt.substring(0, 50)}...` : "NO");
     console.log("- Aspect Ratio:", aspectRatio);
     console.log("- User ID:", userId);
@@ -61,11 +62,12 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ Verificar API Key
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+    // ✅ Verificar configuración de Google Cloud
+    const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID;
+    const LOCATION = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
     
-    if (!GEMINI_API_KEY) {
-      console.error("❌ No se encontró GEMINI_API_KEY en las variables de entorno");
+    if (!PROJECT_ID) {
+      console.error("❌ Falta GOOGLE_CLOUD_PROJECT_ID en variables de entorno");
       return res.status(500).json({
         success: false,
         error: "Configuración del servidor incompleta. Contacta al administrador.",
@@ -76,9 +78,9 @@ export default async function handler(req, res) {
     const selfieBuffer = fs.readFileSync(selfieFile.filepath);
     const selfieBase64 = selfieBuffer.toString('base64');
 
-    console.log("✅ Selfie convertida a base64:", selfieBase64.substring(0, 50) + "...");
+    console.log("✅ Selfie convertida a base64");
 
-    // ✅ Mapear aspect ratio
+    // ✅ Mapear aspect ratio a formato Vertex AI
     const aspectRatioMap = {
       "1:1": "1:1",
       "3:4": "3:4",
@@ -87,41 +89,74 @@ export default async function handler(req, res) {
       "16:9": "16:9",
     };
 
-    const geminiAspectRatio = aspectRatioMap[aspectRatio] || "1:1";
+    const vertexAspectRatio = aspectRatioMap[aspectRatio] || "1:1";
 
-    // ✅ Construir el request body para Google Gemini Imagen 3
+    // ✅ Construir el request body para Vertex AI Imagen 3
     const requestBody = {
-      prompt: prompt,
-      numberOfImages: 1,
-      aspectRatio: geminiAspectRatio,
-      referenceImages: [
+      instances: [
         {
-          imageBytes: selfieBase64
+          prompt: prompt,
         }
       ],
-      personGeneration: "allow_all",
-      safetyFilterLevel: "block_some",
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: vertexAspectRatio,
+        referenceImages: [
+          {
+            imageBytes: {
+              bytesBase64Encoded: selfieBase64
+            },
+            referenceType: "REFERENCE_TYPE_FACE", // Para que use la cara de referencia
+            referenceId: 1
+          }
+        ],
+        personGeneration: "allow_all",
+        safetySetting: "block_some",
+        addWatermark: false,
+      }
     };
 
-    console.log("🍌 Llamando a Google Gemini Imagen 3...");
-    console.log("📏 Aspect Ratio:", geminiAspectRatio);
+    console.log("🌟 Llamando a Vertex AI Imagen 3...");
+    console.log("📐 Aspect Ratio:", vertexAspectRatio);
+    console.log("🆔 Project ID:", PROJECT_ID);
+    console.log("📍 Location:", LOCATION);
 
-    // ✅ Llamar a la API de Google Gemini (Imagen 3)
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
+    // ✅ Obtener token de autenticación
+    let accessToken;
+    try {
+      // Intenta usar Google Auth Library
+      const auth = new GoogleAuth({
+        scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+      });
+      const client = await auth.getClient();
+      const tokenResponse = await client.getAccessToken();
+      accessToken = tokenResponse.token;
+      console.log("✅ Token de autenticación obtenido");
+    } catch (authError) {
+      console.error("❌ Error al obtener token:", authError);
+      return res.status(500).json({
+        success: false,
+        error: "No se pudo autenticar con Google Cloud. Verifica las credenciales.",
+      });
+    }
+
+    // ✅ Endpoint de Vertex AI
+    const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/imagen-3.0-generate-001:predict`;
+
+    // ✅ Llamar a la API de Vertex AI
+    const vertexResponse = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
 
     // ✅ Verificar respuesta
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error("❌ Error de Gemini API:", errorText);
+    if (!vertexResponse.ok) {
+      const errorText = await vertexResponse.text();
+      console.error("❌ Error de Vertex AI:", errorText);
       
       let errorMessage = "Error al generar la imagen";
       try {
@@ -131,16 +166,16 @@ export default async function handler(req, res) {
         errorMessage = errorText.substring(0, 200);
       }
 
-      return res.status(geminiResponse.status).json({
+      return res.status(vertexResponse.status).json({
         success: false,
         error: errorMessage,
       });
     }
 
-    const geminiData = await geminiResponse.json();
+    const vertexData = await vertexResponse.json();
 
     // ✅ Verificar que hay imágenes generadas
-    if (!geminiData.predictions || geminiData.predictions.length === 0) {
+    if (!vertexData.predictions || vertexData.predictions.length === 0) {
       console.error("❌ No se generaron imágenes");
       return res.status(500).json({
         success: false,
@@ -148,13 +183,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ Extraer imágenes
-    const images = geminiData.predictions.map((prediction) => ({
-      base64: prediction.bytesBase64Encoded || prediction.imageBytes,
+    // ✅ Extraer imágenes (Vertex AI devuelve en formato diferente)
+    const images = vertexData.predictions.map((prediction) => ({
+      base64: prediction.bytesBase64Encoded,
       mimeType: prediction.mimeType || "image/png",
     }));
 
-    console.log("✅ Imagen generada exitosamente");
+    console.log("✅ Imagen generada exitosamente con Vertex AI");
 
     // ✅ Limpiar archivo temporal
     try {
