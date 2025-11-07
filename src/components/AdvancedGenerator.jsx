@@ -1138,43 +1138,46 @@ export default function AdvancedGenerator() {
 
         {/* Resultados: Prompt + Análisis */}
         {response && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            {/* Prompt Generado */}
-            <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white">
-                  Prompt Generado
-                </h3>
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#D8C780] hover:bg-[#C4B66D] rounded-lg transition-colors"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      Copiado
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" />
-                      Copiar
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="bg-[#06060C]/50 rounded-lg p-4 text-[#C1C1C1] whitespace-pre-wrap max-h-[400px] overflow-y-auto">
-                {response}
-              </div>
-            </div>
-
-            {/* Análisis de Calidad */}
-            {qualityAnalysis && (
+          <>
+            {/* Prompt Generado y Análisis de Calidad - Lado a lado en Desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+              {/* Prompt Generado */}
               <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
-                <QualityAnalysis analysis={qualityAnalysis} />
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-white">
+                    Prompt Generado
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#D8C780] hover:bg-[#C4B66D] rounded-lg transition-colors"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copiado
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copiar
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="bg-[#06060C]/50 rounded-lg p-4 text-[#C1C1C1] whitespace-pre-wrap max-h-[400px] overflow-y-auto">
+                  {response}
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Análisis de Calidad */}
+              {qualityAnalysis && (
+                <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
+                  <QualityAnalysis analysis={qualityAnalysis} />
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* Generador de Imagen con Nano Banana 🍌 */}
