@@ -1,7 +1,17 @@
 // ============================================================================
-// 🍌 ENDPOINT: Generar Imagen con Nano Banana (Google Gemini)
+// 🍌 ENDPOINT: Generar Imagen con Nano Banana (Google Gemini Imagen 3)
 // ============================================================================
-// Ruta: /api/generate-image.js (Vercel) o netlify/functions/generate-image.js (Netlify)
+// Ruta: /api/generate-image.js (Vercel)
+
+import formidable from 'formidable';
+import fs from 'fs';
+
+// ✅ Configuración para Vercel - desactivar bodyParser
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 export default async function handler(req, res) {
   // ✅ Solo permitir POST
@@ -13,7 +23,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, aspectRatio = "1:1", selfieImage } = req.body;
+    // ✅ Parsear FormData con formidable
+    const form = formidable({ multiples: false, maxFileSize: 5 * 1024 * 1024 }); // Max 5MB
+    
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
+      });
+    });
+
+    // ✅ Extraer datos
+    const prompt = Array.isArray(fields.prompt) ? fields.prompt[0] : fields.prompt;
+    const aspectRatio = Array.isArray(fields.aspectRatio) ? fields.aspectRatio[0] : fields.aspectRatio || "1:1";
+    const userId = Array.isArray(fields.userId) ? fields.userId[0] : fields.userId;
+    
+    const selfieFile = Array.isArray(files.selfieImage) ? files.selfieImage[0] : files.selfieImage;
+
+    console.log("🍌 Nano Banana - Datos recibidos:");
+    console.log("- Prompt:", prompt ? `${prompt.substring(0, 50)}...` : "NO");
+    console.log("- Aspect Ratio:", aspectRatio);
+    console.log("- User ID:", userId);
+    console.log("- Selfie file:", selfieFile ? "✅" : "❌");
 
     // ✅ Validaciones
     if (!prompt || prompt.trim() === "") {
@@ -23,7 +54,7 @@ export default async function handler(req, res) {
       });
     }
 
-    if (!selfieImage) {
+    if (!selfieFile) {
       return res.status(400).json({
         success: false,
         error: "La imagen selfie es requerida",
@@ -37,11 +68,17 @@ export default async function handler(req, res) {
       console.error("❌ No se encontró GEMINI_API_KEY en las variables de entorno");
       return res.status(500).json({
         success: false,
-        error: "Configuración del servidor incompleta. Falta GEMINI_API_KEY",
+        error: "Configuración del servidor incompleta. Contacta al administrador.",
       });
     }
 
-    // ✅ Mapear aspect ratio al formato que espera Gemini
+    // ✅ Leer archivo selfie y convertir a base64
+    const selfieBuffer = fs.readFileSync(selfieFile.filepath);
+    const selfieBase64 = selfieBuffer.toString('base64');
+
+    console.log("✅ Selfie convertida a base64:", selfieBase64.substring(0, 50) + "...");
+
+    // ✅ Mapear aspect ratio
     const aspectRatioMap = {
       "1:1": "1:1",
       "3:4": "3:4",
@@ -52,24 +89,22 @@ export default async function handler(req, res) {
 
     const geminiAspectRatio = aspectRatioMap[aspectRatio] || "1:1";
 
-    // ✅ Construir el request body para Google Gemini
+    // ✅ Construir el request body para Google Gemini Imagen 3
     const requestBody = {
       prompt: prompt,
       numberOfImages: 1,
       aspectRatio: geminiAspectRatio,
-      // Si el selfieImage incluye el prefijo data:image, lo quitamos
       referenceImages: [
         {
-          imageBytes: selfieImage.split(',')[1] || selfieImage // Quitar prefijo si existe
+          imageBytes: selfieBase64
         }
       ],
-      personGeneration: "allow_all", // Permitir generación de personas
-      safetyFilterLevel: "block_some", // Nivel de seguridad moderado
+      personGeneration: "allow_all",
+      safetyFilterLevel: "block_some",
     };
 
-    console.log("🍌 Generando imagen con Nano Banana...");
+    console.log("🍌 Llamando a Google Gemini Imagen 3...");
     console.log("📏 Aspect Ratio:", geminiAspectRatio);
-    console.log("📝 Prompt length:", prompt.length);
 
     // ✅ Llamar a la API de Google Gemini (Imagen 3)
     const geminiResponse = await fetch(
@@ -88,13 +123,12 @@ export default async function handler(req, res) {
       const errorText = await geminiResponse.text();
       console.error("❌ Error de Gemini API:", errorText);
       
-      // Intentar parsear como JSON
       let errorMessage = "Error al generar la imagen";
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error?.message || errorMessage;
+        errorMessage = errorJson.error?.message || errorJson.error || errorMessage;
       } catch (e) {
-        errorMessage = errorText.substring(0, 200); // Primeros 200 caracteres
+        errorMessage = errorText.substring(0, 200);
       }
 
       return res.status(geminiResponse.status).json({
@@ -121,6 +155,13 @@ export default async function handler(req, res) {
     }));
 
     console.log("✅ Imagen generada exitosamente");
+
+    // ✅ Limpiar archivo temporal
+    try {
+      fs.unlinkSync(selfieFile.filepath);
+    } catch (e) {
+      console.warn("⚠️ No se pudo eliminar archivo temporal:", e.message);
+    }
 
     // ✅ Retornar respuesta exitosa
     return res.status(200).json({

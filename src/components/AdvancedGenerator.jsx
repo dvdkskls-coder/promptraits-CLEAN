@@ -382,8 +382,9 @@ export default function AdvancedGenerator() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!prompt.trim()) {
-      alert("Por favor, describe lo que quieres generar");
+    // ✅ PERMITIR generar si hay imagen de referencia O texto
+    if (!prompt.trim() && !referenceImage) {
+      alert("Por favor, describe lo que quieres generar o sube una imagen de referencia");
       return;
     }
 
@@ -403,11 +404,14 @@ export default function AdvancedGenerator() {
       // Si hay imagen de referencia, usar FormData
       if (referenceImage) {
         const formData = new FormData();
-        formData.append("prompt", prompt);
+        // Si no hay texto, usar un prompt descriptivo por defecto
+        const promptToSend = prompt.trim() || "Recreate this exact image with all its details, environment, lighting, subject pose, camera angle, and composition. Using the exact face from the provided selfie — no editing, no retouching, no smoothing. Match the reference image precisely.";
+        formData.append("prompt", promptToSend);
         formData.append("platform", "nano-banana");
         formData.append("userId", user.id);
         formData.append("proSettings", JSON.stringify(proSettings));
         formData.append("referenceImage", referenceImage);
+        formData.append("analyzeReference", "true"); // ✅ Indicar que debe analizar la referencia
         
         requestData = formData;
         // No establecer Content-Type para FormData
@@ -677,21 +681,46 @@ export default function AdvancedGenerator() {
             {/* COLUMNA DERECHA: Herramientas PRO */}
             <div>
               {!isPro ? (
-                <div className="p-6 bg-gradient-to-br from-[#D8C780]/10 to-[#D8C780]/5 border border-[#D8C780]/30 rounded-lg text-center">
+                <div className="p-6 bg-gradient-to-br from-[#D8C780]/10 to-[#D8C780]/5 border border-[#D8C780]/30 rounded-lg">
                   <Crown className="w-12 h-12 text-[#D8C780] mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">
+                  <h3 className="text-xl font-bold text-white mb-3 text-center">
                     Herramientas PRO
                   </h3>
-                  <p className="text-[#C1C1C1] mb-4">
-                    Accede a control completo sobre iluminación, poses,
-                    vestuario, planos y más
-                  </p>
-                  <a
-                    href="/planes"
-                    className="inline-block px-6 py-3 bg-[#D8C780] hover:bg-[#C4B66D] rounded-lg font-medium transition-colors"
-                  >
-                    Actualizar a PRO
-                  </a>
+                  <div className="space-y-3 text-[#C1C1C1] text-sm">
+                    <p>
+                      <span className="text-[#D8C780] font-semibold">Regístrate o inicia sesión</span> con una cuenta PRO para acceder a:
+                    </p>
+                    <ul className="space-y-2 ml-4">
+                      <li className="flex items-start gap-2">
+                        <span className="text-[#D8C780] mt-1">•</span>
+                        <span>Control completo de entornos y locaciones</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[#D8C780] mt-1">•</span>
+                        <span>Selección de planos de cámara profesionales</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[#D8C780] mt-1">•</span>
+                        <span>56 poses profesionales (masculinas, femeninas y pareja)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[#D8C780] mt-1">•</span>
+                        <span>Estilos de vestuario y outfits personalizados</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[#D8C780] mt-1">•</span>
+                        <span>23 esquemas de iluminación profesional</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[#D8C780] mt-1">•</span>
+                        <span>27 filtros de color grading cinematográfico</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-[#D8C780] mt-1">•</span>
+                        <span className="font-semibold text-white">Generar imágenes con Nano Banana 🍌 desde Promptraits.com</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1119,18 +1148,18 @@ export default function AdvancedGenerator() {
           {/* Botón Generar Prompt - Ancho completo */}
           <button
             type="submit"
-            disabled={isLoading || !prompt.trim()}
+            disabled={isLoading || (!prompt.trim() && !referenceImage)}
             className="w-full py-4 bg-gradient-to-r from-[#D8C780] to-[#D8C780] hover:from-[#C4B66D] hover:to-[#C4B66D] disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-medium transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Generando prompt... (1 crédito)
+                {referenceImage && !prompt.trim() ? "Analizando imagen de referencia..." : "Generando prompt..."} (1 crédito)
               </>
             ) : (
               <>
                 <Sparkles className="w-5 h-5" />
-                Generar Prompt Profesional (1 crédito)
+                {referenceImage && !prompt.trim() ? "Generar desde Imagen de Referencia" : "Generar Prompt Profesional"} (1 crédito)
               </>
             )}
           </button>
@@ -1295,7 +1324,7 @@ export default function AdvancedGenerator() {
                       <img
                         src={`data:${img.mimeType};base64,${img.base64}`}
                         alt={`Generada ${idx + 1}`}
-                        className="w-full rounded-lg border border-[#2D2D2D]"
+                        className="w-full max-h-[600px] object-contain rounded-lg border border-[#2D2D2D] bg-black"
                       />
                       <a
                         href={`data:${img.mimeType};base64,${img.base64}`}
