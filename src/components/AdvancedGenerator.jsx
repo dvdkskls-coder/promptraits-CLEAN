@@ -150,6 +150,13 @@ export default function AdvancedGenerator() {
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
+  // ✅ ABRIR HERRAMIENTAS PRO AUTOMÁTICAMENTE SI EL USUARIO ES PRO
+  useEffect(() => {
+    if (isPro && !showProTools) {
+      setShowProTools(true);
+    }
+  }, [isPro]);
+
   // ✅ OBTENER OUTFITS SEGÚN GÉNERO
   const getOutfitsByGender = () => {
     if (proSettings.gender === "masculine" || proSettings.gender === "couple") {
@@ -167,6 +174,15 @@ export default function AdvancedGenerator() {
 
   const currentOutfits = getOutfitsByGender();
   const currentPoses = getPosesForGender();
+
+  // ✅ VALORES POR DEFECTO PARA EVITAR ERRORES
+  const safeEnvironments = ENVIRONMENTS || [];
+  const safeShotTypes = SHOT_TYPES || [];
+  const safeCameraAngles = CAMERA_ANGLES || [];
+  const safeLightingSetups = LIGHTING_SETUPS || [];
+  const safeColorGrading = COLOR_GRADING_FILTERS || [];
+  const safeOutfits = currentOutfits || [];
+  const safePoses = currentPoses || [];
 
   // ============================================================================
   // EFECTO: Cuando se abre PRO, limpia características rápidas
@@ -195,18 +211,18 @@ export default function AdvancedGenerator() {
     if (showProTools && isPro) {
       const proParams = [];
 
-      if (proSettings.environment) {
-        const env = ENVIRONMENTS.find((e) => e.id === proSettings.environment);
+      if (proSettings.environment && proSettings.environment !== "auto") {
+        const env = safeEnvironments.find((e) => e.id === proSettings.environment);
         if (env) proParams.push(`Entorno: ${env.name}`);
       }
 
-      if (proSettings.shotType) {
-        const shot = SHOT_TYPES.find((s) => s.id === proSettings.shotType);
+      if (proSettings.shotType && proSettings.shotType !== "auto") {
+        const shot = safeShotTypes.find((s) => s.id === proSettings.shotType);
         if (shot) proParams.push(`Plano: ${shot.nameES}`);
       }
 
-      if (proSettings.cameraAngle) {
-        const angle = CAMERA_ANGLES.find(
+      if (proSettings.cameraAngle && proSettings.cameraAngle !== "auto") {
+        const angle = safeCameraAngles.find(
           (a) => a.id === proSettings.cameraAngle
         );
         if (angle) proParams.push(`Ángulo: ${angle.nameES}`);
@@ -217,25 +233,25 @@ export default function AdvancedGenerator() {
         if (gender) proParams.push(`Género: ${gender.name}`);
       }
 
-      if (proSettings.pose) {
-        const pose = currentPoses.find((p) => p.id === proSettings.pose);
+      if (proSettings.pose && proSettings.pose !== "auto") {
+        const pose = safePoses.find((p) => p.id === proSettings.pose);
         if (pose) proParams.push(`Pose: ${pose.name}`);
       }
 
-      if (proSettings.outfit) {
-        const outfit = currentOutfits.find((o) => o.id === proSettings.outfit);
+      if (proSettings.outfit && proSettings.outfit !== "auto") {
+        const outfit = safeOutfits.find((o) => o.id === proSettings.outfit);
         if (outfit) proParams.push(`Outfit: ${outfit.name}`);
       }
 
-      if (proSettings.lighting) {
-        const light = LIGHTING_SETUPS.find(
+      if (proSettings.lighting && proSettings.lighting !== "auto") {
+        const light = safeLightingSetups.find(
           (l) => l.id === proSettings.lighting
         );
         if (light) proParams.push(`Iluminación: ${light.name}`);
       }
 
-      if (proSettings.colorGrading) {
-        const grading = COLOR_GRADING_FILTERS.find(
+      if (proSettings.colorGrading && proSettings.colorGrading !== "auto") {
+        const grading = safeColorGrading.find(
           (g) => g.id === proSettings.colorGrading
         );
         if (grading) proParams.push(`Color: ${grading.name}`);
@@ -253,8 +269,13 @@ export default function AdvancedGenerator() {
     showProTools,
     proSettings,
     isPro,
-    currentPoses,
-    currentOutfits,
+    safePoses,
+    safeOutfits,
+    safeEnvironments,
+    safeShotTypes,
+    safeCameraAngles,
+    safeLightingSetups,
+    safeColorGrading,
   ]);
 
   // ============================================================================
@@ -318,22 +339,36 @@ export default function AdvancedGenerator() {
     setQualityAnalysis(null);
 
     try {
-      const formData = new FormData();
-      formData.append("prompt", prompt);
-      formData.append("platform", "nano-banana"); // ✅ Siempre Nano Banana
-      formData.append("userId", user.id);
+      let requestData;
+      let headers = {};
 
-      // Añadir herramientas PRO
-      formData.append("proSettings", JSON.stringify(proSettings));
-
-      // Añadir imagen de referencia si existe
+      // Si hay imagen de referencia, usar FormData
       if (referenceImage) {
+        const formData = new FormData();
+        formData.append("prompt", prompt);
+        formData.append("platform", "nano-banana");
+        formData.append("userId", user.id);
+        formData.append("proSettings", JSON.stringify(proSettings));
         formData.append("referenceImage", referenceImage);
+        
+        requestData = formData;
+        // No establecer Content-Type para FormData
+      } else {
+        // Sin imagen, usar JSON simple
+        requestData = JSON.stringify({
+          prompt: prompt,
+          platform: "nano-banana",
+          userId: user.id,
+          proSettings: proSettings,
+        });
+        
+        headers["Content-Type"] = "application/json";
       }
 
       const res = await fetch("/api/gemini-processor", {
         method: "POST",
-        body: formData,
+        headers: headers,
+        body: requestData,
       });
 
       if (!res.ok) {
@@ -447,8 +482,11 @@ export default function AdvancedGenerator() {
       <AnimatedSection>
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#D8C780] to-[#D8C780] bg-clip-text text-transparent">
-            Generador Profesional Nano Banana 🍌
+          <h1 className="text-4xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-[#D8C780] to-[#D8C780] bg-clip-text text-transparent">
+              Generador Profesional Nano Banana
+            </span>{" "}
+            <span className="text-4xl">🍌</span>
           </h1>
           <p className="text-[#C1C1C1] max-w-2xl mx-auto">
             Crea prompts profesionales optimizados para Nano Banana (Google
@@ -668,7 +706,7 @@ export default function AdvancedGenerator() {
                           >
                             Automático
                           </button>
-                          {ENVIRONMENTS.map((env) => (
+                          {safeEnvironments.map((env) => (
                             <button
                               key={env.id}
                               type="button"
@@ -714,7 +752,7 @@ export default function AdvancedGenerator() {
                           >
                             Automático
                           </button>
-                          {SHOT_TYPES.map((shot) => (
+                          {safeShotTypes.map((shot) => (
                             <button
                               key={shot.id}
                               type="button"
@@ -760,7 +798,7 @@ export default function AdvancedGenerator() {
                           >
                             Automático
                           </button>
-                          {CAMERA_ANGLES.map((angle) => (
+                          {safeCameraAngles.map((angle) => (
                             <button
                               key={angle.id}
                               type="button"
@@ -807,7 +845,7 @@ export default function AdvancedGenerator() {
                             >
                               Automático
                             </button>
-                            {currentPoses.map((pose) => (
+                            {safePoses.map((pose) => (
                               <button
                                 key={pose.id}
                                 type="button"
@@ -855,7 +893,7 @@ export default function AdvancedGenerator() {
                             >
                               Automático
                             </button>
-                            {currentOutfits.map((outfit) => (
+                            {safeOutfits.map((outfit) => (
                               <button
                                 key={outfit.id}
                                 type="button"
@@ -902,7 +940,7 @@ export default function AdvancedGenerator() {
                           >
                             Automático
                           </button>
-                          {LIGHTING_SETUPS.map((light) => (
+                          {safeLightingSetups.map((light) => (
                             <button
                               key={light.id}
                               type="button"
@@ -948,7 +986,7 @@ export default function AdvancedGenerator() {
                           >
                             Automático
                           </button>
-                          {COLOR_GRADING_FILTERS.map((grading) => (
+                          {safeColorGrading.map((grading) => (
                             <button
                               key={grading.id}
                               type="button"
