@@ -29,7 +29,7 @@ import Outfits_men from "../data/Outfits_men";
 import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
 
 // ✅ IMPORTAR ENTORNOS
-import { ENVIRONMENTS } from "../data/environmentsData";
+import { ENVIRONMENTS_ARRAY } from "../data/environmentsData";
 
 // ✅ IMPORTAR NUEVOS COMPONENTES PRO
 import { getPosesByGender, POSES } from "../data/posesData";
@@ -101,6 +101,16 @@ const GENDER_OPTIONS = [
 
 export default function AdvancedGenerator() {
   const { user, profile, refreshProfile } = useAuth();
+  
+  // ✅ VALIDACIÓN: Si no hay datos de autenticación aún, mostrar loading
+  const [isInitializing, setIsInitializing] = React.useState(true);
+
+  React.useEffect(() => {
+    if (user !== undefined && profile !== undefined) {
+      setIsInitializing(false);
+    }
+  }, [user, profile]);
+
   const [prompt, setPrompt] = useState("");
   const [userPrompt, setUserPrompt] = useState(""); // ✅ Lo que escribe el usuario
   const [response, setResponse] = useState("");
@@ -172,17 +182,65 @@ export default function AdvancedGenerator() {
     return getPosesByGender(proSettings.gender);
   };
 
+  // ✅ VALORES POR DEFECTO PARA EVITAR ERRORES - Usar useMemo para memorizar
+  const safeEnvironments = React.useMemo(() => {
+    const result = Array.isArray(ENVIRONMENTS_ARRAY) ? ENVIRONMENTS_ARRAY : [];
+    if (result.length === 0) {
+      console.warn('⚠️ ENVIRONMENTS_ARRAY está vacío o undefined');
+    }
+    return result;
+  }, []);
+
+  const safeShotTypes = React.useMemo(() => {
+    const result = Array.isArray(SHOT_TYPES) ? SHOT_TYPES : [];
+    if (result.length === 0) {
+      console.warn('⚠️ SHOT_TYPES está vacío o undefined');
+    }
+    return result;
+  }, []);
+
+  const safeCameraAngles = React.useMemo(() => {
+    const result = Array.isArray(CAMERA_ANGLES) ? CAMERA_ANGLES : [];
+    if (result.length === 0) {
+      console.warn('⚠️ CAMERA_ANGLES está vacío o undefined');
+    }
+    return result;
+  }, []);
+
+  const safeLightingSetups = React.useMemo(() => {
+    const result = Array.isArray(LIGHTING_SETUPS) ? LIGHTING_SETUPS : [];
+    if (result.length === 0) {
+      console.warn('⚠️ LIGHTING_SETUPS está vacío o undefined');
+    }
+    return result;
+  }, []);
+
+  const safeColorGrading = React.useMemo(() => {
+    const result = Array.isArray(COLOR_GRADING_FILTERS) ? COLOR_GRADING_FILTERS : [];
+    if (result.length === 0) {
+      console.warn('⚠️ COLOR_GRADING_FILTERS está vacío o undefined');
+    }
+    return result;
+  }, []);
+
   const currentOutfits = getOutfitsByGender();
   const currentPoses = getPosesForGender();
 
-  // ✅ VALORES POR DEFECTO PARA EVITAR ERRORES
-  const safeEnvironments = ENVIRONMENTS || [];
-  const safeShotTypes = SHOT_TYPES || [];
-  const safeCameraAngles = CAMERA_ANGLES || [];
-  const safeLightingSetups = LIGHTING_SETUPS || [];
-  const safeColorGrading = COLOR_GRADING_FILTERS || [];
-  const safeOutfits = currentOutfits || [];
-  const safePoses = currentPoses || [];
+  const safeOutfits = React.useMemo(() => {
+    const result = Array.isArray(currentOutfits) ? currentOutfits : [];
+    if (result.length === 0) {
+      console.warn('⚠️ Outfits está vacío o undefined');
+    }
+    return result;
+  }, [currentOutfits]);
+
+  const safePoses = React.useMemo(() => {
+    const result = Array.isArray(currentPoses) ? currentPoses : [];
+    if (result.length === 0) {
+      console.warn('⚠️ Poses está vacío o undefined');
+    }
+    return result;
+  }, [currentPoses]);
 
   // ============================================================================
   // EFECTO: Cuando se abre PRO, limpia características rápidas
@@ -479,7 +537,16 @@ export default function AdvancedGenerator() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <AnimatedSection>
+      {/* Loading mientras se inicializa */}
+      {isInitializing ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-[#D8C780] mx-auto mb-4" />
+            <p className="text-[#C1C1C1]">Cargando generador...</p>
+          </div>
+        </div>
+      ) : (
+        <AnimatedSection>
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">
@@ -716,13 +783,18 @@ export default function AdvancedGenerator() {
                                   environment: env.id,
                                 }))
                               }
-                              className={`p-2 rounded-lg border text-sm transition-all ${
+                              className={`p-3 rounded-lg border text-left transition-all ${
                                 proSettings.environment === env.id
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                   : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                               }`}
                             >
-                              {env.name}
+                              <div className="font-medium text-sm">{env.name}</div>
+                              {env.description && (
+                                <div className="text-xs text-[#C1C1C1] mt-1">
+                                  {env.description}
+                                </div>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -762,13 +834,18 @@ export default function AdvancedGenerator() {
                                   shotType: shot.id,
                                 }))
                               }
-                              className={`p-2 rounded-lg border text-sm transition-all ${
+                              className={`p-3 rounded-lg border text-left transition-all ${
                                 proSettings.shotType === shot.id
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                   : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                               }`}
                             >
-                              {shot.nameES}
+                              <div className="font-medium text-sm">{shot.nameES}</div>
+                              {shot.description && (
+                                <div className="text-xs text-[#C1C1C1] mt-1">
+                                  {shot.description}
+                                </div>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -808,13 +885,18 @@ export default function AdvancedGenerator() {
                                   cameraAngle: angle.id,
                                 }))
                               }
-                              className={`p-2 rounded-lg border text-sm transition-all ${
+                              className={`p-3 rounded-lg border text-left transition-all ${
                                 proSettings.cameraAngle === angle.id
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                   : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                               }`}
                             >
-                              {angle.nameES}
+                              <div className="font-medium text-sm">{angle.nameES}</div>
+                              {angle.description && (
+                                <div className="text-xs text-[#C1C1C1] mt-1">
+                                  {angle.description}
+                                </div>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -855,13 +937,18 @@ export default function AdvancedGenerator() {
                                     pose: pose.id,
                                   }))
                                 }
-                                className={`p-2 rounded-lg border text-sm transition-all ${
+                                className={`p-3 rounded-lg border text-left transition-all ${
                                   proSettings.pose === pose.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                     : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                                 }`}
                               >
-                                {pose.name}
+                                <div className="font-medium text-sm">{pose.name}</div>
+                                {pose.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {pose.description}
+                                  </div>
+                                )}
                               </button>
                             ))}
                           </div>
@@ -903,13 +990,18 @@ export default function AdvancedGenerator() {
                                     outfit: outfit.id,
                                   }))
                                 }
-                                className={`p-2 rounded-lg border text-sm transition-all ${
+                                className={`p-3 rounded-lg border text-left transition-all ${
                                   proSettings.outfit === outfit.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                     : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                                 }`}
                               >
-                                {outfit.name}
+                                <div className="font-medium text-sm">{outfit.name}</div>
+                                {outfit.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {outfit.description}
+                                  </div>
+                                )}
                               </button>
                             ))}
                           </div>
@@ -950,13 +1042,18 @@ export default function AdvancedGenerator() {
                                   lighting: light.id,
                                 }))
                               }
-                              className={`p-2 rounded-lg border text-sm transition-all ${
+                              className={`p-3 rounded-lg border text-left transition-all ${
                                 proSettings.lighting === light.id
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                   : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                               }`}
                             >
-                              {light.name}
+                              <div className="font-medium text-sm">{light.name}</div>
+                              {light.description && (
+                                <div className="text-xs text-[#C1C1C1] mt-1">
+                                  {light.description}
+                                </div>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -996,13 +1093,18 @@ export default function AdvancedGenerator() {
                                   colorGrading: grading.id,
                                 }))
                               }
-                              className={`p-2 rounded-lg border text-sm transition-all ${
+                              className={`p-3 rounded-lg border text-left transition-all ${
                                 proSettings.colorGrading === grading.id
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                   : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                               }`}
                             >
-                              {grading.name}
+                              <div className="font-medium text-sm">{grading.name}</div>
+                              {grading.description && (
+                                <div className="text-xs text-[#C1C1C1] mt-1">
+                                  {grading.description}
+                                </div>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -1207,6 +1309,7 @@ export default function AdvancedGenerator() {
           </div>
         )}
       </AnimatedSection>
+      )}
     </div>
   );
 }

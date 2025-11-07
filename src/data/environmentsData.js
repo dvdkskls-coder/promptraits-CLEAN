@@ -394,18 +394,27 @@ export const ENVIRONMENT_CATEGORIES = {
   },
 };
 
-// Funciones helper
+// ============================================
+// EXPORTACIÓN COMO ARRAY (para compatibilidad con .map())
+// ============================================
+// Esta es la clave: exportar también como array para componentes que usan .map()
+export const ENVIRONMENTS_ARRAY = Object.values(ENVIRONMENTS);
+
+// Funciones helper con validaciones seguras
 export const getEnvironmentById = (id) => {
+  if (!id) return null;
   return ENVIRONMENTS[id] || null;
 };
 
 export const getRandomEnvironment = () => {
   const keys = Object.keys(ENVIRONMENTS);
+  if (keys.length === 0) return null;
   const randomKey = keys[Math.floor(Math.random() * keys.length)];
   return ENVIRONMENTS[randomKey];
 };
 
 export const getEnvironmentsByCategory = (category) => {
+  if (!category) return [];
   return Object.values(ENVIRONMENTS).filter(env => env.category === category);
 };
 
@@ -414,4 +423,21 @@ export const getAllCategories = () => {
     id: key,
     ...ENVIRONMENT_CATEGORIES[key],
   }));
+};
+
+// Función para validar que los datos están disponibles
+export const isEnvironmentsDataLoaded = () => {
+  return ENVIRONMENTS && Object.keys(ENVIRONMENTS).length > 0;
+};
+
+// Default export para mayor flexibilidad en importaciones
+export default {
+  ENVIRONMENTS,
+  ENVIRONMENTS_ARRAY,
+  ENVIRONMENT_CATEGORIES,
+  getEnvironmentById,
+  getRandomEnvironment,
+  getEnvironmentsByCategory,
+  getAllCategories,
+  isEnvironmentsDataLoaded,
 };
