@@ -1,13 +1,30 @@
 // ============================================================================
-// GENERADOR DE IMÁGENES CON IMAGEN 3 (Google)
+// GENERATE IMAGE WITH NANO BANANA 🍌
 // ============================================================================
+// Este endpoint genera imágenes usando Google Imagen 3 con el rostro del usuario
 // Endpoint: /api/generate-image
-// Modelo: imagen-3.0-generate-001 (último modelo de Google)
+// Método: POST
 // ============================================================================
 
+import formidable from "formidable";
+import fs from "fs";
+import { createClient } from "@supabase/supabase-js";
+
+// Inicializar Supabase
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// Configurar formidable
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader("Content-Type", "application/json");
+  // CORS headers
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -28,96 +45,200 @@ export default async function handler(req, res) {
   }
 
   try {
-    const {
-      prompt,
-      referenceImage,
-      aspectRatio = "1:1",
-      numberOfImages = 1,
-      negativePrompt,
-    } = req.body;
+    // Parse FormData
+    const form = formidable({
+      maxFileSize: 10 * 1024 * 1024, // 10MB max
+      keepExtensions: true,
+    });
 
-    const API_KEY = process.env.GEMINI_API_KEY;
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        resolve([fields, files]);
+      });
+    });
 
-    if (!API_KEY) {
-      console.error("❌ API key no configurada");
-      return res
-        .status(500)
-        .json({ error: "API key no configurada en el servidor" });
-    }
+    const prompt = Array.isArray(fields.prompt)
+      ? fields.prompt[0]
+      : fields.prompt;
+    const aspectRatio = Array.isArray(fields.aspectRatio)
+      ? fields.aspectRatio[0]
+      : fields.aspectRatio || "1:1";
+    const userId = Array.isArray(fields.userId)
+      ? fields.userId[0]
+      : fields.userId;
 
-    if (!prompt) {
+    const selfieFile = files.selfieImage
+      ? Array.isArray(files.selfieImage)
+        ? files.selfieImage[0]
+        : files.selfieImage
+      : null;
+
+    // Validaciones
+    if (!prompt || !prompt.trim()) {
       return res.status(400).json({ error: "El prompt es requerido" });
     }
 
-    console.log("🎨 Generando imagen con Imagen 3...");
-    console.log("📝 Prompt:", prompt);
-    console.log("📐 Aspect Ratio:", aspectRatio);
+    if (!userId) {
+      return res.status(400).json({ error: "Usuario no identificado" });
+    }
 
-    // ============================================================================
-    // LLAMADA A IMAGEN 3 VÍA GENERATIVE LANGUAGE API
-    // ============================================================================
-    
-    // Construir el body de la petición según la documentación oficial
+    if (!selfieFile) {
+      return res
+        .status(400)
+        .json({
+          error: "Debes subir una foto selfie para generar la imagen",
+        });
+    }
+
+    // Verificar API Key
+    const API_KEY = process.env.GEMINI_API_KEY;
+    if (!API_KEY) {
+      return res.status(500).json({ error: "API key no configurada" });
+    }
+
+    // Verificar créditos del usuario
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("credits, plan")
+      .eq("id", userId)
+      .single();
+
+    if (profileError || !profile) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    if (profile.credits < 1) {
+      return res
+        .status(402)
+        .json({
+          error: "Créditos insuficientes",
+          creditsNeeded: 1,
+          creditsAvailable: profile.credits,
+        });
+    }
+
+    console.log("🍌 Generando imagen con Nano Banana...");
+    console.log("Prompt:", prompt);
+    console.log("Aspect Ratio:", aspectRatio);
+    console.log("Selfie:", selfieFile.originalFilename);
+
+    // Convertir selfie a base64
+    const selfieBuffer = fs.readFileSync(selfieFile.filepath);
+    const selfieBase64 = selfieBuffer.toString("base64");
+    const selfieMimeType =
+      selfieFile.mimetype || "image/jpeg";
+
+    // Mapeo de aspect ratios a dimensiones de Imagen 3
+    const aspectRatioMap = {
+      "1:1": "square",
+      "3:4": "portrait",
+      "4:3": "landscape",
+      "9:16": "portrait",
+      "16:9": "landscape",
+    };
+
+    const imageFormat = aspectRatioMap[aspectRatio] || "square";
+
+    // Construir el prompt mejorado que incluye referencia al rostro
+    const enhancedPrompt = `${prompt}
+
+IMPORTANT: Use the exact facial features, expression, and appearance from the provided reference photograph. Maintain the person's authentic and natural look without any modifications or alterations.`;
+
+    // Llamar a la API de Google Imagen 3
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${API_KEY}`;
+
     const requestBody = {
       instances: [
         {
-          prompt: prompt,
+          prompt: enhancedPrompt,
+          referenceImages: [
+            {
+              image: {
+                bytesBase64Encoded: selfieBase64,
+              },
+              referenceType: "SUBJECT", // Usar el sujeto de la imagen
+            },
+          ],
         },
       ],
       parameters: {
-        sampleCount: Math.min(numberOfImages, 4), // Máximo 4 imágenes
-        aspectRatio: aspectRatio, // "1:1", "3:4", "4:3", "9:16", "16:9"
-        safetySetting: "block_low_and_above", // ✅ Valor correcto
-        personGeneration: "allow_adult",
+        sampleCount: 1, // Solo 1 imagen
+        aspectRatio: imageFormat,
+        safetySetting: "block_some",
+        personGeneration: "allow_all", // Permitir generar personas
+        outputMimeType: "image/png",
       },
     };
 
-    // Si hay imagen de referencia, añadir configuración
-    if (referenceImage) {
-      requestBody.instances[0].referenceImage = {
-        bytesBase64Encoded: referenceImage,
-      };
-    }
+    console.log("Llamando a Imagen 3 API...");
 
-    // Usar el endpoint correcto con :predict
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict`;
-    
-    const response = await fetch(endpoint, {
+    const imageResponse = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        "x-goog-api-key": API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("❌ Error de Imagen 3:", errorData);
-      throw new Error(errorData.error?.message || "Error al generar imagen");
+    if (!imageResponse.ok) {
+      const errorData = await imageResponse.text();
+      console.error("Error de Imagen 3:", errorData);
+      return res.status(imageResponse.status).json({
+        error: "Error al generar imagen",
+        details: errorData,
+      });
     }
 
-    const data = await response.json();
+    const imageData = await imageResponse.json();
 
-    // Extraer las imágenes generadas
-    const images = data.predictions.map((prediction) => ({
-      base64: prediction.bytesBase64Encoded,
-      mimeType: prediction.mimeType || "image/png",
+    // Verificar que hay imágenes generadas
+    if (
+      !imageData.predictions ||
+      imageData.predictions.length === 0 ||
+      !imageData.predictions[0].bytesBase64Encoded
+    ) {
+      console.error("No se generaron imágenes:", imageData);
+      return res.status(500).json({
+        error: "No se pudieron generar imágenes",
+        details: imageData,
+      });
+    }
+
+    // Preparar las imágenes para enviar al frontend
+    const generatedImages = imageData.predictions.map((pred) => ({
+      base64: pred.bytesBase64Encoded,
+      mimeType: pred.mimeType || "image/png",
     }));
 
-    console.log(`✅ ${images.length} imagen(es) generada(s) exitosamente`);
+    // Descontar créditos
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ credits: profile.credits - 1 })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Error al actualizar créditos:", updateError);
+    }
+
+    console.log("✅ Imagen generada exitosamente");
+    console.log(`Créditos restantes: ${profile.credits - 1}`);
+
+    // Limpiar archivo temporal
+    if (fs.existsSync(selfieFile.filepath)) {
+      fs.unlinkSync(selfieFile.filepath);
+    }
 
     return res.status(200).json({
-      success: true,
-      images,
-      prompt,
-      aspectRatio,
+      images: generatedImages,
+      creditsUsed: 1,
+      creditsRemaining: profile.credits - 1,
     });
   } catch (error) {
-    console.error("❌ Error en generate-image:", error);
+    console.error("Error generando imagen:", error);
     return res.status(500).json({
-      error: error.message || "Error al generar imagen",
-      details: error.toString(),
+      error: "Error al procesar la solicitud",
+      details: error.message,
     });
   }
 }
