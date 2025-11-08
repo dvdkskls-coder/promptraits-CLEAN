@@ -1,11 +1,11 @@
 // ============================================================================
-// 🌟 ENDPOINT: Generar Imagen con Vertex AI Imagen 3 (Google Cloud)
+// 🌟 ENDPOINT: Generar Imagen con Gemini 2.5 Flash Preview Image
 // ============================================================================
 // Ruta: /api/generate-image.js (Vercel)
 
 import formidable from 'formidable';
 import fs from 'fs';
-import { GoogleAuth } from 'google-auth-library';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // ✅ Configuración para Vercel - desactivar bodyParser
 export const config = {
@@ -13,6 +13,9 @@ export const config = {
     bodyParser: false,
   },
 };
+
+// ✅ Inicializar Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export default async function handler(req, res) {
   // ✅ Solo permitir POST
@@ -41,7 +44,7 @@ export default async function handler(req, res) {
     
     const selfieFile = Array.isArray(files.selfieImage) ? files.selfieImage[0] : files.selfieImage;
 
-    console.log("🌟 Vertex AI Imagen 3 - Datos recibidos:");
+    console.log("🌟 Gemini Image Gen - Datos recibidos:");
     console.log("- Prompt:", prompt ? `${prompt.substring(0, 50)}...` : "NO");
     console.log("- Aspect Ratio:", aspectRatio);
     console.log("- User ID:", userId);
@@ -58,158 +61,153 @@ export default async function handler(req, res) {
     if (!selfieFile) {
       return res.status(400).json({
         success: false,
-        error: "La imagen selfie es requerida",
-      });
-    }
-
-    // ✅ Verificar configuración de Google Cloud
-    const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID;
-    const LOCATION = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
-    
-    if (!PROJECT_ID) {
-      console.error("❌ Falta GOOGLE_CLOUD_PROJECT_ID en variables de entorno");
-      return res.status(500).json({
-        success: false,
-        error: "Configuración del servidor incompleta. Contacta al administrador.",
+        error: "La imagen selfie es requerida para generar una imagen personalizada",
       });
     }
 
     // ✅ Leer archivo selfie y convertir a base64
     const selfieBuffer = fs.readFileSync(selfieFile.filepath);
     const selfieBase64 = selfieBuffer.toString('base64');
+    const selfieMimeType = selfieFile.mimetype || 'image/jpeg';
 
     console.log("✅ Selfie convertida a base64");
+    console.log("📷 MIME Type:", selfieMimeType);
 
-    // ✅ Mapear aspect ratio a formato Vertex AI
-    const aspectRatioMap = {
-      "1:1": "1:1",
-      "3:4": "3:4",
-      "4:3": "4:3",
-      "9:16": "9:16",
-      "16:9": "16:9",
+    // ✅ Mapear aspect ratio a dimensiones
+    const dimensionsMap = {
+      "1:1": { width: 1024, height: 1024 },
+      "3:4": { width: 768, height: 1024 },
+      "4:3": { width: 1024, height: 768 },
+      "9:16": { width: 720, height: 1280 },
+      "16:9": { width: 1280, height: 720 },
     };
 
-    const vertexAspectRatio = aspectRatioMap[aspectRatio] || "1:1";
+    const dimensions = dimensionsMap[aspectRatio] || dimensionsMap["1:1"];
 
-    // ✅ Construir el request body para Vertex AI Imagen 3
-    const requestBody = {
-      instances: [
+    // ✅ Construir prompt mejorado con instrucciones de referencia
+    const enhancedPrompt = `${prompt}
+
+CRITICAL INSTRUCTIONS FOR FACE REFERENCE:
+- Use the EXACT facial features from the reference image provided
+- Maintain the person's face structure, eyes, nose, mouth, and overall appearance
+- DO NOT alter or modify facial characteristics
+- Keep the same skin tone and facial proportions
+- The person in the reference image must be recognizable in the generated image
+
+Technical specifications:
+- Resolution: ${dimensions.width}x${dimensions.height}px
+- Aspect ratio: ${aspectRatio}
+- Style: Professional photography, hyper-realistic
+- Quality: 8K, ultra-detailed, sharp focus`;
+
+    console.log("🎨 Generando imagen con Gemini...");
+    console.log("📐 Dimensiones:", `${dimensions.width}x${dimensions.height}`);
+
+    try {
+      // ✅ Usar el modelo de Gemini para generar imágenes
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-2.5-flash-preview-image'
+      });
+
+      // ✅ Preparar contenido con imagen de referencia
+      const result = await model.generateContent([
         {
-          prompt: prompt,
-        }
-      ],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: vertexAspectRatio,
-        referenceImages: [
-          {
-            imageBytes: {
-              bytesBase64Encoded: selfieBase64
-            },
-            referenceType: "REFERENCE_TYPE_FACE", // Para que use la cara de referencia
-            referenceId: 1
+          inlineData: {
+            mimeType: selfieMimeType,
+            data: selfieBase64
           }
-        ],
-        personGeneration: "allow_all",
-        safetySetting: "block_some",
-        addWatermark: false,
-      }
-    };
+        },
+        {
+          text: enhancedPrompt
+        }
+      ]);
 
-    console.log("🌟 Llamando a Vertex AI Imagen 3...");
-    console.log("📐 Aspect Ratio:", vertexAspectRatio);
-    console.log("🆔 Project ID:", PROJECT_ID);
-    console.log("📍 Location:", LOCATION);
-
-    // ✅ Obtener token de autenticación
-    let accessToken;
-    try {
-      // Intenta usar Google Auth Library
-      const auth = new GoogleAuth({
-        scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-      });
-      const client = await auth.getClient();
-      const tokenResponse = await client.getAccessToken();
-      accessToken = tokenResponse.token;
-      console.log("✅ Token de autenticación obtenido");
-    } catch (authError) {
-      console.error("❌ Error al obtener token:", authError);
-      return res.status(500).json({
-        success: false,
-        error: "No se pudo autenticar con Google Cloud. Verifica las credenciales.",
-      });
-    }
-
-    // ✅ Endpoint de Vertex AI
-    const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/imagen-3.0-generate-001:predict`;
-
-    // ✅ Llamar a la API de Vertex AI
-    const vertexResponse = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    // ✅ Verificar respuesta
-    if (!vertexResponse.ok) {
-      const errorText = await vertexResponse.text();
-      console.error("❌ Error de Vertex AI:", errorText);
+      const response = await result.response;
       
-      let errorMessage = "Error al generar la imagen";
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error?.message || errorJson.error || errorMessage;
-      } catch (e) {
-        errorMessage = errorText.substring(0, 200);
+      console.log("📝 Respuesta de Gemini recibida");
+      
+      // ✅ Verificar si hay imagen en la respuesta
+      if (!response.candidates || !response.candidates[0]) {
+        console.error("❌ No hay candidates en la respuesta");
+        throw new Error('No se generó ninguna imagen. Intenta con un prompt diferente.');
       }
 
-      return res.status(vertexResponse.status).json({
-        success: false,
-        error: errorMessage,
+      const candidate = response.candidates[0];
+      
+      // ✅ Extraer la imagen base64 de la respuesta
+      let imageBase64 = null;
+      let imageMimeType = 'image/png';
+      
+      if (candidate.content && candidate.content.parts) {
+        for (const part of candidate.content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            imageBase64 = part.inlineData.data;
+            imageMimeType = part.inlineData.mimeType || 'image/png';
+            console.log("✅ Imagen encontrada en respuesta");
+            break;
+          }
+        }
+      }
+
+      if (!imageBase64) {
+        console.error("❌ No se pudo extraer imagen de la respuesta");
+        console.error("Estructura de respuesta:", JSON.stringify(response, null, 2));
+        throw new Error('No se pudo extraer la imagen de la respuesta de Gemini');
+      }
+
+      console.log("✅ Imagen generada exitosamente con Gemini");
+
+      // ✅ Limpiar archivo temporal
+      try {
+        fs.unlinkSync(selfieFile.filepath);
+        console.log("🗑️ Archivo temporal eliminado");
+      } catch (e) {
+        console.warn("⚠️ No se pudo eliminar archivo temporal:", e.message);
+      }
+
+      // ✅ Retornar respuesta en el mismo formato que Vertex AI
+      return res.status(200).json({
+        success: true,
+        images: [{
+          base64: imageBase64,
+          mimeType: imageMimeType,
+        }]
       });
+
+    } catch (geminiError) {
+      console.error("❌ Error de Gemini:", geminiError);
+      
+      // Errores específicos de Gemini
+      if (geminiError.message && geminiError.message.includes('API key')) {
+        return res.status(500).json({
+          success: false,
+          error: 'Error de configuración. Verifica que GEMINI_API_KEY esté configurada correctamente.',
+        });
+      }
+
+      if (geminiError.message && geminiError.message.includes('quota')) {
+        return res.status(429).json({
+          success: false,
+          error: 'Límite de uso alcanzado. Intenta de nuevo más tarde.',
+        });
+      }
+
+      if (geminiError.message && geminiError.message.includes('safety')) {
+        return res.status(400).json({
+          success: false,
+          error: 'El contenido fue bloqueado por razones de seguridad. Intenta con un prompt diferente.',
+        });
+      }
+
+      throw geminiError;
     }
-
-    const vertexData = await vertexResponse.json();
-
-    // ✅ Verificar que hay imágenes generadas
-    if (!vertexData.predictions || vertexData.predictions.length === 0) {
-      console.error("❌ No se generaron imágenes");
-      return res.status(500).json({
-        success: false,
-        error: "No se pudo generar la imagen. Intenta de nuevo.",
-      });
-    }
-
-    // ✅ Extraer imágenes (Vertex AI devuelve en formato diferente)
-    const images = vertexData.predictions.map((prediction) => ({
-      base64: prediction.bytesBase64Encoded,
-      mimeType: prediction.mimeType || "image/png",
-    }));
-
-    console.log("✅ Imagen generada exitosamente con Vertex AI");
-
-    // ✅ Limpiar archivo temporal
-    try {
-      fs.unlinkSync(selfieFile.filepath);
-    } catch (e) {
-      console.warn("⚠️ No se pudo eliminar archivo temporal:", e.message);
-    }
-
-    // ✅ Retornar respuesta exitosa
-    return res.status(200).json({
-      success: true,
-      images: images,
-    });
 
   } catch (error) {
-    console.error("❌ Error al generar imagen:", error);
+    console.error("❌ Error general al generar imagen:", error);
     
     return res.status(500).json({
       success: false,
-      error: error.message || "Error interno del servidor",
+      error: error.message || "Error interno del servidor al generar la imagen",
     });
   }
 }
