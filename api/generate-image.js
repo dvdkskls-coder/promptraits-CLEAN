@@ -3,9 +3,9 @@
 // ============================================================================
 // Ruta: /api/generate-image.js (Vercel)
 
-import formidable from 'formidable';
-import fs from 'fs';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import formidable from "formidable";
+import fs from "fs";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // ✅ Configuración para Vercel - desactivar bodyParser
 export const config = {
@@ -20,16 +20,16 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 export default async function handler(req, res) {
   // ✅ Solo permitir POST
   if (req.method !== "POST") {
-    return res.status(405).json({ 
-      success: false, 
-      error: "Método no permitido. Usa POST" 
+    return res.status(405).json({
+      success: false,
+      error: "Método no permitido. Usa POST",
     });
   }
 
   try {
     // ✅ Parsear FormData con formidable
     const form = formidable({ multiples: false, maxFileSize: 5 * 1024 * 1024 }); // Max 5MB
-    
+
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
@@ -38,11 +38,19 @@ export default async function handler(req, res) {
     });
 
     // ✅ Extraer datos
-    const prompt = Array.isArray(fields.prompt) ? fields.prompt[0] : fields.prompt;
-    const aspectRatio = Array.isArray(fields.aspectRatio) ? fields.aspectRatio[0] : fields.aspectRatio || "1:1";
-    const userId = Array.isArray(fields.userId) ? fields.userId[0] : fields.userId;
-    
-    const selfieFile = Array.isArray(files.selfieImage) ? files.selfieImage[0] : files.selfieImage;
+    const prompt = Array.isArray(fields.prompt)
+      ? fields.prompt[0]
+      : fields.prompt;
+    const aspectRatio = Array.isArray(fields.aspectRatio)
+      ? fields.aspectRatio[0]
+      : fields.aspectRatio || "1:1";
+    const userId = Array.isArray(fields.userId)
+      ? fields.userId[0]
+      : fields.userId;
+
+    const selfieFile = Array.isArray(files.selfieImage)
+      ? files.selfieImage[0]
+      : files.selfieImage;
 
     console.log("🌟 Gemini Image Gen - Datos recibidos:");
     console.log("- Prompt:", prompt ? `${prompt.substring(0, 50)}...` : "NO");
@@ -61,14 +69,15 @@ export default async function handler(req, res) {
     if (!selfieFile) {
       return res.status(400).json({
         success: false,
-        error: "La imagen selfie es requerida para generar una imagen personalizada",
+        error:
+          "La imagen selfie es requerida para generar una imagen personalizada",
       });
     }
 
     // ✅ Leer archivo selfie y convertir a base64
     const selfieBuffer = fs.readFileSync(selfieFile.filepath);
-    const selfieBase64 = selfieBuffer.toString('base64');
-    const selfieMimeType = selfieFile.mimetype || 'image/jpeg';
+    const selfieBase64 = selfieBuffer.toString("base64");
+    const selfieMimeType = selfieFile.mimetype || "image/jpeg";
 
     console.log("✅ Selfie convertida a base64");
     console.log("📷 MIME Type:", selfieMimeType);
@@ -105,8 +114,8 @@ Technical specifications:
 
     try {
       // ✅ Usar el modelo de Gemini para generar imágenes
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.5-flash-preview-image'
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-image",
       });
 
       // ✅ Preparar contenido con imagen de referencia
@@ -114,35 +123,37 @@ Technical specifications:
         {
           inlineData: {
             mimeType: selfieMimeType,
-            data: selfieBase64
-          }
+            data: selfieBase64,
+          },
         },
         {
-          text: enhancedPrompt
-        }
+          text: enhancedPrompt,
+        },
       ]);
 
       const response = await result.response;
-      
+
       console.log("📝 Respuesta de Gemini recibida");
-      
+
       // ✅ Verificar si hay imagen en la respuesta
       if (!response.candidates || !response.candidates[0]) {
         console.error("❌ No hay candidates en la respuesta");
-        throw new Error('No se generó ninguna imagen. Intenta con un prompt diferente.');
+        throw new Error(
+          "No se generó ninguna imagen. Intenta con un prompt diferente."
+        );
       }
 
       const candidate = response.candidates[0];
-      
+
       // ✅ Extraer la imagen base64 de la respuesta
       let imageBase64 = null;
-      let imageMimeType = 'image/png';
-      
+      let imageMimeType = "image/png";
+
       if (candidate.content && candidate.content.parts) {
         for (const part of candidate.content.parts) {
           if (part.inlineData && part.inlineData.data) {
             imageBase64 = part.inlineData.data;
-            imageMimeType = part.inlineData.mimeType || 'image/png';
+            imageMimeType = part.inlineData.mimeType || "image/png";
             console.log("✅ Imagen encontrada en respuesta");
             break;
           }
@@ -151,8 +162,13 @@ Technical specifications:
 
       if (!imageBase64) {
         console.error("❌ No se pudo extraer imagen de la respuesta");
-        console.error("Estructura de respuesta:", JSON.stringify(response, null, 2));
-        throw new Error('No se pudo extraer la imagen de la respuesta de Gemini');
+        console.error(
+          "Estructura de respuesta:",
+          JSON.stringify(response, null, 2)
+        );
+        throw new Error(
+          "No se pudo extraer la imagen de la respuesta de Gemini"
+        );
       }
 
       console.log("✅ Imagen generada exitosamente con Gemini");
@@ -168,43 +184,45 @@ Technical specifications:
       // ✅ Retornar respuesta en el mismo formato que Vertex AI
       return res.status(200).json({
         success: true,
-        images: [{
-          base64: imageBase64,
-          mimeType: imageMimeType,
-        }]
+        images: [
+          {
+            base64: imageBase64,
+            mimeType: imageMimeType,
+          },
+        ],
       });
-
     } catch (geminiError) {
       console.error("❌ Error de Gemini:", geminiError);
-      
+
       // Errores específicos de Gemini
-      if (geminiError.message && geminiError.message.includes('API key')) {
+      if (geminiError.message && geminiError.message.includes("API key")) {
         return res.status(500).json({
           success: false,
-          error: 'Error de configuración. Verifica que GEMINI_API_KEY esté configurada correctamente.',
+          error:
+            "Error de configuración. Verifica que GEMINI_API_KEY esté configurada correctamente.",
         });
       }
 
-      if (geminiError.message && geminiError.message.includes('quota')) {
+      if (geminiError.message && geminiError.message.includes("quota")) {
         return res.status(429).json({
           success: false,
-          error: 'Límite de uso alcanzado. Intenta de nuevo más tarde.',
+          error: "Límite de uso alcanzado. Intenta de nuevo más tarde.",
         });
       }
 
-      if (geminiError.message && geminiError.message.includes('safety')) {
+      if (geminiError.message && geminiError.message.includes("safety")) {
         return res.status(400).json({
           success: false,
-          error: 'El contenido fue bloqueado por razones de seguridad. Intenta con un prompt diferente.',
+          error:
+            "El contenido fue bloqueado por razones de seguridad. Intenta con un prompt diferente.",
         });
       }
 
       throw geminiError;
     }
-
   } catch (error) {
     console.error("❌ Error general al generar imagen:", error);
-    
+
     return res.status(500).json({
       success: false,
       error: error.message || "Error interno del servidor al generar la imagen",
