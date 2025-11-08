@@ -1427,14 +1427,128 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
     // Validar longitud según plataforma
     const validation = validatePromptLength(generatedPrompt, platform);
 
-    // Si es PRO y pide análisis de calidad
+    // SIEMPRE generar análisis de calidad para mostrar al lado del prompt
+    console.log("📊 Generando análisis de calidad...");
     let qualityAnalysis = null;
-    if (isPro && analyzeQuality) {
+    try {
       qualityAnalysis = await analyzePromptQuality(
         generatedPrompt,
         platform,
         API_KEY
       );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis (no crítico):", error.message);
+      // No fallar si el análisis falla, es opcional
+    }
+
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
+    }
+    // SIEMPRE generar análisis de calidad
+    console.log("📊 Generando análisis de calidad...");
+    let qualityAnalysis = null;
+    try {
+      qualityAnalysis = await analyzePromptQuality(
+        generatedPrompt,
+        platform,
+        API_KEY
+      );
+      console.log("✅ Análisis de calidad generado");
+    } catch (error) {
+      console.error("⚠️ Error generando análisis:", error.message);
     }
 
     console.log("✅ Prompt generado");
@@ -1488,7 +1602,7 @@ function validatePromptLength(prompt, platform) {
 }
 
 async function analyzePromptQuality(generatedPrompt, platform, API_KEY) {
-  const analysisPrompt = `You are an expert photography director. Analyze this ${platform} prompt:
+  const analysisPrompt = `You are an expert photography director. Analyze this ${platform} prompt for quality:
 
 PROMPT TO ANALYZE:
 ${generatedPrompt}
@@ -1504,28 +1618,39 @@ CRITERIA:
 
 Score 0-10.
 
-Provide ONLY valid JSON:
+Provide ONLY valid JSON in this EXACT format:
 {
-  "score": 9.2,
-  "included": [
-    "Setup de iluminación Rembrandt completo con ratios especificados",
-    "Especificaciones de cámara profesionales completas",
-    "Composición clara con regla de tercios y headroom"
+  "score": 8,
+  "strengths": [
+    "Iluminación profesional bien definida",
+    "Especificaciones técnicas completas"
   ],
-  "suggestions": [
-    "Añade temperatura de color específica para fill light",
-    "Especifica tratamiento de sombras en post",
-    "Incluye referencias de color más precisas"
-  ]
+  "improvements": [
+    "Podría especificar más detalles de textura",
+    "Añadir referencias de color más precisas"
+  ],
+  "technical": {
+    "lighting": "Profesional",
+    "composition": "Cinematográfica",
+    "style": "Hiper-realista",
+    "detail": "Alto"
+  }
 }
 
-Score 9.0-10.0: Editorial quality
-Score 7.5-8.9: Very good
-Score 6.0-7.4: Good foundation
-Score 4.0-5.9: Needs detail
-Score 0.0-3.9: Insufficient
+IMPORTANT: 
+- Use "strengths" (not "included")
+- Use "improvements" (not "suggestions")
+- Include "technical" object with: lighting, composition, style, detail
+- Score must be integer (0-10)
+- ALL text in SPANISH
 
-ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
+Score 9-10: Editorial quality
+Score 7-8: Very good
+Score 5-6: Good foundation
+Score 3-4: Needs detail
+Score 0-2: Insufficient
+
+Output ONLY JSON, nothing else.`;
 
   try {
     const analysisResponse = await fetch(
@@ -1542,9 +1667,24 @@ ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
     const analysisData = await analysisResponse.json();
     if (analysisResponse.ok) {
       const analysisText = analysisData.candidates[0].content.parts[0].text;
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      // Limpiar markdown si viene con ```json
+      const cleanText = analysisText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const parsed = JSON.parse(jsonMatch[0]);
+        
+        // Asegurar que tiene el formato correcto
+        return {
+          score: parsed.score || 7,
+          strengths: parsed.strengths || parsed.included || [],
+          improvements: parsed.improvements || parsed.suggestions || [],
+          technical: parsed.technical || {
+            lighting: "Básica",
+            composition: "Simple",
+            style: "General",
+            detail: "Medio"
+          }
+        };
       }
     }
   } catch (e) {

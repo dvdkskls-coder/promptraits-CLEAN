@@ -1,5 +1,5 @@
 // ============================================================================
-// 🌟 ENDPOINT: Generar Imagen con Gemini 2.5 Flash Preview Image
+// 🌟 ENDPOINT: Generar Imagen con Gemini 2.5 Flash Image (Nano Banana)
 // ============================================================================
 // Ruta: /api/generate-image.js (Vercel)
 
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     
     const selfieFile = Array.isArray(files.selfieImage) ? files.selfieImage[0] : files.selfieImage;
 
-    console.log("🌟 Gemini Image Gen - Datos recibidos:");
+    console.log("🍌 Nano Banana (Gemini 2.5 Flash Image) - Datos recibidos:");
     console.log("- Prompt:", prompt ? `${prompt.substring(0, 50)}...` : "NO");
     console.log("- Aspect Ratio:", aspectRatio);
     console.log("- User ID:", userId);
@@ -84,32 +84,37 @@ export default async function handler(req, res) {
 
     const dimensions = dimensionsMap[aspectRatio] || dimensionsMap["1:1"];
 
-    // ✅ Construir prompt mejorado con instrucciones de referencia
-    const enhancedPrompt = `${prompt}
+    // ✅ Construir prompt con instrucciones específicas para preservación facial
+    // IMPORTANTE: Según la documentación, usar descripciones NARRATIVAS, no keywords
+    const enhancedPrompt = `A photo of this person (referring to the provided reference image). ${prompt}
 
-CRITICAL INSTRUCTIONS FOR FACE REFERENCE:
-- Use the EXACT facial features from the reference image provided
-- Maintain the person's face structure, eyes, nose, mouth, and overall appearance
-- DO NOT alter or modify facial characteristics
-- Keep the same skin tone and facial proportions
-- The person in the reference image must be recognizable in the generated image
+CRITICAL INSTRUCTIONS FOR CHARACTER CONSISTENCY:
+- Use the EXACT facial features, structure, and identity from the reference image
+- Maintain the same face, eyes, nose, mouth, skin tone, and facial proportions
+- DO NOT alter or modify facial characteristics in any way
+- The person from the reference image must be clearly recognizable
+- Preserve the person's unique identity and appearance
+- Only modify the elements described in the main prompt (clothing, background, pose, etc.)
 
 Technical specifications:
 - Resolution: ${dimensions.width}x${dimensions.height}px
 - Aspect ratio: ${aspectRatio}
-- Style: Professional photography, hyper-realistic
-- Quality: 8K, ultra-detailed, sharp focus`;
+- Style: Professional photography, hyper-realistic, cinematic quality
+- Quality: 8K resolution, ultra-detailed, sharp focus
+- Lighting: Professional studio lighting with proper skin tones`;
 
-    console.log("🎨 Generando imagen con Gemini...");
+    console.log("🎨 Generando imagen con Nano Banana...");
     console.log("📐 Dimensiones:", `${dimensions.width}x${dimensions.height}`);
+    console.log("🔑 Modelo: gemini-2.5-flash-image");
 
     try {
-      // ✅ Usar el modelo de Gemini para generar imágenes
+      // ✅ Usar el modelo CORRECTO: gemini-2.5-flash-image (Nano Banana)
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.5-flash-preview-image'
+        model: 'gemini-2.5-flash-image'  // ← ESTE ES EL MODELO CORRECTO
       });
 
-      // ✅ Preparar contenido con imagen de referencia
+      // ✅ Preparar contenido multimodal: imagen de referencia + prompt
+      // Según la documentación, pasar [imagen, texto] en un array
       const result = await model.generateContent([
         {
           inlineData: {
@@ -124,12 +129,12 @@ Technical specifications:
 
       const response = await result.response;
       
-      console.log("📝 Respuesta de Gemini recibida");
+      console.log("📝 Respuesta de Nano Banana recibida");
       
       // ✅ Verificar si hay imagen en la respuesta
       if (!response.candidates || !response.candidates[0]) {
         console.error("❌ No hay candidates en la respuesta");
-        throw new Error('No se generó ninguna imagen. Intenta con un prompt diferente.');
+        throw new Error('No se generó ninguna imagen. El contenido puede haber sido bloqueado por filtros de seguridad.');
       }
 
       const candidate = response.candidates[0];
@@ -144,6 +149,7 @@ Technical specifications:
             imageBase64 = part.inlineData.data;
             imageMimeType = part.inlineData.mimeType || 'image/png';
             console.log("✅ Imagen encontrada en respuesta");
+            console.log("📦 MIME Type de imagen generada:", imageMimeType);
             break;
           }
         }
@@ -151,11 +157,13 @@ Technical specifications:
 
       if (!imageBase64) {
         console.error("❌ No se pudo extraer imagen de la respuesta");
-        console.error("Estructura de respuesta:", JSON.stringify(response, null, 2));
-        throw new Error('No se pudo extraer la imagen de la respuesta de Gemini');
+        console.error("📋 Estructura de respuesta completa:");
+        console.error(JSON.stringify(response, null, 2));
+        throw new Error('No se pudo extraer la imagen de la respuesta de Gemini. Verifica que el modelo soporte generación de imágenes.');
       }
 
-      console.log("✅ Imagen generada exitosamente con Gemini");
+      console.log("✅ Imagen generada exitosamente con Nano Banana");
+      console.log("📊 Tamaño de imagen base64:", imageBase64.length, "caracteres");
 
       // ✅ Limpiar archivo temporal
       try {
@@ -166,6 +174,7 @@ Technical specifications:
       }
 
       // ✅ Retornar respuesta en el mismo formato que Vertex AI
+      // (para mantener compatibilidad con el frontend)
       return res.status(200).json({
         success: true,
         images: [{
@@ -176,26 +185,34 @@ Technical specifications:
 
     } catch (geminiError) {
       console.error("❌ Error de Gemini:", geminiError);
+      console.error("📋 Error completo:", geminiError.stack);
       
       // Errores específicos de Gemini
       if (geminiError.message && geminiError.message.includes('API key')) {
         return res.status(500).json({
           success: false,
-          error: 'Error de configuración. Verifica que GEMINI_API_KEY esté configurada correctamente.',
+          error: 'Error de configuración de API. Verifica que GEMINI_API_KEY esté configurada correctamente en Vercel.',
         });
       }
 
       if (geminiError.message && geminiError.message.includes('quota')) {
         return res.status(429).json({
           success: false,
-          error: 'Límite de uso alcanzado. Intenta de nuevo más tarde.',
+          error: 'Límite de uso alcanzado. Intenta de nuevo más tarde o verifica tu cuenta de Google AI Studio.',
         });
       }
 
-      if (geminiError.message && geminiError.message.includes('safety')) {
+      if (geminiError.message && geminiError.message.includes('safety') || geminiError.message && geminiError.message.includes('blocked')) {
         return res.status(400).json({
           success: false,
-          error: 'El contenido fue bloqueado por razones de seguridad. Intenta con un prompt diferente.',
+          error: 'El contenido fue bloqueado por razones de seguridad. Intenta con un prompt diferente o una imagen diferente.',
+        });
+      }
+
+      if (geminiError.message && geminiError.message.includes('not found')) {
+        return res.status(404).json({
+          success: false,
+          error: 'Modelo no encontrado. Verifica que tu API key tenga acceso a gemini-2.5-flash-image.',
         });
       }
 
@@ -204,6 +221,7 @@ Technical specifications:
 
   } catch (error) {
     console.error("❌ Error general al generar imagen:", error);
+    console.error("📋 Stack trace:", error.stack);
     
     return res.status(500).json({
       success: false,
