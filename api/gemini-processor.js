@@ -1442,115 +1442,6 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
       // No fallar si el análisis falla, es opcional
     }
 
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-    // SIEMPRE generar análisis de calidad
-    console.log("📊 Generando análisis de calidad...");
-    let qualityAnalysis = null;
-    try {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-      console.log("✅ Análisis de calidad generado");
-    } catch (error) {
-      console.error("⚠️ Error generando análisis:", error.message);
-    }
-
     console.log("✅ Prompt generado");
     return res.status(200).json({
       prompt: generatedPrompt,
@@ -1667,24 +1558,9 @@ Output ONLY JSON, nothing else.`;
     const analysisData = await analysisResponse.json();
     if (analysisResponse.ok) {
       const analysisText = analysisData.candidates[0].content.parts[0].text;
-      // Limpiar markdown si viene con ```json
-      const cleanText = analysisText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        
-        // Asegurar que tiene el formato correcto
-        return {
-          score: parsed.score || 7,
-          strengths: parsed.strengths || parsed.included || [],
-          improvements: parsed.improvements || parsed.suggestions || [],
-          technical: parsed.technical || {
-            lighting: "Básica",
-            composition: "Simple",
-            style: "General",
-            detail: "Medio"
-          }
-        };
+        return JSON.parse(jsonMatch[0]);
       }
     }
   } catch (e) {
