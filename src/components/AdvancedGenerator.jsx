@@ -115,19 +115,19 @@ export default function AdvancedGenerator() {
   // ============================================================================
   // ESTADOS PRINCIPALES
   // ============================================================================
-  
+
   // ✅ OBTENEMOS TODO DEL CONTEXTO
-  const { 
-    user, 
-    profile, 
+  const {
+    user,
+    profile,
     loading, // <-- ¡LA CLAVE ESTÁ AQUÍ!
-    refreshProfile, 
-    consumeCredits, 
-    savePromptToHistory 
+    refreshProfile,
+    consumeCredits,
+    savePromptToHistory,
   } = useAuth();
 
   // ❌ ELIMINADO EL ESTADO LOCAL REDUNDANTE
-  // const [isInitializing, setIsInitializing] = useState(true); 
+  // const [isInitializing, setIsInitializing] = useState(true);
 
   const [userPrompt, setUserPrompt] = useState("");
   const [response, setResponse] = useState("");
@@ -188,20 +188,10 @@ export default function AdvancedGenerator() {
     });
   }, [profile, loading, isPro]);
 
-
   // ============================================================================
   // ❌ INICIALIZACIÓN (ELIMINADO)
   // ============================================================================
   // Ya no necesitamos este useEffect, el AuthContext se encarga de todo.
-  /*
-  useEffect(() => {
-    const init = async () => {
-      // ... (código eliminado)
-    };
-    init();
-  }, [user]);
-  */
-  // ============================================================================
 
   const prompt = userPrompt || "";
 
@@ -285,7 +275,7 @@ export default function AdvancedGenerator() {
           platform: "nano-banana",
           userId: user.id,
           proSettings: proSettings,
-          analyzeQuality: isPro, 
+          analyzeQuality: isPro,
         });
         headers["Content-Type"] = "application/json";
       }
@@ -328,7 +318,7 @@ export default function AdvancedGenerator() {
             referenceImage: referenceImage ? true : false,
             selectedFeature: selectedFeature,
           },
-          null 
+          null
         );
       } catch (historyError) {
         console.error("❌ Error al guardar en historial:", historyError);
@@ -358,10 +348,12 @@ export default function AdvancedGenerator() {
 
     // ✅ Esta comprobación ahora FUNCIONARÁ
     if (!isPro) {
-       alert("Solo los usuarios PRO y PREMIUM pueden generar imágenes. Por favor, actualiza tu plan.");
-       return;
+      alert(
+        "Solo los usuarios PRO y PREMIUM pueden generar imágenes. Por favor, actualiza tu plan."
+      );
+      return;
     }
-    
+
     // Comprobación de créditos frontend (buena práctica)
     if (!profile || profile.credits < 1) {
       alert("No tienes suficientes créditos para generar una imagen");
@@ -374,11 +366,16 @@ export default function AdvancedGenerator() {
     try {
       // 1. OBTENER TOKEN DE AUTORIZACIÓN
       console.log("🔐 Obteniendo sesión de Supabase...");
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
         console.error("Error al obtener la sesión:", sessionError);
-        throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
+        throw new Error(
+          "No estás autenticado. Por favor, inicia sesión de nuevo."
+        );
       }
       const token = session.access_token;
       console.log("✅ Token JWT obtenido.");
@@ -394,7 +391,7 @@ export default function AdvancedGenerator() {
       const res = await fetch("/api/generate-image", {
         method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}` // Así se autentica
+          Authorization: `Bearer ${token}`, // Así se autentica
         },
         body: formData,
       });
@@ -417,7 +414,6 @@ export default function AdvancedGenerator() {
       }
 
       await refreshProfile(); // Refrescar para actualizar créditos consumidos por el backend
-
     } catch (error) {
       console.error("Error generando imagen:", error);
       alert(error.message || "Error al generar imagen");
@@ -456,7 +452,7 @@ export default function AdvancedGenerator() {
   // ============================================================================
   // ⚠️ CORRECCIÓN DE BUGS: LÓGICA DE HERRAMIENTAS PRO
   // ============================================================================
-  
+
   // ✅ Lógica para Poses (basado en género)
   const safePoses = getPosesByGender(proSettings.gender);
 
@@ -493,8 +489,9 @@ export default function AdvancedGenerator() {
       {/* ================================================================== */}
       {/* ✨ CAMBIO DE CSS (ANCHO) */}
       {/* ================================================================== */}
-      <div className="max-w-6xl mx-auto px-4"> {/* <-- ANCHO CAMBIADO */}
-        
+      <div className="max-w-6xl mx-auto px-4">
+        {" "}
+        {/* <-- ANCHO CAMBIADO */}
         {/* ================================================================== */}
         {/* ✨ CAMBIO DE LÓGICA (LOADING) */}
         {/* ================================================================== */}
@@ -683,9 +680,7 @@ export default function AdvancedGenerator() {
                       <ul className="space-y-3 text-[#C1C1C1]">
                         <li className="flex items-start">
                           <span className="text-[#D8C780] mr-2 mt-1"> • </span>
-                          <span>
-                            Control completo de entornos y locaciones
-                          </span>
+                          <span>Control completo de entornos y locaciones</span>
                         </li>
                         <li className="flex items-start">
                           <span className="text-[#D8C780] mr-2 mt-1"> • </span>
@@ -1022,4 +1017,339 @@ export default function AdvancedGenerator() {
                                   </div>
                                   {outfit.description && (
                                     <div className="text-xs text-[#C1C1C1] mt-1">
-                                      {outf
+                                      {outfit.description}
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </ProSection>
+                        )}
+
+                        {/* Iluminación */}
+                        <ProSection
+                          title="Iluminación"
+                          description="Esquema de luces profesional"
+                          isOpen={openSections.lighting}
+                          onToggle={() => toggleSection("lighting")}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProSettings((prev) => ({
+                                  ...prev,
+                                  lighting: "auto",
+                                }))
+                              }
+                              className={`p-2 rounded-lg border text-sm transition-all ${
+                                proSettings.lighting === "auto"
+                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                              }`}
+                            >
+                              Automático
+                            </button>
+                            {LIGHTING_SETUPS.map((light) => (
+                              <button
+                                key={light.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    lighting: light.id,
+                                  }))
+                                }
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  proSettings.lighting === light.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {light.name}
+                                </div>
+                                {light.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {light.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+
+                        {/* Color Grading */}
+                        <ProSection
+                          title="Color Grading"
+                          description="Corrección de color cinematográfica"
+                          isOpen={openSections.colorGrading}
+                          onToggle={() => toggleSection("colorGrading")}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProSettings((prev) => ({
+                                  ...prev,
+                                  colorGrading: "auto",
+                                }))
+                              }
+                              className={`p-2 rounded-lg border text-sm transition-all ${
+                                proSettings.colorGrading === "auto"
+                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                              }`}
+                            >
+                              Automático
+                            </button>
+                            {COLOR_GRADING_FILTERS.map((grading) => (
+                              <button
+                                key={grading.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    colorGrading: grading.id,
+                                  }))
+                                }
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  proSettings.colorGrading === grading.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {grading.name}
+                                </div>
+                                {grading.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {grading.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Botón de Generar Prompt */}
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  disabled={isLoading || (!prompt.trim() && !referenceImage)}
+                  className={`px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    isLoading || (!prompt.trim() && !referenceImage)
+                      ? "bg-[#2D2D2D] text-[#666] cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#D8C780] to-[#B8A760] text-black hover:shadow-lg hover:shadow-[#D8C780]/30"
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Generar Prompt (1 crédito)
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* 🔥 RESULTADO CON ANÁLISIS DE CALIDAD */}
+            {response && (
+              <AnimatedSection>
+                <div className="mt-8 space-y-6">
+                  {/* Prompt Generado */}
+                  <div className="p-6 bg-[#06060C] border border-[#D8C780] rounded-lg">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-xl font-bold text-[#D8C780]">
+                        Prompt Generado
+                      </h3>
+                      <button
+                        onClick={handleCopy}
+                        className="p-2 bg-[#D8C780]/20 hover:bg-[#D8C780]/30 rounded-lg transition-colors"
+                      >
+                        {copied ? (
+                          <Check className="w-5 h-5 text-[#D8C780]" />
+                        ) : (
+                          <Copy className="w-5 h-5 text-[#D8C780]" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-white whitespace-pre-wrap leading-relaxed">
+                      {response}
+                    </p>
+                    <div className="mt-4 text-sm text-[#C1C1C1]">
+                      {response.length} caracteres
+                    </div>
+                  </div>
+
+                  {/* 🔥 ANÁLISIS DE CALIDAD (NUEVO) */}
+                  {qualityAnalysis && (
+                    <QualityAnalysis
+                      analysis={qualityAnalysis}
+                      prompt={response}
+                    />
+                  )}
+
+                  {/* Sección de Generar Imagen con Selfie */}
+                  <div className="p-6 bg-gradient-to-br from-[#D8C780]/10 to-[#D8C780]/5 border border-[#D8C780]/30 rounded-lg">
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      ¿Quieres generar la imagen con Nano Banana 🍌?
+                    </h3>
+
+                    {/* Mensaje de solo PRO/Premium */}
+                    {/* Esta variable 'isPro' ahora será la correcta */}
+                    {!isPro ? (
+                      <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg text-center">
+                        <Lock className="w-6 h-6 text-red-400 mx-auto mb-2" />
+                        <p className="font-medium text-red-300">
+                          Función solo para PRO y PREMIUM
+                        </p>
+                        <p className="text-sm text-red-300/80">
+                          Actualiza tu plan para poder generar imágenes.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-[#C1C1C1] mb-6">
+                          Sube una foto selfie para generar la imagen con tu
+                          rostro
+                        </p>
+
+                        {!selfiePreview ? (
+                          <label className="cursor-pointer block mb-6">
+                            <div className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg transition-colors">
+                              <User className="w-6 h-6 text-[#D8C780]" />
+                              <div>
+                                <p className="text-white font-medium">
+                                  Subir selfie para generar imagen
+                                </p>
+                                <p className="text-xs text-[#C1C1C1]">
+                                  Tu rostro se usará para crear la imagen
+                                </p>
+                              </div>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleSelfieChange}
+                              className="hidden"
+                            />
+                          </label>
+                        ) : (
+                          <div className="relative mb-6 w-32">
+                            <img
+                              src={selfiePreview}
+                              alt="Selfie"
+                              className="w-32 h-32 object-cover rounded-lg border border-[#2D2D2D]"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeSelfie}
+                              className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* ================================================================== */}
+                        {/* ✨ SECCIÓN DE ASPECT RATIO (NUEVA) */}
+                        {/* ================================================================== */}
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-[#C1C1C1] mb-3">
+                            Selecciona la relación de aspecto
+                          </label>
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {VALID_ASPECT_RATIOS.map((ratio) => (
+                              <button
+                                key={ratio.id}
+                                type="button"
+                                onClick={() => setSelectedAspectRatio(ratio.id)}
+                                className={`p-3 rounded-lg border text-center transition-all text-sm ${
+                                  selectedAspectRatio === ratio.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <span className="font-medium">{ratio.id}</span>
+                                <span className="block text-xs">
+                                  {ratio.name}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleGenerateImage}
+                          disabled={!selfieImage || isGeneratingImage}
+                          className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                            !selfieImage || isGeneratingImage
+                              ? "bg-[#2D2D2D] text-[#666] cursor-not-allowed"
+                              : "bg-gradient-to-r from-[#D8C780] to-[#B8A760] text-black hover:shadow-lg hover:shadow-[#D8C780]/30"
+                          }`}
+                        >
+                          {isGeneratingImage ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              Generando imagen...
+                            </>
+                          ) : (
+                            <>
+                              <ImageIcon className="w-5 h-5" />
+                              Generar Imagen (1 crédito)
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Mostrar imagen generada */}
+                  {generatedImages.length > 0 && (
+                    <div className="p-6 bg-[#06060C] border border-[#D8C780] rounded-lg">
+                      <h3 className="text-xl font-bold text-[#D8C780] mb-4">
+                        Imagen Generada
+                      </h3>
+                      {generatedImages.map((img, index) => (
+                        <div key={index} className="space-y-4">
+                          <img
+                            src={`data:${img.mimeType || "image/png"};base64,${
+                              img.base64
+                            }`}
+                            alt={`Generada ${index + 1}`}
+                            className="w-full rounded-lg border border-[#2D2D2D]"
+                          />
+                          <a
+                            href={`data:${img.mimeType || "image/png"};base64,${
+                              img.base64
+                            }`}
+                            download={`nano-banana-${Date.now()}.png`}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#D8C780]/20 hover:bg-[#D8C780]/30 border border-[#D8C780] rounded-lg transition-colors text-white"
+                          >
+                            <Download className="w-4 h-4" />
+                            Descargar
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AnimatedSection>
+            )}
+          </AnimatedSection>
+        )}
+      </div>
+    </div>
+  );
+}
