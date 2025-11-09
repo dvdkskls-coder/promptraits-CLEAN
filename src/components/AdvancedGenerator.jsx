@@ -126,9 +126,6 @@ export default function AdvancedGenerator() {
     savePromptToHistory,
   } = useAuth();
 
-  // ❌ ELIMINADO EL ESTADO LOCAL REDUNDANTE
-  // const [isInitializing, setIsInitializing] = useState(true);
-
   const [userPrompt, setUserPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -173,25 +170,18 @@ export default function AdvancedGenerator() {
   // VERIFICAR SUSCRIPCIÓN - PRO/PREMIUM vs FREE
   // ============================================================================
 
-  // ✅ Esta variable se calculará correctamente en cada render
-  //    Cuando 'loading' sea false, 'profile' será el correcto.
-  const isPro =
-    profile?.subscription_tier === "pro" ||
-    profile?.subscription_tier === "premium";
+  // ✅ ✅ ✅ ¡¡LA CORRECCIÓN CLAVE ESTÁ AQUÍ!! ✅ ✅ ✅
+  // Usamos 'plan' (de tu código antiguo) en lugar de 'subscription_tier' (mi error)
+  const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
   // Debug (puedes eliminarlo después)
   useEffect(() => {
     console.log("🔍 Verificación de suscripción (AdvancedGenerator):", {
       loading: loading, // Ver el estado de carga
-      tier: profile?.subscription_tier,
+      profile_plan: profile?.plan, // Comprobar la columna 'plan'
       isPro: isPro,
     });
   }, [profile, loading, isPro]);
-
-  // ============================================================================
-  // ❌ INICIALIZACIÓN (ELIMINADO)
-  // ============================================================================
-  // Ya no necesitamos este useEffect, el AuthContext se encarga de todo.
 
   const prompt = userPrompt || "";
 
@@ -1199,7 +1189,7 @@ export default function AdvancedGenerator() {
 
                   {/* 🔥 ANÁLISIS DE CALIDAD (NUEVO) */}
                   {/* Esto ahora funcionará cuando 'isPro' sea true */}
-                  {qualityAnalysis && (
+                  {isPro && qualityAnalysis && (
                     <QualityAnalysis
                       analysis={qualityAnalysis}
                       prompt={response}
