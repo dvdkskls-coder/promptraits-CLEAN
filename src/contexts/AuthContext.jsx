@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
   // 🔄 Función para recargar el perfil (útil después de usar créditos)
   async function refreshProfile() {
     if (!user) return { success: false, error: "No user logged in" };
-    
+
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -74,6 +74,88 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Error refreshing profile:", error);
       return { success: false, error: error.message };
+    }
+  }
+
+  // ✅ CORRECCIÓN (Punto 3): Nueva función para consumir créditos (CON DEBUGGING)
+  async function consumeCredits(amount) {
+    console.log(`🔥 Iniciando consumeCredits con amount: ${amount}`);
+    console.log("🔥 Usuario actual:", user);
+    console.log("🔥 Perfil actual:", profile);
+
+    if (!user) {
+      console.error("❌ consumeCredits: Usuario no autenticado.");
+      throw new Error("Usuario no autenticado");
+    }
+    if (!profile) {
+      console.error("❌ consumeCredits: Perfil no cargado.");
+      throw new Error("Perfil no cargado");
+    }
+
+    // Los usuarios PREMIUM no consumen créditos (ajusta si es diferente)
+    if (profile.plan === "premium") {
+      console.log("✅ consumeCredits: Usuario PREMIUM, no consume créditos.");
+      return { success: true, newBalance: "ilimitado" };
+    }
+
+    const newCredits = profile.credits - amount;
+    if (newCredits < 0) {
+      console.error("❌ consumeCredits: Créditos insuficientes.");
+      throw new Error("Créditos insuficientes");
+    }
+
+    try {
+      console.log(
+        `🔥 Intentando actualizar créditos a ${newCredits} para el usuario ${user.id}`
+      );
+      const { error } = await supabase
+        .from("profiles")
+        .update({ credits: newCredits })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("❌ Error de Supabase al actualizar créditos:", error);
+        throw error;
+      }
+
+      console.log(
+        "✅ Créditos actualizados en Supabase. Actualizando estado local..."
+      );
+      setProfile((prev) => ({ ...prev, credits: newCredits }));
+
+      return { success: true, newBalance: newCredits };
+    } catch (error) {
+      console.error(
+        "❌ Error en el bloque try/catch de consumeCredits:",
+        error
+      );
+      await refreshProfile();
+      throw new Error("No se pudieron consumir los créditos.");
+    }
+  }
+
+  // ✅ CORRECCIÓN (Punto 3): Nueva función para guardar en el historial
+  async function savePromptToHistory(promptText, options, imageUrl = null) {
+    if (!user) throw new Error("Usuario no autenticado");
+
+    try {
+      const { data, error } = await supabase
+        .from("prompt_history")
+        .insert({
+          user_id: user.id,
+          prompt: promptText,
+          options: options,
+          image_url: imageUrl, // Guardar la URL de la imagen si se genera
+          created_at: new Date().toISOString(),
+        })
+        .select();
+
+      if (error) throw error;
+
+      return data[0];
+    } catch (error) {
+      console.error("Error guardando en el historial:", error);
+      throw new Error("No se pudo guardar el prompt en el historial.");
     }
   }
 
@@ -156,7 +238,9 @@ export function AuthProvider({ children }) {
     signUp,
     signOut,
     resendConfirmation,
-    refreshProfile,  // ✅ Función mejorada para recargar perfil
+    refreshProfile,
+    consumeCredits, // ✅ Añadir nueva función
+    savePromptToHistory, // ✅ Añadir nueva función
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
