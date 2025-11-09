@@ -6,53 +6,34 @@ export const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Empieza en true
 
+  // Lógica de carga robusta
   useEffect(() => {
-    // checkSession() maneja la carga INICIAL de la página
-    checkSession();
+    setLoading(true);
+    console.log("AuthContext: Iniciando. Verificando sesión...");
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      // onAuthStateChange maneja LOGIN y LOGOUT
       console.log("AuthContext: onAuthStateChange disparado.");
 
-      setLoading(true); // <-- ✅ CORRECCIÓN 1: Empezar a cargar
-
       setUser(session?.user ?? null);
+
       if (session?.user) {
-        console.log("AuthContext: Cargando perfil post-login...");
+        console.log("AuthContext: Sesión encontrada. Cargando perfil...");
         await loadProfile(session.user.id);
       } else {
+        console.log("AuthContext: Sin sesión. Limpiando perfil.");
         setProfile(null);
       }
 
-      console.log("AuthContext: Carga post-login finalizada.");
-      setLoading(false); // <-- ✅ CORRECCIÓN 2: Terminar de cargar
+      console.log("AuthContext: Carga finalizada.");
+      setLoading(false); // Solo se pone en false DESPUÉS de cargar el perfil
     });
 
     return () => subscription.unsubscribe();
-  }, []); // Se ejecuta solo una vez
-
-  async function checkSession() {
-    console.log("AuthContext: checkSession() (carga inicial) corriendo...");
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        await loadProfile(session.user.id);
-      }
-    } catch (error) {
-      console.error("Error checking session:", error);
-    } finally {
-      console.log("AuthContext: Carga inicial finalizada.");
-      setLoading(false); // <-- Esto solo se ejecuta en la carga inicial
-    }
-  }
+  }, []); // Se ejecuta solo una vez al montar
 
   async function loadProfile(userId) {
     try {
@@ -63,13 +44,16 @@ export function AuthProvider({ children }) {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+
+      console.log("AuthContext: Perfil cargado:", data);
+      setProfile(data); // Establece el perfil
     } catch (error) {
       console.error("Error loading profile:", error);
+      setProfile(null); // Asegurarse de limpiar si hay error
     }
   }
 
-  // 🔄 Función para recargar el perfil (útil después de usar créditos)
+  // Función para recargar el perfil
   async function refreshProfile() {
     if (!user) return { success: false, error: "No user logged in" };
 
@@ -89,57 +73,41 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ✅ CORRECCIÓN (Punto 3): Nueva función para consumir créditos (CON DEBUGGING)
+  // Función para consumir créditos
   async function consumeCredits(amount) {
-    console.log(`🔥 Iniciando consumeCredits con amount: ${amount}`);
     if (!user || !profile) {
-      console.error("❌ consumeCredits: Usuario o Perfil no cargado.");
       throw new Error("Usuario o Perfil no cargado");
     }
 
-    // Los usuarios PREMIUM no consumen créditos
-    if (profile.subscription_tier === "premium") {
+    // ✅ CORRECCIÓN: Usar 'plan' (de tu código antiguo)
+    if (profile.plan === "premium") {
       console.log("✅ consumeCredits: Usuario PREMIUM, no consume créditos.");
       return { success: true, newBalance: "ilimitado" };
     }
 
     const newCredits = profile.credits - amount;
     if (newCredits < 0) {
-      console.error("❌ consumeCredits: Créditos insuficientes.");
       throw new Error("Créditos insuficientes");
     }
 
     try {
-      console.log(
-        `🔥 Intentando actualizar créditos a ${newCredits} para el usuario ${user.id}`
-      );
       const { error } = await supabase
         .from("profiles")
         .update({ credits: newCredits })
         .eq("id", user.id);
 
-      if (error) {
-        console.error("❌ Error de Supabase al actualizar créditos:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log(
-        "✅ Créditos actualizados en Supabase. Actualizando estado local..."
-      );
       setProfile((prev) => ({ ...prev, credits: newCredits }));
-
       return { success: true, newBalance: newCredits };
     } catch (error) {
-      console.error(
-        "❌ Error en el bloque try/catch de consumeCredits:",
-        error
-      );
-      await refreshProfile();
+      console.error("❌ Error en consumeCredits:", error);
+      await refreshProfile(); // Re-sincronizar
       throw new Error("No se pudieron consumir los créditos.");
     }
   }
 
-  // ✅ CORRECCIÓN (Punto 3): Nueva función para guardar en el historial
+  // Función para guardar en el historial
   async function savePromptToHistory(promptText, options, imageUrl = null) {
     if (!user) throw new Error("Usuario no autenticado");
 
@@ -150,13 +118,12 @@ export function AuthProvider({ children }) {
           user_id: user.id,
           prompt: promptText,
           options: options,
-          image_url: imageUrl, // Guardar la URL de la imagen si se genera
+          image_url: imageUrl,
           created_at: new Date().toISOString(),
         })
         .select();
 
       if (error) throw error;
-
       return data[0];
     } catch (error) {
       console.error("Error guardando en el historial:", error);
@@ -164,6 +131,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // ... (tus funciones signIn, signUp, signOut, resendConfirmation no cambian) ...
   async function signIn(email, password) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -244,14 +212,14 @@ export function AuthProvider({ children }) {
     signOut,
     resendConfirmation,
     refreshProfile,
-    consumeCredits, // ✅ Añadir nueva función
-    savePromptToHistory, // ✅ Añadir nueva función
+    consumeCredits,
+    savePromptToHistory,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// ✅ Hook para usar el contexto
+// Hook para usar el contexto
 export function useAuth() {
   const context = useContext(AuthContext);
 
