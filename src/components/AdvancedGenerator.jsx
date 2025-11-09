@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Upload,
   Trash2,
@@ -15,6 +15,7 @@ import {
   Lock,
   User,
   Camera,
+  Download, // ✅ AÑADIDO
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
@@ -99,7 +100,7 @@ const GENDER_OPTIONS = [
   { id: "couple", name: "Pareja" },
 ];
 
-const AdvancedGenerator = () => {
+export default function AdvancedGenerator() {
   // ============================================================================
   // ESTADOS PRINCIPALES
   // ============================================================================
@@ -141,6 +142,7 @@ const AdvancedGenerator = () => {
     colorGrading: false,
   });
   const [proSettings, setProSettings] = useState({
+    gender: selectedGender, // ✅ AÑADIDO
     environment: { id: null, custom: "" },
     shotType: null,
     cameraAngle: null,
@@ -150,8 +152,14 @@ const AdvancedGenerator = () => {
     colorGrading: null,
   });
 
-  // Validar si es usuario PRO
-  const isPro = profile?.plan === "pro" || profile?.plan === "premium";
+  // ✅ VARIABLES SEGURAS PARA EVITAR CRASHES
+  const safeEnvironments = Array.isArray(ENVIRONMENTS_ARRAY) ? ENVIRONMENTS_ARRAY : [];
+  const safeShotTypes = Array.isArray(SHOT_TYPES) ? SHOT_TYPES : [];
+  const safeCameraAngles = Array.isArray(CAMERA_ANGLES) ? CAMERA_ANGLES : [];
+  const safePoses = Array.isArray(getCurrentPoses()) ? getCurrentPoses() : [];
+  const safeOutfits = Array.isArray(getCurrentOutfits()) ? getCurrentOutfits() : [];
+  const safeLightingSetups = Array.isArray(LIGHTING_SETUPS) ? LIGHTING_SETUPS : [];
+  const safeColorGrading = Array.isArray(COLOR_GRADING_FILTERS) ? COLOR_GRADING_FILTERS : [];
 
   // ============================================================================
   // INICIALIZACIÓN
@@ -442,6 +450,28 @@ const AdvancedGenerator = () => {
     setSelectedFeature((prev) => (prev === featureId ? null : featureId));
     setShowProTools(false);
   };
+
+  // ✅ COMPONENTE PROSECTION
+  const ProSection = ({ title, description, isOpen, onToggle, children }) => (
+    <div className="border border-[#2D2D2D] rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 bg-[#06060C]/50 hover:bg-[#06060C] transition-colors"
+      >
+        <div className="text-left">
+          <h4 className="text-white font-medium">{title}</h4>
+          <p className="text-xs text-[#C1C1C1] mt-1">{description}</p>
+        </div>
+        {isOpen ? (
+          <ChevronUp className="w-5 h-5 text-[#D8C780]" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-[#C1C1C1]" />
+        )}
+      </button>
+      {isOpen && <div className="p-4 bg-[#06060C]/30">{children}</div>}
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -1246,6 +1276,4 @@ const AdvancedGenerator = () => {
       )}
     </div>
   );
-};
-
-export default AdvancedGenerator;
+}
