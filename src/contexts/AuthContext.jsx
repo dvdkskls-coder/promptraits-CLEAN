@@ -9,23 +9,34 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // checkSession() maneja la carga INICIAL de la página
     checkSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      // onAuthStateChange maneja LOGIN y LOGOUT
+      console.log("AuthContext: onAuthStateChange disparado.");
+
+      setLoading(true); // <-- ✅ CORRECCIÓN 1: Empezar a cargar
+
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadProfile(session.user.id);
+        console.log("AuthContext: Cargando perfil post-login...");
+        await loadProfile(session.user.id);
       } else {
         setProfile(null);
       }
+
+      console.log("AuthContext: Carga post-login finalizada.");
+      setLoading(false); // <-- ✅ CORRECCIÓN 2: Terminar de cargar
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, []); // Se ejecuta solo una vez
 
   async function checkSession() {
+    console.log("AuthContext: checkSession() (carga inicial) corriendo...");
     try {
       const {
         data: { session },
@@ -38,7 +49,8 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Error checking session:", error);
     } finally {
-      setLoading(false);
+      console.log("AuthContext: Carga inicial finalizada.");
+      setLoading(false); // <-- Esto solo se ejecuta en la carga inicial
     }
   }
 
@@ -80,20 +92,13 @@ export function AuthProvider({ children }) {
   // ✅ CORRECCIÓN (Punto 3): Nueva función para consumir créditos (CON DEBUGGING)
   async function consumeCredits(amount) {
     console.log(`🔥 Iniciando consumeCredits con amount: ${amount}`);
-    console.log("🔥 Usuario actual:", user);
-    console.log("🔥 Perfil actual:", profile);
-
-    if (!user) {
-      console.error("❌ consumeCredits: Usuario no autenticado.");
-      throw new Error("Usuario no autenticado");
-    }
-    if (!profile) {
-      console.error("❌ consumeCredits: Perfil no cargado.");
-      throw new Error("Perfil no cargado");
+    if (!user || !profile) {
+      console.error("❌ consumeCredits: Usuario o Perfil no cargado.");
+      throw new Error("Usuario o Perfil no cargado");
     }
 
-    // Los usuarios PREMIUM no consumen créditos (ajusta si es diferente)
-    if (profile.plan === "premium") {
+    // Los usuarios PREMIUM no consumen créditos
+    if (profile.subscription_tier === "premium") {
       console.log("✅ consumeCredits: Usuario PREMIUM, no consume créditos.");
       return { success: true, newBalance: "ilimitado" };
     }
