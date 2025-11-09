@@ -24,7 +24,7 @@ import QualityAnalysis from "./QualityAnalysis";
 
 // ✅ IMPORTAR OUTFITS SEPARADOS POR GÉNERO
 import Outfits_women from "../data/Outfits_women";
-import Outfits_men from "../data.Outfits_men";
+import Outfits_men from "../data/Outfits_men";
 
 // ✅ IMPORTAR TIPOS DE PLANO Y ÁNGULOS DE CÁMARA
 import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
