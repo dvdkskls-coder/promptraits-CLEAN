@@ -104,8 +104,13 @@ export default function AdvancedGenerator() {
   // ============================================================================
   // ESTADOS PRINCIPALES
   // ============================================================================
-  const { user, profile, refreshProfile, consumeCredits, savePromptToHistory } =
-    useAuth();
+  const {
+    user,
+    profile,
+    refreshProfile,
+    consumeCredits,
+    savePromptToHistory,
+  } = useAuth();
 
   const [isInitializing, setIsInitializing] = useState(true);
   const [userPrompt, setUserPrompt] = useState("");
@@ -134,7 +139,7 @@ export default function AdvancedGenerator() {
     colorGrading: false,
   });
   const [proSettings, setProSettings] = useState({
-    gender: "masculine", // ✅ VALOR FIJO INICIAL
+    gender: "masculine",
     environment: { id: null, custom: "" },
     shotType: null,
     cameraAngle: null,
@@ -143,45 +148,6 @@ export default function AdvancedGenerator() {
     lighting: null,
     colorGrading: null,
   });
-
-  // ============================================================================
-
-  // ✅ FUNCIONES HELPER (DEFINIR ANTES DE USAR)
-  // ============================================================================
-
-  const getCurrentOutfits = () => {
-    switch (selectedGender) {
-      case "masculine":
-        return Outfits_men;
-      case "feminine":
-        return Outfits_women;
-      case "couple":
-        return [...Outfits_men.slice(0, 4), ...Outfits_women.slice(0, 4)];
-      default:
-        return Outfits_men;
-    }
-  };
-
-  const getCurrentPoses = () => {
-    return getPosesByGender(selectedGender);
-  };
-
-  // ✅ VARIABLES SEGURAS (DEFINIR DESPUÉS DE LAS FUNCIONES)
-  const safeEnvironments = Array.isArray(ENVIRONMENTS_ARRAY)
-    ? ENVIRONMENTS_ARRAY
-    : [];
-  const safeShotTypes = Array.isArray(SHOT_TYPES) ? SHOT_TYPES : [];
-  const safeCameraAngles = Array.isArray(CAMERA_ANGLES) ? CAMERA_ANGLES : [];
-  const safePoses = Array.isArray(getCurrentPoses()) ? getCurrentPoses() : [];
-  const safeOutfits = Array.isArray(getCurrentOutfits())
-    ? getCurrentOutfits()
-    : [];
-  const safeLightingSetups = Array.isArray(LIGHTING_SETUPS)
-    ? LIGHTING_SETUPS
-    : [];
-  const safeColorGrading = Array.isArray(COLOR_GRADING_FILTERS)
-    ? COLOR_GRADING_FILTERS
-    : [];
 
   // ============================================================================
 
@@ -209,27 +175,6 @@ export default function AdvancedGenerator() {
   // PROMPT COMBINADO
   // ============================================================================
   const prompt = userPrompt || "";
-
-  // ============================================================================
-  // OBTENER DATOS SEGÚN GÉNERO
-  // ============================================================================
-  const getCurrentOutfits = () => {
-    switch (selectedGender) {
-      case "masculine":
-        return Outfits_men;
-      case "feminine":
-        return Outfits_women;
-      case "couple":
-        // Para parejas, combinar algunos outfits de ambos
-        return [...Outfits_men.slice(0, 4), ...Outfits_women.slice(0, 4)];
-      default:
-        return Outfits_men;
-    }
-  };
-
-  const getCurrentPoses = () => {
-    return getPosesByGender(selectedGender);
-  };
 
   // ============================================================================
   // MANEJO DE IMAGEN DE REFERENCIA
