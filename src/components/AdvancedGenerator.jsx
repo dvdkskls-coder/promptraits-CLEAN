@@ -151,25 +151,21 @@ export default function AdvancedGenerator() {
 
   // ============================================================================
 
-  // VERIFICAR QUE isPro EXISTE - ✅ INCLUIR PREMIUM
+  // VERIFICAR SUSCRIPCIÓN - PRO/PREMIUM vs FREE
   // ============================================================================
 
   const isPro = 
-    profile?.subscription_status === 'active' || 
-    profile?.subscription_tier === 'pro' ||
-    profile?.subscription_tier === 'premium' ||
-    profile?.is_pro === true || 
-    false;
+    profile?.subscription_tier === 'pro' || 
+    profile?.subscription_tier === 'premium';
 
-  // Debug temporal para verificar
+  // Debug temporal (puedes eliminarlo después)
   useEffect(() => {
-    console.log('🔍 DEBUG SUBSCRIPTION:', {
-      subscription_status: profile?.subscription_status,
-      subscription_tier: profile?.subscription_tier,
-      is_pro: profile?.is_pro,
-      isPro: isPro
+    console.log('🔍 Verificación de suscripción:', {
+      tier: profile?.subscription_tier,
+      isPro: isPro,
+      profile: profile
     });
-  }, [profile]);
+  }, [profile, isPro]);
 
   // ============================================================================
   // INICIALIZACIÓN
@@ -463,262 +459,263 @@ export default function AdvancedGenerator() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Loading mientras se inicializa */}
-      {isInitializing ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-[#D8C780] mx-auto mb-4" />
-            <p className="text-[#C1C1C1]">Cargando generador...</p>
+    <div className="min-h-screen bg-[#06060C] py-20">
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Loading mientras se inicializa */}
+        {isInitializing ? (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 animate-spin text-[#D8C780] mx-auto mb-4" />
+              <p className="text-[#C1C1C1]">Cargando generador...</p>
+            </div>
           </div>
-        </div>
-      ) : (
-        <AnimatedSection>
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-[#D8C780] to-[#D8C780] bg-clip-text text-transparent">
-                Generador Profesional Nano Banana
-              </span>{" "}
-              <span className="text-4xl">🍌</span>
-            </h1>
-            <p className="text-[#C1C1C1] max-w-2xl mx-auto">
-              Crea prompts profesionales optimizados para Nano Banana (Google
-              Gemini). Cada generación de prompt consume 1 crédito. Cada
-              generación de imagen consume 1 crédito adicional.
-            </p>
-            {profile && (
-              <div className="mt-4 inline-block px-4 py-2 bg-[#D8C780]/20 border border-[#D8C780] rounded-lg">
-                <span className="text-[#D8C780] font-medium">
-                  Créditos disponibles: {profile.credits || 0}
-                </span>
-              </div>
-            )}
-          </div>
+        ) : (
+          <AnimatedSection>
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-[#D8C780] to-[#D8C780] bg-clip-text text-transparent">
+                  Generador Profesional Nano Banana
+                </span>{" "}
+                <span className="text-4xl">🍌</span>
+              </h1>
+              <p className="text-[#C1C1C1] max-w-2xl mx-auto">
+                Crea prompts profesionales optimizados para Nano Banana (Google
+                Gemini). Cada generación de prompt consume 1 crédito. Cada
+                generación de imagen consume 1 crédito adicional.
+              </p>
+              {profile && (
+                <div className="mt-4 inline-block px-4 py-2 bg-[#D8C780]/20 border border-[#D8C780] rounded-lg">
+                  <span className="text-[#D8C780] font-medium">
+                    Créditos disponibles: {profile.credits || 0}
+                  </span>
+                </div>
+              )}
+            </div>
 
-          {/* Formulario Principal */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Layout Responsive: Mobile = columna única, Desktop = dos columnas */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* COLUMNA IZQUIERDA: Descripción + Imagen Referencia + Características Rápidas */}
-              <div className="space-y-6">
-                {/* Textarea Principal */}
-                <div>
-                  <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                    Describe lo que quieres generar
-                  </label>
-                  <textarea
-                    value={userPrompt}
-                    onChange={(e) => setUserPrompt(e.target.value)}
-                    placeholder="Ej: Retrato profesional en estudio con fondo negro..."
-                    className="w-full h-40 bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] focus:outline-none resize-none"
-                  />
-                  <p className="text-xs text-[#C1C1C1] mt-1">
-                    Los parámetros seleccionados se añadirán automáticamente
-                  </p>
+            {/* Formulario Principal */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Layout Responsive: Mobile = columna única, Desktop = dos columnas */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* COLUMNA IZQUIERDA: Descripción + Imagen Referencia + Características Rápidas */}
+                <div className="space-y-6">
+                  {/* Textarea Principal */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
+                      Describe lo que quieres generar
+                    </label>
+                    <textarea
+                      value={userPrompt}
+                      onChange={(e) => setUserPrompt(e.target.value)}
+                      placeholder="Ej: Retrato profesional en estudio con fondo negro..."
+                      className="w-full h-40 bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] focus:outline-none resize-none"
+                    />
+                    <p className="text-xs text-[#C1C1C1] mt-1">
+                      Los parámetros seleccionados se añadirán automáticamente
+                    </p>
+                  </div>
+
+                  {/* Imagen de Referencia - BOTÓN */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
+                      Imagen de referencia (opcional)
+                    </label>
+                    <p className="text-xs text-[#C1C1C1] mb-3">
+                      Sube una imagen para que el generador analice el estilo,
+                      iluminación y composición
+                    </p>
+
+                    {!imagePreview ? (
+                      <label className="cursor-pointer block">
+                        <div className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg transition-colors">
+                          <Camera className="w-6 h-6 text-[#D8C780]" />
+                          <div>
+                            <p className="text-white font-medium">
+                              Adjuntar imagen de referencia
+                            </p>
+                            <p className="text-xs text-[#C1C1C1]">
+                              Formatos: JPG, PNG (máx 5MB)
+                            </p>
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReferenceImageChange}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Referencia"
+                          className="w-full h-48 object-cover rounded-lg border border-[#2D2D2D]"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeReferenceImage}
+                          className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Características Rápidas */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-medium text-[#C1C1C1]">
+                        Características Rápidas
+                      </label>
+                      <Info className="w-4 h-4 text-[#C1C1C1]" />
+                    </div>
+                    <p className="text-xs text-[#C1C1C1] mb-3">
+                      Selecciona una característica rápida o usa las Herramientas
+                      PRO para control completo
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {QUICK_FEATURES.map((feature) => (
+                        <button
+                          key={feature.id}
+                          type="button"
+                          onClick={() => toggleFeature(feature.id)}
+                          disabled={showProTools}
+                          className={`p-3 rounded-lg border transition-all text-sm ${
+                            selectedFeature === feature.id
+                              ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                              : showProTools
+                              ? "border-[#2D2D2D] bg-[#06060C]/30 text-[#666] cursor-not-allowed"
+                              : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                          }`}
+                        >
+                          {feature.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Imagen de Referencia - BOTÓN */}
+                {/* COLUMNA DERECHA: Herramientas PRO */}
                 <div>
-                  <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                    Imagen de referencia (opcional)
-                  </label>
-                  <p className="text-xs text-[#C1C1C1] mb-3">
-                    Sube una imagen para que el generador analice el estilo,
-                    iluminación y composición
-                  </p>
-
-                  {!imagePreview ? (
-                    <label className="cursor-pointer block">
-                      <div className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg transition-colors">
-                        <Camera className="w-6 h-6 text-[#D8C780]" />
-                        <div>
-                          <p className="text-white font-medium">
-                            Adjuntar imagen de referencia
-                          </p>
-                          <p className="text-xs text-[#C1C1C1]">
-                            Formatos: JPG, PNG (máx 5MB)
+                  {/* BOTÓN HERRAMIENTAS PRO */}
+                  {isPro && (
+                    <button
+                      type="button"
+                      onClick={() => setShowProTools(!showProTools)}
+                      className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all ${
+                        showProTools
+                          ? 'bg-[#D8C780]/10 border-[#D8C780]'
+                          : 'bg-[#06060C]/50 border-[#2D2D2D] hover:border-[#D8C780]/50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Crown className="w-5 h-5 text-[#D8C780]" />
+                        <div className="text-left">
+                          <span className="text-white font-medium">Herramientas PRO</span>
+                          <p className="text-xs text-[#C1C1C1] mt-1">
+                            Control avanzado de parámetros fotográficos
                           </p>
                         </div>
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleReferenceImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                  ) : (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Referencia"
-                        className="w-full h-48 object-cover rounded-lg border border-[#2D2D2D]"
-                      />
-                      <button
-                        type="button"
-                        onClick={removeReferenceImage}
-                        className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {showProTools ? (
+                        <ChevronUp className="w-5 h-5 text-[#D8C780]" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-[#C1C1C1]" />
+                      )}
+                    </button>
+                  )}
+
+                  {/* SI NO ES PRO, MOSTRAR MENSAJE */}
+                  {!isPro && (
+                    <div className="p-4 bg-[#D8C780]/5 border border-[#D8C780]/20 rounded-lg text-center">
+                      <Crown className="w-8 h-8 text-[#D8C780] mx-auto mb-2" />
+                      <p className="text-sm text-[#C1C1C1]">
+                        Actualiza a <span className="text-[#D8C780] font-semibold">PRO</span> o{' '}
+                        <span className="text-[#D8C780] font-semibold">PREMIUM</span> para acceder a herramientas avanzadas
+                      </p>
                     </div>
                   )}
-                </div>
 
-                {/* Características Rápidas */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium text-[#C1C1C1]">
-                      Características Rápidas
-                    </label>
-                    <Info className="w-4 h-4 text-[#C1C1C1]" />
-                  </div>
-                  <p className="text-xs text-[#C1C1C1] mb-3">
-                    Selecciona una característica rápida o usa las Herramientas
-                    PRO para control completo
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {QUICK_FEATURES.map((feature) => (
-                      <button
-                        key={feature.id}
-                        type="button"
-                        onClick={() => toggleFeature(feature.id)}
-                        disabled={showProTools}
-                        className={`p-3 rounded-lg border transition-all text-sm ${
-                          selectedFeature === feature.id
-                            ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
-                            : showProTools
-                            ? "border-[#2D2D2D] bg-[#06060C]/30 text-[#666] cursor-not-allowed"
-                            : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
-                        }`}
-                      >
-                        {feature.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* COLUMNA DERECHA: Herramientas PRO */}
-              <div>
-                {/* BOTÓN HERRAMIENTAS PRO */}
-                {isPro && (
-                  <button
-                    type="button"
-                    onClick={() => setShowProTools(!showProTools)}
-                    className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all ${
-                      showProTools
-                        ? 'bg-[#D8C780]/10 border-[#D8C780]'
-                        : 'bg-[#06060C]/50 border-[#2D2D2D] hover:border-[#D8C780]/50'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Crown className="w-5 h-5 text-[#D8C780]" />
-                      <div className="text-left">
-                        <span className="text-white font-medium">Herramientas PRO</span>
-                        <p className="text-xs text-[#C1C1C1] mt-1">
-                          Control avanzado de parámetros fotográficos
-                        </p>
-                      </div>
-                    </div>
-                    {showProTools ? (
-                      <ChevronUp className="w-5 h-5 text-[#D8C780]" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-[#C1C1C1]" />
-                    )}
-                  </button>
-                )}
-
-                {/* SI NO ES PRO, MOSTRAR MENSAJE */}
-                {!isPro && (
-                  <div className="p-4 bg-[#D8C780]/5 border border-[#D8C780]/20 rounded-lg text-center">
-                    <Crown className="w-8 h-8 text-[#D8C780] mx-auto mb-2" />
-                    <p className="text-sm text-[#C1C1C1]">
-                      Actualiza a <span className="text-[#D8C780] font-semibold">PRO</span> o{' '}
-                      <span className="text-[#D8C780] font-semibold">PREMIUM</span> para acceder a herramientas avanzadas
-                    </p>
-                  </div>
-                )}
-
-                {showProTools && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-medium text-white">
-                          Herramientas PRO
-                        </h3>
-                        <p className="text-xs text-[#C1C1C1]">
-                          Control profesional completo
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowProTools(!showProTools)}
-                        className={`px-4 py-2 rounded-lg border transition-all ${
-                          showProTools
-                            ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
-                            : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1]"
-                        }`}
-                      >
-                        {showProTools ? "Ocultar" : "Mostrar"}
-                      </button>
-                    </div>
-
-                    {showProTools && (
-                      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                        {/* Género */}
-                        <ProSection
-                          title="Género"
-                          description="Selecciona el género para personalizar poses y vestuario"
-                          isOpen={openSections.gender}
-                          onToggle={() => toggleSection("gender")}
+                  {showProTools && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-medium text-white">
+                            Herramientas PRO
+                          </h3>
+                          <p className="text-xs text-[#C1C1C1]">
+                            Control profesional completo
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowProTools(!showProTools)}
+                          className={`px-4 py-2 rounded-lg border transition-all ${
+                            showProTools
+                              ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                              : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1]"
+                          }`}
                         >
-                          <div className="grid grid-cols-3 gap-2">
-                            {GENDER_OPTIONS.map((option) => (
+                          {showProTools ? "Ocultar" : "Mostrar"}
+                        </button>
+                      </div>
+
+                      {showProTools && (
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                          {/* Género */}
+                          <ProSection
+                            title="Género"
+                            description="Selecciona el género para personalizar poses y vestuario"
+                            isOpen={openSections.gender}
+                            onToggle={() => toggleSection("gender")}
+                          >
+                            <div className="grid grid-cols-3 gap-2">
+                              {GENDER_OPTIONS.map((option) => (
+                                <button
+                                  key={option.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setProSettings((prev) => ({
+                                      ...prev,
+                                      gender: option.id,
+                                    }))
+                                  }
+                                  className={`p-2 rounded-lg border text-sm transition-all ${
+                                    proSettings.gender === option.id
+                                      ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                      : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                  }`}
+                                >
+                                  {option.name}
+                                </button>
+                              ))}
+                            </div>
+                          </ProSection>
+
+                          {/* Entorno */}
+                          <ProSection
+                            title="Entorno"
+                            description="Selecciona el entorno o ubicación"
+                            isOpen={openSections.environment}
+                            onToggle={() => toggleSection("environment")}
+                          >
+                            <div className="grid grid-cols-2 gap-2">
                               <button
-                                key={option.id}
                                 type="button"
                                 onClick={() =>
                                   setProSettings((prev) => ({
                                     ...prev,
-                                    gender: option.id,
+                                    environment: "auto",
                                   }))
                                 }
                                 className={`p-2 rounded-lg border text-sm transition-all ${
-                                  proSettings.gender === option.id
+                                  proSettings.environment === "auto"
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
                                     : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
                                 }`}
-                              >
-                                {option.name}
-                              </button>
-                            ))}
-                          </div>
-                        </ProSection>
-
-                        {/* Entorno */}
-                        <ProSection
-                          title="Entorno"
-                          description="Selecciona el entorno o ubicación"
-                          isOpen={openSections.environment}
-                          onToggle={() => toggleSection("environment")}
-                        >
-                          <div className="grid grid-cols-2 gap-2">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setProSettings((prev) => ({
-                                  ...prev,
-                                  environment: "auto",
-                                }))
-                              }
-                              className={`p-2 rounded-lg border text-sm transition-all ${
-                                proSettings.environment === "auto"
-                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
-                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
-                              }`}
                             >
                               Automático
                             </button>
@@ -1077,174 +1074,174 @@ export default function AdvancedGenerator() {
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Botón de Generar Prompt */}
-            <div className="flex justify-center">
-              <button
-                type="submit"
-                disabled={isLoading || (!prompt.trim() && !referenceImage)}
-                className={`px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                  isLoading || (!prompt.trim() && !referenceImage)
-                    ? "bg-[#2D2D2D] text-[#666] cursor-not-allowed"
-                    : "bg-gradient-to-r from-[#D8C780] to-[#B8A760] text-black hover:shadow-lg hover:shadow-[#D8C780]/30"
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Generando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Generar Prompt (1 crédito)
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+              {/* Botón de Generar Prompt */}
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  disabled={isLoading || (!prompt.trim() && !referenceImage)}
+                  className={`px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    isLoading || (!prompt.trim() && !referenceImage)
+                      ? "bg-[#2D2D2D] text-[#666] cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#D8C780] to-[#B8A760] text-black hover:shadow-lg hover:shadow-[#D8C780]/30"
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Generar Prompt (1 crédito)
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
 
-          {/* 🔥 RESULTADO CON ANÁLISIS DE CALIDAD */}
-          {response && (
-            <AnimatedSection>
-              <div className="mt-8 space-y-6">
-                {/* Prompt Generado */}
-                <div className="p-6 bg-[#06060C] border border-[#D8C780] rounded-lg">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold text-[#D8C780]">
-                      Prompt Generado
+            {/* 🔥 RESULTADO CON ANÁLISIS DE CALIDAD */}
+            {response && (
+              <AnimatedSection>
+                <div className="mt-8 space-y-6">
+                  {/* Prompt Generado */}
+                  <div className="p-6 bg-[#06060C] border border-[#D8C780] rounded-lg">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-xl font-bold text-[#D8C780]">
+                        Prompt Generado
+                      </h3>
+                      <button
+                        onClick={handleCopy}
+                        className="p-2 bg-[#D8C780]/20 hover:bg-[#D8C780]/30 rounded-lg transition-colors"
+                      >
+                        {copied ? (
+                          <Check className="w-5 h-5 text-[#D8C780]" />
+                        ) : (
+                          <Copy className="w-5 h-5 text-[#D8C780]" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-white whitespace-pre-wrap leading-relaxed">
+                      {response}
+                    </p>
+                    <div className="mt-4 text-sm text-[#C1C1C1]">
+                      {response.length} caracteres
+                    </div>
+                  </div>
+
+                  {/* 🔥 ANÁLISIS DE CALIDAD (NUEVO) */}
+                  {qualityAnalysis && (
+                    <QualityAnalysis
+                      analysis={qualityAnalysis}
+                      prompt={response}
+                    />
+                  )}
+
+                  {/* Sección de Generar Imagen con Selfie */}
+                  <div className="p-6 bg-gradient-to-br from-[#D8C780]/10 to-[#D8C780]/5 border border-[#D8C780]/30 rounded-lg">
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      ¿Quieres generar la imagen con Nano Banana 🍌?
                     </h3>
+                    <p className="text-[#C1C1C1] mb-6">
+                      Sube una foto selfie para generar la imagen con tu rostro
+                    </p>
+
+                    {!selfiePreview ? (
+                      <label className="cursor-pointer block mb-6">
+                        <div className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg transition-colors">
+                          <User className="w-6 h-6 text-[#D8C780]" />
+                          <div>
+                            <p className="text-white font-medium">
+                              Subir selfie para generar imagen
+                            </p>
+                            <p className="text-xs text-[#C1C1C1]">
+                              Tu rostro se usará para crear la imagen
+                            </p>
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleSelfieChange}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      <div className="relative mb-6">
+                        <img
+                          src={selfiePreview}
+                          alt="Selfie"
+                          className="w-32 h-32 object-cover rounded-lg border border-[#2D2D2D]"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeSelfie}
+                          className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+
                     <button
-                      onClick={handleCopy}
-                      className="p-2 bg-[#D8C780]/20 hover:bg-[#D8C780]/30 rounded-lg transition-colors"
+                      onClick={handleGenerateImage}
+                      disabled={!selfieImage || isGeneratingImage}
+                      className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                        !selfieImage || isGeneratingImage
+                          ? "bg-[#2D2D2D] text-[#666] cursor-not-allowed"
+                          : "bg-gradient-to-r from-[#D8C780] to-[#B8A760] text-black hover:shadow-lg hover:shadow-[#D8C780]/30"
+                      }`}
                     >
-                      {copied ? (
-                        <Check className="w-5 h-5 text-[#D8C780]" />
+                      {isGeneratingImage ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Generando imagen...
+                        </>
                       ) : (
-                        <Copy className="w-5 h-5 text-[#D8C780]" />
+                        <>
+                          <ImageIcon className="w-5 h-5" />
+                          Generar Imagen (1 crédito)
+                        </>
                       )}
                     </button>
                   </div>
-                  <p className="text-white whitespace-pre-wrap leading-relaxed">
-                    {response}
-                  </p>
-                  <div className="mt-4 text-sm text-[#C1C1C1]">
-                    {response.length} caracteres
-                  </div>
-                </div>
 
-                {/* 🔥 ANÁLISIS DE CALIDAD (NUEVO) */}
-                {qualityAnalysis && (
-                  <QualityAnalysis
-                    analysis={qualityAnalysis}
-                    prompt={response}
-                  />
-                )}
-
-                {/* Sección de Generar Imagen con Selfie */}
-                <div className="p-6 bg-gradient-to-br from-[#D8C780]/10 to-[#D8C780]/5 border border-[#D8C780]/30 rounded-lg">
-                  <h3 className="text-xl font-bold text-white mb-4">
-                    ¿Quieres generar la imagen con Nano Banana 🍌?
-                  </h3>
-                  <p className="text-[#C1C1C1] mb-6">
-                    Sube una foto selfie para generar la imagen con tu rostro
-                  </p>
-
-                  {!selfiePreview ? (
-                    <label className="cursor-pointer block mb-6">
-                      <div className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg transition-colors">
-                        <User className="w-6 h-6 text-[#D8C780]" />
-                        <div>
-                          <p className="text-white font-medium">
-                            Subir selfie para generar imagen
-                          </p>
-                          <p className="text-xs text-[#C1C1C1]">
-                            Tu rostro se usará para crear la imagen
-                          </p>
+                  {/* Mostrar imagen generada */}
+                  {generatedImages.length > 0 && (
+                    <div className="p-6 bg-[#06060C] border border-[#D8C780] rounded-lg">
+                      <h3 className="text-xl font-bold text-[#D8C780] mb-4">
+                        Imagen Generada
+                      </h3>
+                      {generatedImages.map((img, index) => (
+                        <div key={index} className="space-y-4">
+                          <img
+                            src={`data:${img.mimeType || "image/png"};base64,${
+                              img.base64
+                            }`}
+                            alt={`Generada ${index + 1}`}
+                            className="w-full rounded-lg border border-[#2D2D2D]"
+                          />
+                          <a
+                            href={`data:${img.mimeType || "image/png"};base64,${
+                              img.base64
+                            }`}
+                            download={`nano-banana-${Date.now()}.png`}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#D8C780]/20 hover:bg-[#D8C780]/30 border border-[#D8C780] rounded-lg transition-colors text-white"
+                          >
+                            <Download className="w-4 h-4" />
+                            Descargar
+                          </a>
                         </div>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleSelfieChange}
-                        className="hidden"
-                      />
-                    </label>
-                  ) : (
-                    <div className="relative mb-6">
-                      <img
-                        src={selfiePreview}
-                        alt="Selfie"
-                        className="w-32 h-32 object-cover rounded-lg border border-[#2D2D2D]"
-                      />
-                      <button
-                        type="button"
-                        onClick={removeSelfie}
-                        className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+                      ))}
                     </div>
                   )}
-
-                  <button
-                    onClick={handleGenerateImage}
-                    disabled={!selfieImage || isGeneratingImage}
-                    className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                      !selfieImage || isGeneratingImage
-                        ? "bg-[#2D2D2D] text-[#666] cursor-not-allowed"
-                        : "bg-gradient-to-r from-[#D8C780] to-[#B8A760] text-black hover:shadow-lg hover:shadow-[#D8C780]/30"
-                    }`}
-                  >
-                    {isGeneratingImage ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Generando imagen...
-                      </>
-                    ) : (
-                      <>
-                        <ImageIcon className="w-5 h-5" />
-                        Generar Imagen (1 crédito)
-                      </>
-                    )}
-                  </button>
                 </div>
-
-                {/* Mostrar imagen generada */}
-                {generatedImages.length > 0 && (
-                  <div className="p-6 bg-[#06060C] border border-[#D8C780] rounded-lg">
-                    <h3 className="text-xl font-bold text-[#D8C780] mb-4">
-                      Imagen Generada
-                    </h3>
-                    {generatedImages.map((img, index) => (
-                      <div key={index} className="space-y-4">
-                        <img
-                          src={`data:${img.mimeType || "image/png"};base64,${
-                            img.base64
-                          }`}
-                          alt={`Generada ${index + 1}`}
-                          className="w-full rounded-lg border border-[#2D2D2D]"
-                        />
-                        <a
-                          href={`data:${img.mimeType || "image/png"};base64,${
-                            img.base64
-                          }`}
-                          download={`nano-banana-${Date.now()}.png`}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#D8C780]/20 hover:bg-[#D8C780]/30 border border-[#D8C780] rounded-lg transition-colors text-white"
-                        >
-                          <Download className="w-4 h-4" />
-                          Descargar
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </AnimatedSection>
-          )}
-        </AnimatedSection>
-      )}
+              </AnimatedSection>
+            )}
+          </AnimatedSection>
+        )}
+      </div>
     </div>
   );
 }
