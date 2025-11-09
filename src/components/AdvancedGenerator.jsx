@@ -251,7 +251,7 @@ export default function AdvancedGenerator() {
 
     setIsLoading(true);
     setResponse("");
-    setQualityAnalysis(null);
+    setQualityAnalysis(null); // <-- Limpiar análisis anterior
 
     try {
       let requestData;
@@ -275,7 +275,7 @@ export default function AdvancedGenerator() {
           platform: "nano-banana",
           userId: user.id,
           proSettings: proSettings,
-          analyzeQuality: isPro,
+          analyzeQuality: isPro, // <-- ✅ AHORA 'isPro' SERÁ TRUE
         });
         headers["Content-Type"] = "application/json";
       }
@@ -295,7 +295,10 @@ export default function AdvancedGenerator() {
       const data = await res.json();
       setResponse(data.prompt || "");
       if (data.analysis) {
-        setQualityAnalysis(data.analysis);
+        console.log("✅ Análisis de calidad recibido:", data.analysis); // Debug
+        setQualityAnalysis(data.analysis); // <-- ✅ EL ANÁLISIS SE GUARDA
+      } else {
+        console.log("ℹ️ No se recibió análisis de calidad."); // Debug
       }
 
       // Consumir créditos
@@ -668,7 +671,9 @@ export default function AdvancedGenerator() {
                   {/* ✨ CAMBIO DE UI: BANNER UPSELL (PROBLEMA 3) */}
                   {/* ================================================================== */}
                   {!isPro && (
-                    <div className="p-6 bg-[#0E0E0E] border border-[#2D2D2D] rounded-lg">
+                    <div className="p-6 bg-[#06060C] border border-[#2D2D2D] rounded-lg">
+                      {" "}
+                      {/* <-- FONDO CAMBIADO */}
                       <Crown className="w-10 h-10 text-[#D8C780] mx-auto mb-4" />
                       <h3 className="text-xl font-bold text-white text-center mb-4">
                         Herramientas PRO
@@ -1193,6 +1198,7 @@ export default function AdvancedGenerator() {
                   </div>
 
                   {/* 🔥 ANÁLISIS DE CALIDAD (NUEVO) */}
+                  {/* Esto ahora funcionará cuando 'isPro' sea true */}
                   {qualityAnalysis && (
                     <QualityAnalysis
                       analysis={qualityAnalysis}
