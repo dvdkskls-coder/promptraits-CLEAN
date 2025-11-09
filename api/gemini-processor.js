@@ -454,15 +454,14 @@ const KNOWLEDGE_BASE = {
 // FUNCTION: GENERAR SYSTEM PROMPT DINÁMICO SEGÚN PLATAFORMA
 // ============================================================================
 
-
 // ============================================================================
 // ✨ FUNCIÓN NUEVA: FORMATEAR PARÁMETROS PRO V2.0
 // ============================================================================
 function formatProParameters(proSettings, autoSelections) {
   if (!proSettings) return "";
-  
+
   const params = [];
-  
+
   // Environment
   if (!autoSelections?.autoEnvironment) {
     if (proSettings.customEnvironment) {
@@ -473,71 +472,77 @@ function formatProParameters(proSettings, autoSelections) {
   } else {
     params.push(`📍 Environment: [AI will decide optimal environment]`);
   }
-  
+
   // Shot Type
   if (!autoSelections?.autoShotType && proSettings.shotType) {
     params.push(`📷 Shot Type: ${proSettings.shotType}`);
   } else if (autoSelections?.autoShotType) {
     params.push(`📷 Shot Type: [AI will decide optimal framing]`);
   }
-  
+
   // Camera Angle
   if (!autoSelections?.autoAngle && proSettings.cameraAngle) {
     params.push(`📐 Camera Angle: ${proSettings.cameraAngle}`);
   } else if (autoSelections?.autoAngle) {
     params.push(`📐 Camera Angle: [AI will decide optimal angle]`);
   }
-  
+
   // Gender
   if (proSettings.gender) {
     params.push(`👤 Gender Aesthetic: ${proSettings.gender}`);
-    
+
     // LÓGICA ESPECIAL PARA PAREJA
     if (proSettings.gender === "couple") {
       params.push(`💑 COUPLE PORTRAIT MODE ACTIVE`);
-      params.push(`NOTE: This is a COUPLE portrait. If 2 images provided, use @img1 and @img2 to reference each person.`);
-      params.push(`Example: "@img2 stands behind @img1 with arms wrapped around @img1's shoulders"`);
-      params.push(`If only 1 image: describe the scene where TWO people interact, using the reference for visual guidance.`);
+      params.push(
+        `NOTE: This is a COUPLE portrait. If 2 images provided, use @img1 and @img2 to reference each person.`
+      );
+      params.push(
+        `Example: "@img2 stands behind @img1 with arms wrapped around @img1's shoulders"`
+      );
+      params.push(
+        `If only 1 image: describe the scene where TWO people interact, using the reference for visual guidance.`
+      );
     }
   }
-  
+
   // Pose
   if (!autoSelections?.autoPose && proSettings.pose) {
     params.push(`🤸 Pose ID: ${proSettings.pose}`);
   } else if (autoSelections?.autoPose) {
     params.push(`🤸 Pose: [AI will decide optimal pose for the aesthetic]`);
   }
-  
+
   // Outfit
   if (!autoSelections?.autoOutfit && proSettings.outfit) {
     params.push(`👔 Outfit ID: ${proSettings.outfit}`);
   } else if (autoSelections?.autoOutfit) {
     params.push(`👔 Outfit: [AI will decide optimal outfit for the scene]`);
   }
-  
+
   // Lighting
   if (!autoSelections?.autoLighting && proSettings.lighting) {
     params.push(`💡 Lighting Setup: ${proSettings.lighting}`);
   } else if (autoSelections?.autoLighting) {
     params.push(`💡 Lighting: [AI will decide optimal lighting scheme]`);
   }
-  
+
   // Color Grading
   if (!autoSelections?.autoColorGrading && proSettings.colorGrading) {
     params.push(`🎨 Color Grading: ${proSettings.colorGrading}`);
   } else if (autoSelections?.autoColorGrading) {
     params.push(`🎨 Color Grading: [AI will decide optimal color treatment]`);
   }
-  
+
   if (params.length === 0) return "";
-  
+
   return `
 
 ╔═══════════════════════════════════════════════════════════════╗
 ║                    SELECTED PRO PARAMETERS                    ║
 ╚═══════════════════════════════════════════════════════════════╝
 
-${params.join('\n')}
+ ${params.join("\n")}
 
 When you see [AI will decide...], use your professional photography knowledge 
 to select the BEST option for that parameter based on the overall scene context,
@@ -575,7 +580,7 @@ You have DEEP PROFESSIONAL KNOWLEDGE in:
 - Professional retrato, moda, and editorial photography
 
 CRITICAL KNOWLEDGE BASE:
-${JSON.stringify(KNOWLEDGE_BASE, null, 2)}
+ ${JSON.stringify(KNOWLEDGE_BASE, null, 2)}
 
 `;
 
@@ -685,10 +690,10 @@ CRITICAL RULES FOR NANO-BANANA:
 ✅ Focus on LIGHT EFFECTS not equipment
 
 ADDITIONAL FILTERS & EFFECTS TO INCLUDE WHEN APPROPRIATE:
-${JSON.stringify(KNOWLEDGE_BASE.filters, null, 2)}
+ ${JSON.stringify(KNOWLEDGE_BASE.filters, null, 2)}
 
 COLOR GRADING OPTIONS:
-${JSON.stringify(KNOWLEDGE_BASE.colorGrading, null, 2)}
+ ${JSON.stringify(KNOWLEDGE_BASE.colorGrading, null, 2)}
 
 OUTPUT FORMAT:
 Write a single continuous paragraph in ENGLISH that naturally integrates all 8 components.
@@ -834,13 +839,13 @@ Technical considerations: ${environment.technical}`;
   // Preset
   if (preset) {
     systemPrompt += `\n\n🎨 PRESET STYLE TO APPLY:
-${preset}`;
+ ${preset}`;
   }
 
   // Scenario
   if (scenario) {
     systemPrompt += `\n\n📍 SCENARIO BASE:
-${scenario}`;
+ ${scenario}`;
   }
 
   // Sliders (Technical Parameters)
@@ -872,23 +877,23 @@ ${scenario}`;
 
 The user has EXPLICITLY selected: ${gender.toUpperCase()}
 
-${
-  gender === "male"
-    ? `
+ ${
+   gender === "male"
+     ? `
 FOR MALE AESTHETIC:
 - Poses: More structured, confident, powerful stances
 - Expressions: Strong, determined, assertive (or relaxed confidence)
 - Outfit context: Typically masculine clothing styles
 - Composition: Strong lines, bold framing
 `
-    : `
+     : `
 FOR FEMALE AESTHETIC:
 - Poses: Can include more fluid, graceful movements
 - Expressions: Range from soft elegance to powerful confidence
 - Outfit context: Typically feminine clothing styles  
 - Composition: Can use softer framing, elegant lines
 `
-}
+ }
 
 IMPORTANT: Even with gender specified, when there's a reference image:
 ❌ Still NEVER mention "man", "woman", "male", "female" in the prompt
@@ -1020,11 +1025,11 @@ Describe the clothing details, style, and accessories appropriate for this outfi
       if (gender) {
         systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
 Choose appropriate outfit that fits the ${gender} aesthetic and matches the scene context logically.
-${
-  gender === "masculine"
-    ? "Consider masculine styles: suits, casual wear, streetwear, smart casual, etc."
-    : "Consider feminine styles: dresses, elegant wear, casual chic, feminine fashion, etc."
-}`;
+ ${
+   gender === "masculine"
+     ? "Consider masculine styles: suits, casual wear, streetwear, smart casual, etc."
+     : "Consider feminine styles: dresses, elegant wear, casual chic, feminine fashion, etc."
+ }`;
       } else {
         systemPrompt += `\n\n👔 OUTFIT GUIDANCE:
 Choose appropriate outfit that matches the scene context logically. Use neutral, versatile clothing that works for any person.`;
@@ -1172,19 +1177,19 @@ Interpret this request and create a professional ${platform} prompt incorporatin
 ╚═══════════════════════════════════════════════════════════════╝
 
 Generate the prompt NOW in ENGLISH.
-${
-  platform === "nano-banana"
-    ? "Output: ONE continuous paragraph (1000-1800 characters optimal)"
-    : "Output: Detailed prompt + parameters at the end"
-}
+ ${
+   platform === "nano-banana"
+     ? "Output: ONE continuous paragraph (1000-1800 characters optimal)"
+     : "Output: Detailed prompt + parameters at the end"
+ }
 
 NO explanations, NO preamble, ONLY the prompt.
 Use professional photography terminology throughout.
 Be specific with technical values (angles, distances, temperatures, f-stops).
 
-${
-  referenceImage
-    ? `
+ ${
+   referenceImage
+     ? `
 
 ╔═══════════════════════════════════════════════════════════════╗
 ║              🚨 FINAL VERIFICATION REQUIRED 🚨               ║
@@ -1215,8 +1220,8 @@ Your prompt must NOT interfere with this process.
 DO NOT DESCRIBE THE PERSON. ONLY DESCRIBE THE SCENE AND PHOTOGRAPHY SETUP.
 
 `
-    : ""
-}`;
+     : ""
+ }`;
 
   // ✨ AÑADIR PARÁMETROS PRO FORMATEADOS SI EXISTEN
   if (proParamsFormatted) {
@@ -1229,11 +1234,11 @@ DO NOT DESCRIBE THE PERSON. ONLY DESCRIBE THE SCENE AND PHOTOGRAPHY SETUP.
 ║                       USER'S REQUEST                          ║
 ╚═══════════════════════════════════════════════════════════════╝
 
-${prompt}
+ ${prompt}
 
-${
-  referenceImage
-    ? `
+ ${
+   referenceImage
+     ? `
 🚨 CRITICAL FINAL REMINDER 🚨
 A reference image is provided. Your prompt MUST include this exact instruction:
 
@@ -1244,8 +1249,8 @@ in the reference image."
 
 This instruction MUST appear in your final prompt.
 `
-    : ""
-}
+     : ""
+ }
 
 Generate a complete professional ${platform} prompt following ALL rules above.
 Output ONLY the prompt - no explanations, no meta-commentary.
@@ -1316,17 +1321,17 @@ export default async function handler(req, res) {
       const improvementPrompt = `You are Promptraits V2.0. Improve this ${platform} prompt by applying these suggestions:
 
 CURRENT PROMPT:
-${currentPrompt}
+ ${currentPrompt}
 
 SUGGESTIONS TO APPLY (in Spanish, but apply them in English):
-${suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n")}
+ ${suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n")}
 
 PLATFORM: ${platform}
-${
-  platform === "midjourney"
-    ? "Maintain all parameters at the end."
-    : "Maintain single paragraph format."
-}
+ ${
+   platform === "midjourney"
+     ? "Maintain all parameters at the end."
+     : "Maintain single paragraph format."
+ }
 
 OUTPUT: Return ONLY the improved prompt. Apply all suggestions naturally.
 
@@ -1427,20 +1432,20 @@ CRITICAL: Output ONLY the improved prompt, nothing else.`;
     // Validar longitud según plataforma
     const validation = validatePromptLength(generatedPrompt, platform);
 
-    // Si es PRO y pide análisis de calidad
-    let qualityAnalysis = null;
-    if (isPro && analyzeQuality) {
-      qualityAnalysis = await analyzePromptQuality(
-        generatedPrompt,
-        platform,
-        API_KEY
-      );
-    }
+    // ✅ CAMBIO CLAVE: Generar análisis SIEMPRE después de crear el prompt
+    console.log("🔍 Solicitando análisis de calidad del prompt generado...");
+    const qualityAnalysis = await analyzePromptQuality(
+      generatedPrompt,
+      platform,
+      API_KEY
+    );
 
-    console.log("✅ Prompt generado");
+    console.log(
+      "✅ Prompt y análisis generados. Enviando respuesta al frontend."
+    );
     return res.status(200).json({
       prompt: generatedPrompt,
-      qualityAnalysis: qualityAnalysis,
+      qualityAnalysis: qualityAnalysis, // Se envía siempre
       platform,
       validation,
     });
@@ -1487,45 +1492,40 @@ function validatePromptLength(prompt, platform) {
   };
 }
 
+// ✅ VERSIÓN MEJORADA DE LA FUNCIÓN DE ANÁLISIS
 async function analyzePromptQuality(generatedPrompt, platform, API_KEY) {
-  const analysisPrompt = `You are an expert photography director. Analyze this ${platform} prompt:
+  console.log("🔍 Iniciando análisis de calidad del prompt...");
+
+  const analysisPrompt = `You are an expert photography director. Analyze this ${platform} prompt for professional quality.
 
 PROMPT TO ANALYZE:
-${generatedPrompt}
+"""
+ ${generatedPrompt}
+"""
 
-Evaluate completeness and professional quality IN SPANISH.
+Evaluate the prompt based on these criteria:
+1.  **Iluminación (25%)**: ¿Es específica sobre el tipo, calidad y dirección de la luz?
+2.  **Cámara y Lente (25%)**: ¿Incluye detalles técnicos como sensor, lente, apertura?
+3.  **Composición (20%)**: ¿Define el encuadre, ángulo y reglas compositivas?
+4.  **Post-procesamiento (15%)**: ¿Menciona el color grading o efectos cinematográficos?
+5.  **Claridad y Profesionalismo (15%)**: ¿Usa terminología técnica adecuada?
 
-CRITERIA:
-1. LIGHTING (25%): Setup detail, ratios, temperatures
-2. CAMERA SPECS (25%): Sensor, lens, aperture, ISO, WB
-3. COMPOSITION (20%): Framing, orientation, placement
-4. POST-PROCESSING (15%): Color grading, contrast, effects
-5. TECHNICAL KEYWORDS (15%): Relevant photography terms
+Provide a score from 0.0 to 10.0 and list the strong points and areas for improvement.
 
-Score 0-10.
-
-Provide ONLY valid JSON:
+Respond ONLY with a single JSON object in this exact format:
 {
   "score": 9.2,
   "included": [
-    "Setup de iluminación Rembrandt completo con ratios especificados",
-    "Especificaciones de cámara profesionales completas",
-    "Composición clara con regla de tercios y headroom"
+    "Describe el punto fuerte 1 con claridad",
+    "Describe el punto fuerte 2 con claridad"
   ],
   "suggestions": [
-    "Añade temperatura de color específica para fill light",
-    "Especifica tratamiento de sombras en post",
-    "Incluye referencias de color más precisas"
+    "Sugiere una mejora concreta 1",
+    "Sugiere una mejora concreta 2"
   ]
 }
 
-Score 9.0-10.0: Editorial quality
-Score 7.5-8.9: Very good
-Score 6.0-7.4: Good foundation
-Score 4.0-5.9: Needs detail
-Score 0.0-3.9: Insufficient
-
-ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
+Do not add any text before or after the JSON.`;
 
   try {
     const analysisResponse = await fetch(
@@ -1544,11 +1544,15 @@ ALL text in SPANISH. Be constructive. Output ONLY JSON.`;
       const analysisText = analysisData.candidates[0].content.parts[0].text;
       const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
+        console.log("✅ Análisis de calidad generado con éxito.");
         return JSON.parse(jsonMatch[0]);
       }
     }
+    console.error(
+      "❌ La API de Gemini no devolvió un JSON válido en el análisis."
+    );
   } catch (e) {
-    console.error("Error parsing quality analysis:", e);
+    console.error("❌ Error al analizar la calidad del prompt:", e);
   }
 
   return null;
