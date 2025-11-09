@@ -22,17 +22,26 @@ import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
-// ... (Todas tus importaciones de 'data' están perfectas)
+// ✅ IMPORTAR OUTFITS SEPARADOS POR GÉNERO
 import Outfits_women from "../data/Outfits_women";
 import Outfits_men from "../data/Outfits_men";
+
+// ✅ IMPORTAR TIPOS DE PLANO Y ÁNGULOS DE CÁMARA
 import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
+
+// ✅ IMPORTAR ENTORNOS
 import { ENVIRONMENTS_ARRAY } from "../data/environmentsData";
+
+// ✅ IMPORTAR NUEVOS COMPONENTES PRO
 import { getPosesByGender, POSES } from "../data/posesData";
 import { LIGHTING_SETUPS } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
 
-// ... (QUICK_FEATURES, GENDER_OPTIONS, VALID_ASPECT_RATIOS no cambian) ...
+// ============================================================================
+// ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
+// ============================================================================
 const QUICK_FEATURES = [
+  // ... (Tu código de features - no cambia)
   {
     id: "professional-lighting",
     name: "Iluminación Profesional",
@@ -82,11 +91,19 @@ const QUICK_FEATURES = [
       "Cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
 ];
+
+// ============================================================================
+// ✨ OPCIONES DE GÉNERO (Actualizado con PAREJA)
+// ============================================================================
 const GENDER_OPTIONS = [
   { id: "masculine", name: "Masculino" },
   { id: "feminine", name: "Femenino" },
   { id: "couple", name: "Pareja" },
 ];
+
+// ============================================================================
+// ✨ NUEVO: RELACIONES DE ASPECTO VÁLIDAS
+// ============================================================================
 const VALID_ASPECT_RATIOS = [
   { id: "1:1", name: "Cuadrado" },
   { id: "3:4", name: "Vertical" },
@@ -100,12 +117,14 @@ export default function AdvancedGenerator() {
   // ESTADOS PRINCIPALES
   // ============================================================================
 
+  // ✅ Usamos tu lógica de AuthContext original
   const { user, profile, refreshProfile, consumeCredits, savePromptToHistory } =
     useAuth();
 
-  // ✅ Volvemos a tu lógica de 'isInitializing' que SÍ funcionaba
+  // ✅ Usamos tu lógica de carga original (¡era la correcta!)
   const [isInitializing, setIsInitializing] = useState(true);
   useEffect(() => {
+    // Se pondrá en 'false' cuando el AuthContext termine de cargar user y profile
     if (user !== undefined && profile !== undefined) {
       setIsInitializing(false);
     }
@@ -117,21 +136,22 @@ export default function AdvancedGenerator() {
   const [copied, setCopied] = useState(false);
   const [referenceImage, setReferenceImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [qualityAnalysis, setQualityAnalysis] = useState(null);
+  const [qualityAnalysis, setQualityAnalysis] = useState(null); // ✅ Para el análisis
 
   // Estados para Nano Banana 🍌
   const [selfieImage, setSelfieImage] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1");
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1"); // ✅ Estado para Aspect Ratio
 
   // Estados para Herramientas
   const [showProTools, setShowProTools] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
 
+  // ✅ CORRECCIÓN UX: Poner "auto" por defecto
   const [proSettings, setProSettings] = useState({
-    gender: "masculine",
+    gender: "masculine", // Género por defecto
     environment: "auto",
     shotType: "auto",
     cameraAngle: "auto",
@@ -141,9 +161,7 @@ export default function AdvancedGenerator() {
     colorGrading: "auto",
   });
 
-  // ✅ NUEVO: Estado para la previsualización del prompt PRO
-  const [proPromptPreview, setProPromptPreview] = useState("");
-
+  // Estados para desplegables
   const [openSections, setOpenSections] = useState({
     environment: false,
     shotType: false,
@@ -156,128 +174,51 @@ export default function AdvancedGenerator() {
   });
 
   // ============================================================================
-  // VERIFICAR SUSCRIPCIÓN (Usando 'profile.plan')
+  // VERIFICAR SUSCRIPCIÓN (Usando tu 'profile.plan' original)
   // ============================================================================
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
+  // Abrir herramientas PRO si el usuario es Pro
   useEffect(() => {
     if (isPro && !showProTools) {
       setShowProTools(true);
     }
-  }, [isPro]);
+  }, [isPro]); // No añadas 'showProTools' aquí, crea un loop
 
   // ============================================================================
-  // LÓGICA DE DATOS (Optimizada con useMemo)
+  // LÓGICA DE DATOS (de tu código antiguo)
   // ============================================================================
+
+  // ✅ OBTENER OUTFITS SEGÚN GÉNERO
+  const getOutfitsByGender = () => {
+    if (proSettings.gender === "masculine" || proSettings.gender === "couple") {
+      return Outfits_men;
+    } else if (proSettings.gender === "feminine") {
+      return Outfits_women;
+    }
+    return [...Outfits_women, ...Outfits_men];
+  }; // ✅ OBTENER POSES SEGÚN GÉNERO
+
+  const getPosesForGender = () => {
+    return getPosesByGender(proSettings.gender);
+  };
+
+  // Usamos useMemo (de tu código antiguo) para optimizar
   const safeEnvironments = useMemo(() => ENVIRONMENTS_ARRAY || [], []);
   const safeShotTypes = useMemo(() => SHOT_TYPES || [], []);
   const safeCameraAngles = useMemo(() => CAMERA_ANGLES || [], []);
   const safeLightingSetups = useMemo(() => LIGHTING_SETUPS || [], []);
   const safeColorGrading = useMemo(() => COLOR_GRADING_FILTERS || [], []);
 
-  const safeOutfits = useMemo(() => {
-    if (proSettings.gender === "masculine" || proSettings.gender === "couple") {
-      return Outfits_men || [];
-    } else if (proSettings.gender === "feminine") {
-      return Outfits_women || [];
-    }
-    return [...(Outfits_women || []), ...(Outfits_men || [])];
-  }, [proSettings.gender]);
+  const currentOutfits = getOutfitsByGender();
+  const currentPoses = getPosesForGender();
 
-  const safePoses = useMemo(() => {
-    return getPosesByGender(proSettings.gender) || [];
-  }, [proSettings.gender]);
+  const safeOutfits = useMemo(() => currentOutfits || [], [currentOutfits]);
+  const safePoses = useMemo(() => currentPoses || [], [currentPoses]);
 
   // ============================================================================
-  // ✅ NUEVO: Función para obtener el nombre de la selección actual
+  // MANEJO DE IMAGEN DE REFERENCIA
   // ============================================================================
-  const getSelectedItemName = (section, value) => {
-    if (value === "auto" || !value) return "Automático";
-    let data;
-    switch (section) {
-      case "environment":
-        data = safeEnvironments;
-        break;
-      case "shotType":
-        data = safeShotTypes;
-        return data.find((i) => i.id === value)?.nameES || "Automático";
-      case "cameraAngle":
-        data = safeCameraAngles;
-        return data.find((i) => i.id === value)?.nameES || "Automático";
-      case "gender":
-        data = GENDER_OPTIONS;
-        break;
-      case "pose":
-        data = safePoses;
-        break;
-      case "outfit":
-        data = safeOutfits;
-        break;
-      case "lighting":
-        data = safeLightingSetups;
-        break;
-      case "colorGrading":
-        data = safeColorGrading;
-        break;
-      default:
-        return "Automático";
-    }
-    return data.find((item) => item.id === value)?.name || "Automático";
-  };
-
-  // ============================================================================
-  // ✅ NUEVO: useEffect para actualizar la previsualización del prompt PRO
-  // ============================================================================
-  useEffect(() => {
-    if (!isPro || !showProTools) {
-      setProPromptPreview(""); // Limpiar si no es PRO o las herramientas están cerradas
-      return;
-    }
-
-    const proParams = [];
-    const getName = (section, id) => getSelectedItemName(section, id);
-
-    // Construir el texto solo con las opciones que NO son "Automático"
-    if (proSettings.gender)
-      proParams.push(`Género: ${getName("gender", proSettings.gender)}`);
-    if (proSettings.environment !== "auto")
-      proParams.push(
-        `Entorno: ${getName("environment", proSettings.environment)}`
-      );
-    if (proSettings.shotType !== "auto")
-      proParams.push(`Plano: ${getName("shotType", proSettings.shotType)}`);
-    if (proSettings.cameraAngle !== "auto")
-      proParams.push(
-        `Ángulo: ${getName("cameraAngle", proSettings.cameraAngle)}`
-      );
-    if (proSettings.pose !== "auto")
-      proParams.push(`Pose: ${getName("pose", proSettings.pose)}`);
-    if (proSettings.outfit !== "auto")
-      proParams.push(`Outfit: ${getName("outfit", proSettings.outfit)}`);
-    if (proSettings.lighting !== "auto")
-      proParams.push(
-        `Iluminación: ${getName("lighting", proSettings.lighting)}`
-      );
-    if (proSettings.colorGrading !== "auto")
-      proParams.push(
-        `Color: ${getName("colorGrading", proSettings.colorGrading)}`
-      );
-
-    setProPromptPreview(proParams.join(" | "));
-  }, [
-    proSettings,
-    isPro,
-    showProTools,
-    safeEnvironments,
-    safeShotTypes,
-    safeCameraAngles,
-    safePoses,
-    safeOutfits,
-    safeLightingSetups,
-    safeColorGrading,
-  ]);
-
-  // ... (handleReferenceImageChange y removeReferenceImage no cambian) ...
   const handleReferenceImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -295,7 +236,9 @@ export default function AdvancedGenerator() {
     setImagePreview("");
   };
 
-  // ... (handleSelfieChange y removeSelfie no cambian) ...
+  // ============================================================================
+  // MANEJO DE IMAGEN SELFIE (PARA GENERAR IMAGEN CON ROSTRO)
+  // ============================================================================
   const handleSelfieChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -314,7 +257,7 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // 🔥 GENERAR PROMPT (Lógica combinada)
+  // 🔥 GENERAR PROMPT (Combinando tu lógica + la mía)
   // ============================================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -333,7 +276,7 @@ export default function AdvancedGenerator() {
 
     setIsLoading(true);
     setResponse("");
-    setQualityAnalysis(null);
+    setQualityAnalysis(null); // <-- Limpiar análisis anterior
 
     try {
       let requestData;
@@ -353,7 +296,7 @@ export default function AdvancedGenerator() {
         formData.append("proSettings", JSON.stringify(proSettings));
         formData.append("referenceImage", referenceImage);
         formData.append("analyzeReference", "true");
-        formData.append("analyzeQuality", isPro);
+        formData.append("analyzeQuality", isPro); // ✅ Añadido para análisis
 
         requestData = formData;
       } else {
@@ -362,7 +305,7 @@ export default function AdvancedGenerator() {
           platform: "nano-banana",
           userId: user.id,
           proSettings: proSettings, // <-- Enviar el objeto de settings
-          analyzeQuality: isPro,
+          analyzeQuality: isPro, // ✅ Solo analizar calidad si es PRO
         });
         headers["Content-Type"] = "application/json";
       }
@@ -383,7 +326,7 @@ export default function AdvancedGenerator() {
       setResponse(data.prompt || ""); // El backend devuelve el prompt ya combinado
       if (data.analysis) {
         console.log("✅ Análisis de calidad recibido");
-        setQualityAnalysis(data.analysis); // GUARDAR ANÁLISIS
+        setQualityAnalysis(data.analysis); // ✅ GUARDAR ANÁLISIS
       } else {
         console.log("ℹ️ No se recibió análisis de calidad.");
       }
@@ -422,7 +365,7 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // 🔥 GENERAR IMAGEN (Versión segura con Token)
+  // 🔥 GENERAR IMAGEN (Versión segura con Token + Lógica 'isPro' correcta)
   // ============================================================================
   const handleGenerateImage = async () => {
     if (!response) {
@@ -434,6 +377,7 @@ export default function AdvancedGenerator() {
       return;
     }
 
+    // ✅ Esta comprobación (con profile.plan) ahora funcionará
     if (!isPro) {
       alert(
         "Solo los usuarios PRO y PREMIUM pueden generar imágenes. Por favor, actualiza tu plan."
@@ -481,7 +425,7 @@ export default function AdvancedGenerator() {
         body: formData,
       });
 
-      const data = await res.json();
+      const data = await res.json(); // Leer respuesta (OK o error)
 
       if (!res.ok) {
         throw new Error(data.error || "Error al generar imagen");
@@ -493,6 +437,8 @@ export default function AdvancedGenerator() {
         throw new Error("No se generaron imágenes");
       }
 
+      // El backend seguro (api/generate-image) consume el crédito.
+      // Solo refrescamos la UI.
       await refreshProfile();
     } catch (error) {
       console.error("Error generando imagen:", error);
@@ -512,21 +458,11 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // TOGGLE SECCIONES PRO
+  // TOGGLE SECCIONES PRO (Tu lógica original, que funciona)
   // ============================================================================
   const toggleSection = (section) => {
     setOpenSections((prev) => ({
-      // ...prev, // Descomentar si quieres que se mantengan abiertas otras secciones
-      // Reseteamos todas a 'false' para que solo una esté abierta
-      environment: false,
-      shotType: false,
-      cameraAngle: false,
-      gender: false,
-      pose: false,
-      outfit: false,
-      lighting: false,
-      colorGrading: false,
-      // Abrimos/cerramos la actual
+      ...prev,
       [section]: !prev[section],
     }));
   };
@@ -540,30 +476,40 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // COMPONENTE HELPER: ProSection (Modificado para UX)
+  // ✅ NUEVO: Función para obtener el nombre de la selección actual
   // ============================================================================
-  const ProSection = ({ title, description, isOpen, onToggle, children }) => {
-    return (
-      <div className="border border-[#2D2D2D] rounded-lg overflow-hidden">
-        <button
-          type="button"
-          onClick={onToggle}
-          className="w-full flex items-center justify-between p-4 bg-[#06060C]/50 hover:bg-[#06060C] transition-colors"
-        >
-          <div className="text-left">
-            <h4 className="text-white font-medium">{title}</h4>
-            {/* ✅ NUEVO: Muestra la descripción (selección actual) */}
-            <p className="text-xs text-[#D8C780] mt-1">{description}</p>
-          </div>
-          {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-[#D8C780]" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-[#C1C1C1]" />
-          )}
-        </button>
-        {isOpen && <div className="p-4 bg-[#06060C]/30">{children}</div>}
-      </div>
-    );
+  const getSelectedItemName = (section, value) => {
+    if (value === "auto" || !value) return "Automático";
+    let data;
+    switch (section) {
+      case "environment":
+        data = safeEnvironments;
+        break;
+      case "shotType":
+        data = safeShotTypes;
+        return data.find((i) => i.id === value)?.nameES || "Automático";
+      case "cameraAngle":
+        data = safeCameraAngles;
+        return data.find((i) => i.id === value)?.nameES || "Automático";
+      case "gender":
+        data = GENDER_OPTIONS;
+        break;
+      case "pose":
+        data = safePoses;
+        break;
+      case "outfit":
+        data = safeOutfits;
+        break;
+      case "lighting":
+        data = safeLightingSetups;
+        break;
+      case "colorGrading":
+        data = safeColorGrading;
+        break;
+      default:
+        return "Automático";
+    }
+    return data.find((item) => item.id === value)?.name || "Automático";
   };
 
   return (
@@ -623,20 +569,6 @@ export default function AdvancedGenerator() {
                       Describe tu idea. Las opciones PRO se añadirán al generar
                       el prompt.
                     </p>
-
-                    {/* ================================================================== */}
-                    {/* ✅ NUEVO: Previsualización de Opciones PRO */}
-                    {/* ================================================================== */}
-                    {isPro && showProTools && proPromptPreview && (
-                      <div className="mt-2 p-3 bg-[#06060C] border border-[#2D2D2D] rounded-lg">
-                        <p className="text-xs text-[#C1C1C1] mb-1 font-medium">
-                          Opciones PRO activas:
-                        </p>
-                        <p className="text-sm text-[#D8C780] leading-relaxed">
-                          {proPromptPreview}
-                        </p>
-                      </div>
-                    )}
                   </div>
 
                   {/* Imagen de Referencia */}
@@ -723,6 +655,7 @@ export default function AdvancedGenerator() {
                 {/* COLUMNA DERECHA: Herramientas PRO */}
                 <div>
                   {/* BOTÓN HERRAMIENTAS PRO */}
+                  {/* ✅ Esta variable 'isPro' (con 'profile.plan') es la correcta */}
                   {isPro && (
                     <button
                       type="button"
