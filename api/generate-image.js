@@ -68,12 +68,10 @@ export default async function handler(req, res) {
     const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) {
       console.error("❌ GEMINI_API_KEY no configurada en Vercel");
-      return res
-        .status(500)
-        .json({
-          success: false,
-          error: "Error de configuración del servidor (API Key no encontrada)",
-        });
+      return res.status(500).json({
+        success: false,
+        error: "Error de configuración del servidor (API Key no encontrada)",
+      });
     }
     console.log("✅ API Key encontrada.");
 
@@ -84,12 +82,10 @@ export default async function handler(req, res) {
       console.log("✅ Archivo temporal leído.");
     } catch (readError) {
       console.error("❌ Error CRÍTICO al leer el archivo temporal:", readError);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          error: "Error al leer la imagen subida en el servidor.",
-        });
+      return res.status(500).json({
+        success: false,
+        error: "Error al leer la imagen subida en el servidor.",
+      });
     }
 
     const selfieBase64 = selfieBuffer.toString("base64");
@@ -121,14 +117,14 @@ export default async function handler(req, res) {
       contents: [
         {
           parts: [
-            { 
-              text: enhancedPrompt 
+            {
+              text: enhancedPrompt,
             },
-            { 
-              inline_data: { 
-                mime_type: selfieMimeType, 
-                data: selfieBase64 
-              } 
+            {
+              inline_data: {
+                mime_type: selfieMimeType,
+                data: selfieBase64,
+              },
             },
           ],
         },
@@ -143,40 +139,40 @@ export default async function handler(req, res) {
         image_config: {
           aspect_ratio: aspectRatio,
           // Gemini 2.5 Flash Image genera a 1024px por defecto
-        }
+        },
       },
       safetySettings: [
         {
           category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          threshold: "BLOCK_MEDIUM_AND_ABOVE",
         },
         {
           category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          threshold: "BLOCK_MEDIUM_AND_ABOVE",
         },
         {
           category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          threshold: "BLOCK_MEDIUM_AND_ABOVE",
         },
         {
           category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        }
-      ]
+          threshold: "BLOCK_MEDIUM_AND_ABOVE",
+        },
+      ],
     };
 
     // 🔥 MODELO CORRECTO: gemini-2.5-flash-image (nano-banana)
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${API_KEY}`;
-    
+
     console.log("🔗 Llamando a Gemini 2.5 Flash Image (nano-banana)...");
     console.log("📊 Aspect Ratio:", aspectRatio);
     console.log("📐 Dimensiones objetivo:", dimensions);
 
     const geminiResponse = await fetch(apiUrl, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "x-goog-api-client": "genai-js"
+        "x-goog-api-client": "genai-js",
       },
       body: JSON.stringify(requestBody),
     });
@@ -190,22 +186,23 @@ export default async function handler(req, res) {
         "):"
       );
       console.error(JSON.stringify(responseData, null, 2));
-      
+
       // Manejo específico de errores comunes
       if (responseData.error?.message?.includes("safety")) {
         return res.status(400).json({
           success: false,
-          error: "La imagen fue bloqueada por filtros de seguridad. Por favor, ajusta el contenido del prompt.",
+          error:
+            "La imagen fue bloqueada por filtros de seguridad. Por favor, ajusta el contenido del prompt.",
         });
       }
-      
+
       if (responseData.error?.message?.includes("quota")) {
         return res.status(429).json({
           success: false,
           error: "Límite de API excedido. Por favor, intenta más tarde.",
         });
       }
-      
+
       return res.status(500).json({
         success: false,
         error: `Error de la API de Gemini: ${
@@ -217,39 +214,46 @@ export default async function handler(req, res) {
     // ✅ VERIFICAR SI HAY CANDIDATOS
     if (!responseData.candidates || !responseData.candidates[0]) {
       console.error("❌ La API de Gemini no devolvió candidatos.");
-      console.error("Respuesta completa:", JSON.stringify(responseData, null, 2));
-      return res.status(500).json({ 
-        success: false, 
-        error: "La API no generó ninguna imagen. Intenta con un prompt diferente." 
+      console.error(
+        "Respuesta completa:",
+        JSON.stringify(responseData, null, 2)
+      );
+      return res.status(500).json({
+        success: false,
+        error:
+          "La API no generó ninguna imagen. Intenta con un prompt diferente.",
       });
     }
 
     const candidate = responseData.candidates[0];
-    
+
     // ✅ VERIFICAR SI FUE BLOQUEADO POR SEGURIDAD
     if (candidate.finishReason === "SAFETY") {
       console.warn("⚠️ Imagen bloqueada por filtros de seguridad");
       return res.status(400).json({
         success: false,
-        error: "El contenido fue bloqueado por filtros de seguridad. Por favor, modifica tu prompt.",
+        error:
+          "El contenido fue bloqueado por filtros de seguridad. Por favor, modifica tu prompt.",
       });
     }
 
-    // ✅ EXTRAER LA IMAGEN DEL CANDIDATO
+    // ==================================================================
+    // ✅ EXTRAER LA IMAGEN DEL CANDIDATO - ¡ESTA ES LA CORRECCIÓN!
+    // ==================================================================
     let imageBase64 = null;
     let imageMimeType = "image/png";
-    
+
     if (candidate.content?.parts) {
       for (const part of candidate.content.parts) {
-        if (part.inline_data?.data) {
-          imageBase64 = part.inline_data.data;
-          imageMimeType = part.inline_data.mime_type || "image/png";
+        // CORREGIDO: La respuesta usa camelCase (inlineData), no snake_case (inline_data)
+        if (part.inlineData?.data) {
+          imageBase64 = part.inlineData.data;
+          imageMimeType = part.inlineData.mimeType || "image/png";
           console.log("✅ Imagen extraída exitosamente");
-          console.log("📸 Tipo MIME:", imageMimeType);
           break;
         }
         // También puede venir como texto en algunos casos
-        if (part.text && part.text.includes("base64,")) {
+        if (part.text && part.text.includes("base66,")) {
           const base64Match = part.text.match(/base64,(.+)/);
           if (base64Match) {
             imageBase64 = base64Match[1];
@@ -262,10 +266,14 @@ export default async function handler(req, res) {
 
     if (!imageBase64) {
       console.error("❌ No se pudo extraer la imagen de la respuesta.");
-      console.error("Estructura del candidato:", JSON.stringify(candidate, null, 2));
+      console.error(
+        "Estructura del candidato:",
+        JSON.stringify(candidate, null, 2)
+      );
       return res.status(500).json({
         success: false,
-        error: "No se pudo extraer la imagen de la respuesta. Por favor, intenta de nuevo.",
+        error:
+          "No se pudo extraer la imagen de la respuesta. Por favor, intenta de nuevo.",
       });
     }
 
@@ -286,7 +294,7 @@ export default async function handler(req, res) {
       candidateTokens: candidate.tokenCount?.candidateTokens || "N/A",
       totalTokens: candidate.tokenCount?.totalTokens || "N/A",
       finishReason: candidate.finishReason || "COMPLETE",
-      cost: 0.039 // $0.039 por imagen según documentación
+      cost: 0.039, // $0.039 por imagen según documentación
     };
 
     console.log("📊 Información de generación:", generationInfo);
@@ -295,15 +303,15 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       images: [
-        { 
-          base64: imageBase64, 
-          mimeType: imageMimeType 
-        }
+        {
+          base64: imageBase64,
+          mimeType: imageMimeType,
+        },
       ],
       generationInfo: generationInfo,
-      message: "Imagen generada exitosamente con Gemini 2.5 Flash Image (nano-banana) 🍌"
+      message:
+        "Imagen generada exitosamente con Gemini 2.5 Flash Image (nano-banana) 🍌",
     });
-
   } catch (error) {
     console.error("❌ ERROR GENERAL EN EL SERVIDOR (catch block):");
     console.error("Mensaje:", error.message);
@@ -313,7 +321,8 @@ export default async function handler(req, res) {
     if (error.message?.includes("fetch")) {
       return res.status(503).json({
         success: false,
-        error: "Error de conexión con la API de Google. Por favor, intenta más tarde.",
+        error:
+          "Error de conexión con la API de Google. Por favor, intenta más tarde.",
       });
     }
 
