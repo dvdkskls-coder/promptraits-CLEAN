@@ -104,14 +104,8 @@ export default function AdvancedGenerator() {
   // ============================================================================
   // ESTADOS PRINCIPALES
   // ============================================================================
-  // 🔥 IMPORTAR useAuth CON LAS NUEVAS FUNCIONES
-  const {
-    user,
-    profile,
-    refreshProfile,
-    consumeCredits, // ✅ NUEVA FUNCIÓN
-    savePromptToHistory, // ✅ NUEVA FUNCIÓN
-  } = useAuth();
+  const { user, profile, refreshProfile, consumeCredits, savePromptToHistory } =
+    useAuth();
 
   const [isInitializing, setIsInitializing] = useState(true);
   const [userPrompt, setUserPrompt] = useState("");
@@ -122,13 +116,11 @@ export default function AdvancedGenerator() {
   const [imagePreview, setImagePreview] = useState("");
   const [qualityAnalysis, setQualityAnalysis] = useState(null);
 
-  // Estados para selfie (imagen de rostro para generar)
   const [selfieImage, setSelfieImage] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
 
-  // Estados PRO
   const [showProTools, setShowProTools] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [selectedGender, setSelectedGender] = useState("masculine");
@@ -142,7 +134,7 @@ export default function AdvancedGenerator() {
     colorGrading: false,
   });
   const [proSettings, setProSettings] = useState({
-    gender: selectedGender, // ✅ AÑADIDO
+    gender: "masculine", // ✅ VALOR FIJO INICIAL
     environment: { id: null, custom: "" },
     shotType: null,
     cameraAngle: null,
@@ -152,14 +144,52 @@ export default function AdvancedGenerator() {
     colorGrading: null,
   });
 
-  // ✅ VARIABLES SEGURAS PARA EVITAR CRASHES
-  const safeEnvironments = Array.isArray(ENVIRONMENTS_ARRAY) ? ENVIRONMENTS_ARRAY : [];
+  // ============================================================================
+
+  // ✅ FUNCIONES HELPER (DEFINIR ANTES DE USAR)
+  // ============================================================================
+
+  const getCurrentOutfits = () => {
+    switch (selectedGender) {
+      case "masculine":
+        return Outfits_men;
+      case "feminine":
+        return Outfits_women;
+      case "couple":
+        return [...Outfits_men.slice(0, 4), ...Outfits_women.slice(0, 4)];
+      default:
+        return Outfits_men;
+    }
+  };
+
+  const getCurrentPoses = () => {
+    return getPosesByGender(selectedGender);
+  };
+
+  // ✅ VARIABLES SEGURAS (DEFINIR DESPUÉS DE LAS FUNCIONES)
+  const safeEnvironments = Array.isArray(ENVIRONMENTS_ARRAY)
+    ? ENVIRONMENTS_ARRAY
+    : [];
   const safeShotTypes = Array.isArray(SHOT_TYPES) ? SHOT_TYPES : [];
   const safeCameraAngles = Array.isArray(CAMERA_ANGLES) ? CAMERA_ANGLES : [];
   const safePoses = Array.isArray(getCurrentPoses()) ? getCurrentPoses() : [];
-  const safeOutfits = Array.isArray(getCurrentOutfits()) ? getCurrentOutfits() : [];
-  const safeLightingSetups = Array.isArray(LIGHTING_SETUPS) ? LIGHTING_SETUPS : [];
-  const safeColorGrading = Array.isArray(COLOR_GRADING_FILTERS) ? COLOR_GRADING_FILTERS : [];
+  const safeOutfits = Array.isArray(getCurrentOutfits())
+    ? getCurrentOutfits()
+    : [];
+  const safeLightingSetups = Array.isArray(LIGHTING_SETUPS)
+    ? LIGHTING_SETUPS
+    : [];
+  const safeColorGrading = Array.isArray(COLOR_GRADING_FILTERS)
+    ? COLOR_GRADING_FILTERS
+    : [];
+
+  // ============================================================================
+
+  // VERIFICAR QUE isPro EXISTE
+  // ============================================================================
+
+  const isPro =
+    profile?.subscription_status === "active" || profile?.is_pro || false;
 
   // ============================================================================
   // INICIALIZACIÓN
