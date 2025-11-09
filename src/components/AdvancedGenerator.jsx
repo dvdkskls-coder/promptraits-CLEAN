@@ -151,11 +151,25 @@ export default function AdvancedGenerator() {
 
   // ============================================================================
 
-  // VERIFICAR QUE isPro EXISTE
+  // VERIFICAR QUE isPro EXISTE - ✅ INCLUIR PREMIUM
   // ============================================================================
 
-  const isPro =
-    profile?.subscription_status === "active" || profile?.is_pro || false;
+  const isPro = 
+    profile?.subscription_status === 'active' || 
+    profile?.subscription_tier === 'pro' ||
+    profile?.subscription_tier === 'premium' ||
+    profile?.is_pro === true || 
+    false;
+
+  // Debug temporal para verificar
+  useEffect(() => {
+    console.log('🔍 DEBUG SUBSCRIPTION:', {
+      subscription_status: profile?.subscription_status,
+      subscription_tier: profile?.subscription_tier,
+      is_pro: profile?.is_pro,
+      isPro: isPro
+    });
+  }, [profile]);
 
   // ============================================================================
   // INICIALIZACIÓN
@@ -589,64 +603,46 @@ export default function AdvancedGenerator() {
 
               {/* COLUMNA DERECHA: Herramientas PRO */}
               <div>
-                {!isPro ? (
-                  <div className="p-6 bg-gradient-to-br from-[#D8C780]/10 to-[#D8C780]/5 border border-[#D8C780]/30 rounded-lg">
-                    <Crown className="w-12 h-12 text-[#D8C780] mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-white mb-3 text-center">
-                      Herramientas PRO
-                    </h3>
-                    <div className="space-y-3 text-[#C1C1C1] text-sm">
-                      <p>
-                        <span className="text-[#D8C780] font-semibold">
-                          Regístrate o inicia sesión
-                        </span>{" "}
-                        con una cuenta PRO para acceder a:
-                      </p>
-                      <ul className="space-y-2 ml-4">
-                        <li className="flex items-start gap-2">
-                          <span className="text-[#D8C780] mt-1">•</span>
-                          <span>Control completo de entornos y locaciones</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-[#D8C780] mt-1">•</span>
-                          <span>
-                            Selección de planos de cámara profesionales
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-[#D8C780] mt-1">•</span>
-                          <span>
-                            56 poses profesionales (masculinas, femeninas y
-                            pareja)
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-[#D8C780] mt-1">•</span>
-                          <span>
-                            Estilos de vestuario y outfits personalizados
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-[#D8C780] mt-1">•</span>
-                          <span>23 esquemas de iluminación profesional</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-[#D8C780] mt-1">•</span>
-                          <span>
-                            27 filtros de color grading cinematográfico
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-[#D8C780] mt-1">•</span>
-                          <span className="font-semibold text-white">
-                            Generar imágenes con Nano Banana 🍌 desde
-                            Promptraits.com
-                          </span>
-                        </li>
-                      </ul>
+                {/* BOTÓN HERRAMIENTAS PRO */}
+                {isPro && (
+                  <button
+                    type="button"
+                    onClick={() => setShowProTools(!showProTools)}
+                    className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all ${
+                      showProTools
+                        ? 'bg-[#D8C780]/10 border-[#D8C780]'
+                        : 'bg-[#06060C]/50 border-[#2D2D2D] hover:border-[#D8C780]/50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Crown className="w-5 h-5 text-[#D8C780]" />
+                      <div className="text-left">
+                        <span className="text-white font-medium">Herramientas PRO</span>
+                        <p className="text-xs text-[#C1C1C1] mt-1">
+                          Control avanzado de parámetros fotográficos
+                        </p>
+                      </div>
                     </div>
+                    {showProTools ? (
+                      <ChevronUp className="w-5 h-5 text-[#D8C780]" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-[#C1C1C1]" />
+                    )}
+                  </button>
+                )}
+
+                {/* SI NO ES PRO, MOSTRAR MENSAJE */}
+                {!isPro && (
+                  <div className="p-4 bg-[#D8C780]/5 border border-[#D8C780]/20 rounded-lg text-center">
+                    <Crown className="w-8 h-8 text-[#D8C780] mx-auto mb-2" />
+                    <p className="text-sm text-[#C1C1C1]">
+                      Actualiza a <span className="text-[#D8C780] font-semibold">PRO</span> o{' '}
+                      <span className="text-[#D8C780] font-semibold">PREMIUM</span> para acceder a herramientas avanzadas
+                    </p>
                   </div>
-                ) : (
+                )}
+
+                {showProTools && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between mb-4">
                       <div>
