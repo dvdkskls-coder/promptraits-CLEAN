@@ -1,4 +1,4 @@
-// api/generate-image.js (Versión con Debugging Mejorado)
+// api/generate-image.js (VERSIÓN CORREGIDA CON MODELO GEMINI 2.5 FLASH IMAGE)
 
 import formidable from "formidable";
 import fs from "fs";
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
       ? files.selfieImage[0]
       : files.selfieImage;
 
-    console.log("🍌 Datos recibidos:");
+    console.log("🌍 Datos recibidos:");
     console.log("- Prompt:", prompt ? `${prompt.substring(0, 50)}...` : "NO");
     console.log("- Aspect Ratio:", aspectRatio);
     console.log("- User ID:", userId);
@@ -95,6 +95,7 @@ export default async function handler(req, res) {
     const selfieBase64 = selfieBuffer.toString("base64");
     const selfieMimeType = selfieFile.mimetype || "image/jpeg";
 
+    // ✅ MAPA DE DIMENSIONES PARA DIFERENTES ASPECT RATIOS
     const dimensionsMap = {
       "1:1": { width: 1024, height: 1024 },
       "3:4": { width: 768, height: 1024 },
@@ -104,30 +105,82 @@ export default async function handler(req, res) {
     };
     const dimensions = dimensionsMap[aspectRatio] || dimensionsMap["1:1"];
 
-    const enhancedPrompt = `A photo of this person (referring to the reference image). ${prompt}...`; // (Prompt acortado para brevedad)
+    // ✅ PROMPT MEJORADO PARA PRESERVAR EL ROSTRO DEL SELFIE
+    const enhancedPrompt = `A photorealistic portrait using the exact face from the provided selfie image. ${prompt}. 
+    
+    CRITICAL INSTRUCTIONS:
+    - Use the EXACT face from the provided selfie - no modifications to facial features
+    - Preserve all unique facial characteristics, skin tone, and features exactly as shown
+    - The face must be recognizable as the same person from the selfie
+    - Only change pose, environment, clothing, and styling as described
+    - Maintain photorealistic quality throughout
+    - Generate in ${dimensions.width}x${dimensions.height} resolution`;
 
+    // 🔥 ESTRUCTURA CORRECTA PARA GEMINI 2.5 FLASH IMAGE
     const requestBody = {
       contents: [
         {
           parts: [
-            { text: enhancedPrompt },
-            { inline_data: { mime_type: selfieMimeType, data: selfieBase64 } },
+            { 
+              text: enhancedPrompt 
+            },
+            { 
+              inline_data: { 
+                mime_type: selfieMimeType, 
+                data: selfieBase64 
+              } 
+            },
           ],
         },
       ],
+      generationConfig: {
+        temperature: 0.8,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 2000,
+        // ✅ CONFIGURACIÓN ESPECÍFICA PARA IMAGEN
+        response_modalities: ["IMAGE"],
+        image_config: {
+          aspect_ratio: aspectRatio,
+          // Gemini 2.5 Flash Image genera a 1024px por defecto
+        }
+      },
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }
+      ]
     };
 
-    // ✅ MODELO CONFIRMADO POR EL USUARIO
+    // 🔥 MODELO CORRECTO: gemini-2.5-flash-image (nano-banana)
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${API_KEY}`;
-    console.log(
-      "🔗 Llamando a la API de Gemini con el modelo gemini-2.5-flash-image..."
-    );
+    
+    console.log("🔗 Llamando a Gemini 2.5 Flash Image (nano-banana)...");
+    console.log("📊 Aspect Ratio:", aspectRatio);
+    console.log("📐 Dimensiones objetivo:", dimensions);
 
     const geminiResponse = await fetch(apiUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-goog-api-client": "genai-js"
+      },
       body: JSON.stringify(requestBody),
     });
+
     const responseData = await geminiResponse.json();
 
     if (!geminiResponse.ok) {
@@ -137,67 +190,136 @@ export default async function handler(req, res) {
         "):"
       );
       console.error(JSON.stringify(responseData, null, 2));
-      return res
-        .status(500)
-        .json({
+      
+      // Manejo específico de errores comunes
+      if (responseData.error?.message?.includes("safety")) {
+        return res.status(400).json({
           success: false,
-          error: `Error de la API de Gemini: ${
-            responseData.error?.message || "Error desconocido"
-          }`,
+          error: "La imagen fue bloqueada por filtros de seguridad. Por favor, ajusta el contenido del prompt.",
         });
+      }
+      
+      if (responseData.error?.message?.includes("quota")) {
+        return res.status(429).json({
+          success: false,
+          error: "Límite de API excedido. Por favor, intenta más tarde.",
+        });
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: `Error de la API de Gemini: ${
+          responseData.error?.message || "Error desconocido"
+        }`,
+      });
     }
 
+    // ✅ VERIFICAR SI HAY CANDIDATOS
     if (!responseData.candidates || !responseData.candidates[0]) {
       console.error("❌ La API de Gemini no devolvió candidatos.");
-      return res
-        .status(500)
-        .json({ success: false, error: "La API no generó ninguna imagen." });
+      console.error("Respuesta completa:", JSON.stringify(responseData, null, 2));
+      return res.status(500).json({ 
+        success: false, 
+        error: "La API no generó ninguna imagen. Intenta con un prompt diferente." 
+      });
     }
 
     const candidate = responseData.candidates[0];
+    
+    // ✅ VERIFICAR SI FUE BLOQUEADO POR SEGURIDAD
+    if (candidate.finishReason === "SAFETY") {
+      console.warn("⚠️ Imagen bloqueada por filtros de seguridad");
+      return res.status(400).json({
+        success: false,
+        error: "El contenido fue bloqueado por filtros de seguridad. Por favor, modifica tu prompt.",
+      });
+    }
+
+    // ✅ EXTRAER LA IMAGEN DEL CANDIDATO
     let imageBase64 = null;
+    let imageMimeType = "image/png";
+    
     if (candidate.content?.parts) {
       for (const part of candidate.content.parts) {
         if (part.inline_data?.data) {
           imageBase64 = part.inline_data.data;
+          imageMimeType = part.inline_data.mime_type || "image/png";
+          console.log("✅ Imagen extraída exitosamente");
+          console.log("📸 Tipo MIME:", imageMimeType);
           break;
+        }
+        // También puede venir como texto en algunos casos
+        if (part.text && part.text.includes("base64,")) {
+          const base64Match = part.text.match(/base64,(.+)/);
+          if (base64Match) {
+            imageBase64 = base64Match[1];
+            console.log("✅ Imagen extraída del texto");
+            break;
+          }
         }
       }
     }
 
     if (!imageBase64) {
       console.error("❌ No se pudo extraer la imagen de la respuesta.");
-      return res
-        .status(500)
-        .json({
-          success: false,
-          error: "No se pudo extraer la imagen de la respuesta.",
-        });
+      console.error("Estructura del candidato:", JSON.stringify(candidate, null, 2));
+      return res.status(500).json({
+        success: false,
+        error: "No se pudo extraer la imagen de la respuesta. Por favor, intenta de nuevo.",
+      });
     }
 
+    // ✅ LIMPIAR ARCHIVO TEMPORAL
     try {
       fs.unlinkSync(selfieFile.filepath);
+      console.log("🗑️ Archivo temporal eliminado");
     } catch (e) {
       console.warn("⚠️ No se pudo eliminar archivo temporal:", e.message);
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        images: [{ base64: imageBase64, mimeType: "image/png" }],
-      });
+    // 🔥 INFORMACIÓN ADICIONAL SOBRE LA GENERACIÓN
+    const generationInfo = {
+      model: "gemini-2.5-flash-image",
+      aspectRatio: aspectRatio,
+      dimensions: dimensions,
+      promptTokens: candidate.tokenCount?.promptTokens || "N/A",
+      candidateTokens: candidate.tokenCount?.candidateTokens || "N/A",
+      totalTokens: candidate.tokenCount?.totalTokens || "N/A",
+      finishReason: candidate.finishReason || "COMPLETE",
+      cost: 0.039 // $0.039 por imagen según documentación
+    };
+
+    console.log("📊 Información de generación:", generationInfo);
+
+    // ✅ RETORNAR LA IMAGEN GENERADA
+    return res.status(200).json({
+      success: true,
+      images: [
+        { 
+          base64: imageBase64, 
+          mimeType: imageMimeType 
+        }
+      ],
+      generationInfo: generationInfo,
+      message: "Imagen generada exitosamente con Gemini 2.5 Flash Image (nano-banana) 🍌"
+    });
+
   } catch (error) {
-    // ✅ MEJORA: Log del error completo y del stack para depuración
     console.error("❌ ERROR GENERAL EN EL SERVIDOR (catch block):");
     console.error("Mensaje:", error.message);
     console.error("Stack:", error.stack);
 
-    return res
-      .status(500)
-      .json({
+    // Verificar si es un error de red
+    if (error.message?.includes("fetch")) {
+      return res.status(503).json({
         success: false,
-        error: `Error interno del servidor: ${error.message}`,
+        error: "Error de conexión con la API de Google. Por favor, intenta más tarde.",
       });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: `Error interno del servidor: ${error.message}`,
+    });
   }
 }
