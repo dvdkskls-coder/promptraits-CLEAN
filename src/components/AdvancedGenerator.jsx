@@ -22,26 +22,17 @@ import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
-// ✅ IMPORTAR OUTFITS SEPARADOS POR GÉNERO
+// ... (Todas tus importaciones de 'data' están perfectas)
 import Outfits_women from "../data/Outfits_women";
 import Outfits_men from "../data/Outfits_men";
-
-// ✅ IMPORTAR TIPOS DE PLANO Y ÁNGULOS DE CÁMARA
 import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
-
-// ✅ IMPORTAR ENTORNOS
 import { ENVIRONMENTS_ARRAY } from "../data/environmentsData";
-
-// ✅ IMPORTAR NUEVOS COMPONENTES PRO
 import { getPosesByGender, POSES } from "../data/posesData";
 import { LIGHTING_SETUPS } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
 
-// ============================================================================
-// ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
-// ============================================================================
+// ... (QUICK_FEATURES, GENDER_OPTIONS, VALID_ASPECT_RATIOS no cambian) ...
 const QUICK_FEATURES = [
-  // ... (Tu código de features - no cambia)
   {
     id: "professional-lighting",
     name: "Iluminación Profesional",
@@ -91,19 +82,11 @@ const QUICK_FEATURES = [
       "Cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
 ];
-
-// ============================================================================
-// ✨ OPCIONES DE GÉNERO (Actualizado con PAREJA)
-// ============================================================================
 const GENDER_OPTIONS = [
   { id: "masculine", name: "Masculino" },
   { id: "feminine", name: "Femenino" },
   { id: "couple", name: "Pareja" },
 ];
-
-// ============================================================================
-// ✨ NUEVO: RELACIONES DE ASPECTO VÁLIDAS
-// ============================================================================
 const VALID_ASPECT_RATIOS = [
   { id: "1:1", name: "Cuadrado" },
   { id: "3:4", name: "Vertical" },
@@ -117,14 +100,12 @@ export default function AdvancedGenerator() {
   // ESTADOS PRINCIPALES
   // ============================================================================
 
-  // ✅ Usamos tu lógica de AuthContext original
   const { user, profile, refreshProfile, consumeCredits, savePromptToHistory } =
     useAuth();
 
-  // ✅ Usamos tu lógica de carga original (¡era la correcta!)
+  // ✅ Volvemos a tu lógica de 'isInitializing' que SÍ funcionaba
   const [isInitializing, setIsInitializing] = useState(true);
   useEffect(() => {
-    // Se pondrá en 'false' cuando el AuthContext termine de cargar user y profile
     if (user !== undefined && profile !== undefined) {
       setIsInitializing(false);
     }
@@ -136,22 +117,21 @@ export default function AdvancedGenerator() {
   const [copied, setCopied] = useState(false);
   const [referenceImage, setReferenceImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [qualityAnalysis, setQualityAnalysis] = useState(null); // ✅ Para el análisis
+  const [qualityAnalysis, setQualityAnalysis] = useState(null);
 
   // Estados para Nano Banana 🍌
   const [selfieImage, setSelfieImage] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
-  const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1"); // ✅ Estado para Aspect Ratio
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1");
 
   // Estados para Herramientas
   const [showProTools, setShowProTools] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
 
-  // ✅ CORRECCIÓN UX: Poner "auto" por defecto
   const [proSettings, setProSettings] = useState({
-    gender: "masculine", // Género por defecto
+    gender: "masculine",
     environment: "auto",
     shotType: "auto",
     cameraAngle: "auto",
@@ -161,7 +141,9 @@ export default function AdvancedGenerator() {
     colorGrading: "auto",
   });
 
-  // Estados para desplegables
+  // ✅ NUEVO: Estado para la previsualización del prompt PRO
+  const [proPromptPreview, setProPromptPreview] = useState("");
+
   const [openSections, setOpenSections] = useState({
     environment: false,
     shotType: false,
@@ -174,51 +156,128 @@ export default function AdvancedGenerator() {
   });
 
   // ============================================================================
-  // VERIFICAR SUSCRIPCIÓN (Usando tu 'profile.plan' original)
+  // VERIFICAR SUSCRIPCIÓN (Usando 'profile.plan')
   // ============================================================================
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
-  // Abrir herramientas PRO si el usuario es Pro
   useEffect(() => {
     if (isPro && !showProTools) {
       setShowProTools(true);
     }
-  }, [isPro]); // No añadas 'showProTools' aquí, crea un loop
+  }, [isPro]);
 
   // ============================================================================
-  // LÓGICA DE DATOS (de tu código antiguo)
+  // LÓGICA DE DATOS (Optimizada con useMemo)
   // ============================================================================
-
-  // ✅ OBTENER OUTFITS SEGÚN GÉNERO
-  const getOutfitsByGender = () => {
-    if (proSettings.gender === "masculine" || proSettings.gender === "couple") {
-      return Outfits_men;
-    } else if (proSettings.gender === "feminine") {
-      return Outfits_women;
-    }
-    return [...Outfits_women, ...Outfits_men];
-  }; // ✅ OBTENER POSES SEGÚN GÉNERO
-
-  const getPosesForGender = () => {
-    return getPosesByGender(proSettings.gender);
-  };
-
-  // Usamos useMemo (de tu código antiguo) para optimizar
   const safeEnvironments = useMemo(() => ENVIRONMENTS_ARRAY || [], []);
   const safeShotTypes = useMemo(() => SHOT_TYPES || [], []);
   const safeCameraAngles = useMemo(() => CAMERA_ANGLES || [], []);
   const safeLightingSetups = useMemo(() => LIGHTING_SETUPS || [], []);
   const safeColorGrading = useMemo(() => COLOR_GRADING_FILTERS || [], []);
 
-  const currentOutfits = getOutfitsByGender();
-  const currentPoses = getPosesForGender();
+  const safeOutfits = useMemo(() => {
+    if (proSettings.gender === "masculine" || proSettings.gender === "couple") {
+      return Outfits_men || [];
+    } else if (proSettings.gender === "feminine") {
+      return Outfits_women || [];
+    }
+    return [...(Outfits_women || []), ...(Outfits_men || [])];
+  }, [proSettings.gender]);
 
-  const safeOutfits = useMemo(() => currentOutfits || [], [currentOutfits]);
-  const safePoses = useMemo(() => currentPoses || [], [currentPoses]);
+  const safePoses = useMemo(() => {
+    return getPosesByGender(proSettings.gender) || [];
+  }, [proSettings.gender]);
 
   // ============================================================================
-  // MANEJO DE IMAGEN DE REFERENCIA
+  // ✅ NUEVO: Función para obtener el nombre de la selección actual
   // ============================================================================
+  const getSelectedItemName = (section, value) => {
+    if (value === "auto" || !value) return "Automático";
+    let data;
+    switch (section) {
+      case "environment":
+        data = safeEnvironments;
+        break;
+      case "shotType":
+        data = safeShotTypes;
+        return data.find((i) => i.id === value)?.nameES || "Automático";
+      case "cameraAngle":
+        data = safeCameraAngles;
+        return data.find((i) => i.id === value)?.nameES || "Automático";
+      case "gender":
+        data = GENDER_OPTIONS;
+        break;
+      case "pose":
+        data = safePoses;
+        break;
+      case "outfit":
+        data = safeOutfits;
+        break;
+      case "lighting":
+        data = safeLightingSetups;
+        break;
+      case "colorGrading":
+        data = safeColorGrading;
+        break;
+      default:
+        return "Automático";
+    }
+    return data.find((item) => item.id === value)?.name || "Automático";
+  };
+
+  // ============================================================================
+  // ✅ NUEVO: useEffect para actualizar la previsualización del prompt PRO
+  // ============================================================================
+  useEffect(() => {
+    if (!isPro || !showProTools) {
+      setProPromptPreview(""); // Limpiar si no es PRO o las herramientas están cerradas
+      return;
+    }
+
+    const proParams = [];
+    const getName = (section, id) => getSelectedItemName(section, id);
+
+    // Construir el texto solo con las opciones que NO son "Automático"
+    if (proSettings.gender)
+      proParams.push(`Género: ${getName("gender", proSettings.gender)}`);
+    if (proSettings.environment !== "auto")
+      proParams.push(
+        `Entorno: ${getName("environment", proSettings.environment)}`
+      );
+    if (proSettings.shotType !== "auto")
+      proParams.push(`Plano: ${getName("shotType", proSettings.shotType)}`);
+    if (proSettings.cameraAngle !== "auto")
+      proParams.push(
+        `Ángulo: ${getName("cameraAngle", proSettings.cameraAngle)}`
+      );
+    if (proSettings.pose !== "auto")
+      proParams.push(`Pose: ${getName("pose", proSettings.pose)}`);
+    if (proSettings.outfit !== "auto")
+      proParams.push(`Outfit: ${getName("outfit", proSettings.outfit)}`);
+    if (proSettings.lighting !== "auto")
+      proParams.push(
+        `Iluminación: ${getName("lighting", proSettings.lighting)}`
+      );
+    if (proSettings.colorGrading !== "auto")
+      proParams.push(
+        `Color: ${getName("colorGrading", proSettings.colorGrading)}`
+      );
+
+    setProPromptPreview(proParams.join(" | "));
+  }, [
+    proSettings,
+    isPro,
+    showProTools,
+    safeEnvironments,
+    safeShotTypes,
+    safeCameraAngles,
+    safePoses,
+    safeOutfits,
+    safeLightingSetups,
+    safeColorGrading,
+  ]);
+
+  // ... (handleReferenceImageChange y removeReferenceImage no cambian) ...
   const handleReferenceImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -236,9 +295,7 @@ export default function AdvancedGenerator() {
     setImagePreview("");
   };
 
-  // ============================================================================
-  // MANEJO DE IMAGEN SELFIE (PARA GENERAR IMAGEN CON ROSTRO)
-  // ============================================================================
+  // ... (handleSelfieChange y removeSelfie no cambian) ...
   const handleSelfieChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -257,7 +314,7 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // 🔥 GENERAR PROMPT (Combinando tu lógica + la mía)
+  // 🔥 GENERAR PROMPT (Lógica combinada)
   // ============================================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -276,13 +333,14 @@ export default function AdvancedGenerator() {
 
     setIsLoading(true);
     setResponse("");
-    setQualityAnalysis(null); // <-- Limpiar análisis anterior
+    setQualityAnalysis(null);
 
     try {
       let requestData;
       let headers = {};
 
-      // Construir el prompt final
+      // El prompt a enviar es el 'userPrompt' Y las 'proSettings' por separado.
+      // El backend (gemini-processor) debe unirlos.
       const promptToSend =
         userPrompt.trim() ||
         "Recreate this exact image with all its details, environment, lighting, subject pose, camera angle, and composition. Using the exact face from the provided selfie — no editing, no retouching, no smoothing. Match the reference image precisely.";
@@ -295,7 +353,7 @@ export default function AdvancedGenerator() {
         formData.append("proSettings", JSON.stringify(proSettings));
         formData.append("referenceImage", referenceImage);
         formData.append("analyzeReference", "true");
-        formData.append("analyzeQuality", isPro); // ✅ Añadido para análisis
+        formData.append("analyzeQuality", isPro);
 
         requestData = formData;
       } else {
@@ -303,8 +361,8 @@ export default function AdvancedGenerator() {
           prompt: promptToSend,
           platform: "nano-banana",
           userId: user.id,
-          proSettings: proSettings,
-          analyzeQuality: isPro, // ✅ Solo analizar calidad si es PRO
+          proSettings: proSettings, // <-- Enviar el objeto de settings
+          analyzeQuality: isPro,
         });
         headers["Content-Type"] = "application/json";
       }
@@ -322,10 +380,10 @@ export default function AdvancedGenerator() {
 
       const data = await res.json();
 
-      setResponse(data.prompt || "");
+      setResponse(data.prompt || ""); // El backend devuelve el prompt ya combinado
       if (data.analysis) {
         console.log("✅ Análisis de calidad recibido");
-        setQualityAnalysis(data.analysis); // ✅ GUARDAR ANÁLISIS
+        setQualityAnalysis(data.analysis); // GUARDAR ANÁLISIS
       } else {
         console.log("ℹ️ No se recibió análisis de calidad.");
       }
@@ -364,7 +422,7 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // 🔥 GENERAR IMAGEN (Versión segura con Token + Lógica 'isPro' correcta)
+  // 🔥 GENERAR IMAGEN (Versión segura con Token)
   // ============================================================================
   const handleGenerateImage = async () => {
     if (!response) {
@@ -376,7 +434,6 @@ export default function AdvancedGenerator() {
       return;
     }
 
-    // ✅ Esta comprobación (con profile.plan) ahora funcionará
     if (!isPro) {
       alert(
         "Solo los usuarios PRO y PREMIUM pueden generar imágenes. Por favor, actualiza tu plan."
@@ -424,7 +481,7 @@ export default function AdvancedGenerator() {
         body: formData,
       });
 
-      const data = await res.json(); // Leer respuesta (OK o error)
+      const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || "Error al generar imagen");
@@ -436,8 +493,6 @@ export default function AdvancedGenerator() {
         throw new Error("No se generaron imágenes");
       }
 
-      // El backend seguro (api/generate-image) consume el crédito.
-      // Solo refrescamos la UI.
       await refreshProfile();
     } catch (error) {
       console.error("Error generando imagen:", error);
@@ -457,11 +512,21 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // TOGGLE SECCIONES PRO (Tu lógica original, que funciona)
+  // TOGGLE SECCIONES PRO
   // ============================================================================
   const toggleSection = (section) => {
     setOpenSections((prev) => ({
-      ...prev,
+      // ...prev, // Descomentar si quieres que se mantengan abiertas otras secciones
+      // Reseteamos todas a 'false' para que solo una esté abierta
+      environment: false,
+      shotType: false,
+      cameraAngle: false,
+      gender: false,
+      pose: false,
+      outfit: false,
+      lighting: false,
+      colorGrading: false,
+      // Abrimos/cerramos la actual
       [section]: !prev[section],
     }));
   };
@@ -475,40 +540,30 @@ export default function AdvancedGenerator() {
   };
 
   // ============================================================================
-  // ✅ NUEVO: Función para obtener el nombre de la selección actual
+  // COMPONENTE HELPER: ProSection (Modificado para UX)
   // ============================================================================
-  const getSelectedItemName = (section, value) => {
-    if (value === "auto" || !value) return "Automático";
-    let data;
-    switch (section) {
-      case "environment":
-        data = safeEnvironments;
-        break;
-      case "shotType":
-        data = safeShotTypes;
-        return data.find((i) => i.id === value)?.nameES || "Automático";
-      case "cameraAngle":
-        data = safeCameraAngles;
-        return data.find((i) => i.id === value)?.nameES || "Automático";
-      case "gender":
-        data = GENDER_OPTIONS;
-        break;
-      case "pose":
-        data = safePoses;
-        break;
-      case "outfit":
-        data = safeOutfits;
-        break;
-      case "lighting":
-        data = safeLightingSetups;
-        break;
-      case "colorGrading":
-        data = safeColorGrading;
-        break;
-      default:
-        return "Automático";
-    }
-    return data.find((item) => item.id === value)?.name || "Automático";
+  const ProSection = ({ title, description, isOpen, onToggle, children }) => {
+    return (
+      <div className="border border-[#2D2D2D] rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="w-full flex items-center justify-between p-4 bg-[#06060C]/50 hover:bg-[#06060C] transition-colors"
+        >
+          <div className="text-left">
+            <h4 className="text-white font-medium">{title}</h4>
+            {/* ✅ NUEVO: Muestra la descripción (selección actual) */}
+            <p className="text-xs text-[#D8C780] mt-1">{description}</p>
+          </div>
+          {isOpen ? (
+            <ChevronUp className="w-5 h-5 text-[#D8C780]" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-[#C1C1C1]" />
+          )}
+        </button>
+        {isOpen && <div className="p-4 bg-[#06060C]/30">{children}</div>}
+      </div>
+    );
   };
 
   return (
@@ -565,8 +620,23 @@ export default function AdvancedGenerator() {
                       className="w-full h-40 bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] focus:outline-none resize-none"
                     />
                     <p className="text-xs text-[#C1C1C1] mt-1">
-                      Los parámetros seleccionados se añadirán automáticamente
+                      Describe tu idea. Las opciones PRO se añadirán al generar
+                      el prompt.
                     </p>
+
+                    {/* ================================================================== */}
+                    {/* ✅ NUEVO: Previsualización de Opciones PRO */}
+                    {/* ================================================================== */}
+                    {isPro && showProTools && proPromptPreview && (
+                      <div className="mt-2 p-3 bg-[#06060C] border border-[#2D2D2D] rounded-lg">
+                        <p className="text-xs text-[#C1C1C1] mb-1 font-medium">
+                          Opciones PRO activas:
+                        </p>
+                        <p className="text-sm text-[#D8C780] leading-relaxed">
+                          {proPromptPreview}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Imagen de Referencia */}
@@ -653,7 +723,6 @@ export default function AdvancedGenerator() {
                 {/* COLUMNA DERECHA: Herramientas PRO */}
                 <div>
                   {/* BOTÓN HERRAMIENTAS PRO */}
-                  {/* ✅ Esta variable 'isPro' (con 'profile.plan') es la correcta */}
                   {isPro && (
                     <button
                       type="button"
@@ -760,12 +829,13 @@ export default function AdvancedGenerator() {
                               <button
                                 key={option.id}
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     gender: option.id,
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("gender"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-2 rounded-lg border text-sm transition-all ${
                                   proSettings.gender === option.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -791,12 +861,13 @@ export default function AdvancedGenerator() {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={() => {
                                 setProSettings((prev) => ({
                                   ...prev,
                                   environment: "auto",
-                                }))
-                              }
+                                }));
+                                toggleSection("environment"); // ✅ AUTO-COLAPSAR
+                              }}
                               className={`p-2 rounded-lg border text-sm transition-all ${
                                 proSettings.environment === "auto"
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -809,12 +880,13 @@ export default function AdvancedGenerator() {
                               <button
                                 key={env.id}
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     environment: env.id,
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("environment"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-3 rounded-lg border text-left transition-all ${
                                   proSettings.environment === env.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -847,12 +919,13 @@ export default function AdvancedGenerator() {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={() => {
                                 setProSettings((prev) => ({
                                   ...prev,
                                   shotType: "auto",
-                                }))
-                              }
+                                }));
+                                toggleSection("shotType"); // ✅ AUTO-COLAPSAR
+                              }}
                               className={`p-2 rounded-lg border text-sm transition-all ${
                                 proSettings.shotType === "auto"
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -865,12 +938,13 @@ export default function AdvancedGenerator() {
                               <button
                                 key={shot.id}
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     shotType: shot.id,
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("shotType"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-3 rounded-lg border text-left transition-all ${
                                   proSettings.shotType === shot.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -903,12 +977,13 @@ export default function AdvancedGenerator() {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={() => {
                                 setProSettings((prev) => ({
                                   ...prev,
                                   cameraAngle: "auto",
-                                }))
-                              }
+                                }));
+                                toggleSection("cameraAngle"); // ✅ AUTO-COLAPSAR
+                              }}
                               className={`p-2 rounded-lg border text-sm transition-all ${
                                 proSettings.cameraAngle === "auto"
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -921,12 +996,13 @@ export default function AdvancedGenerator() {
                               <button
                                 key={angle.id}
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     cameraAngle: angle.id,
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("cameraAngle"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-3 rounded-lg border text-left transition-all ${
                                   proSettings.cameraAngle === angle.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -960,12 +1036,13 @@ export default function AdvancedGenerator() {
                             <div className="grid grid-cols-2 gap-2">
                               <button
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     pose: "auto",
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("pose"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-2 rounded-lg border text-sm transition-all ${
                                   proSettings.pose === "auto"
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -978,12 +1055,13 @@ export default function AdvancedGenerator() {
                                 <button
                                   key={pose.id}
                                   type="button"
-                                  onClick={() =>
+                                  onClick={() => {
                                     setProSettings((prev) => ({
                                       ...prev,
                                       pose: pose.id,
-                                    }))
-                                  }
+                                    }));
+                                    toggleSection("pose"); // ✅ AUTO-COLAPSAR
+                                  }}
                                   className={`p-3 rounded-lg border text-left transition-all ${
                                     proSettings.pose === pose.id
                                       ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -1018,12 +1096,13 @@ export default function AdvancedGenerator() {
                             <div className="grid grid-cols-2 gap-2">
                               <button
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     outfit: "auto",
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("outfit"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-2 rounded-lg border text-sm transition-all ${
                                   proSettings.outfit === "auto"
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -1036,12 +1115,13 @@ export default function AdvancedGenerator() {
                                 <button
                                   key={outfit.id}
                                   type="button"
-                                  onClick={() =>
+                                  onClick={() => {
                                     setProSettings((prev) => ({
                                       ...prev,
                                       outfit: outfit.id,
-                                    }))
-                                  }
+                                    }));
+                                    toggleSection("outfit"); // ✅ AUTO-COLAPSAR
+                                  }}
                                   className={`p-3 rounded-lg border text-left transition-all ${
                                     proSettings.outfit === outfit.id
                                       ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -1075,12 +1155,13 @@ export default function AdvancedGenerator() {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={() => {
                                 setProSettings((prev) => ({
                                   ...prev,
                                   lighting: "auto",
-                                }))
-                              }
+                                }));
+                                toggleSection("lighting"); // ✅ AUTO-COLAPSAR
+                              }}
                               className={`p-2 rounded-lg border text-sm transition-all ${
                                 proSettings.lighting === "auto"
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -1093,12 +1174,13 @@ export default function AdvancedGenerator() {
                               <button
                                 key={light.id}
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     lighting: light.id,
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("lighting"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-3 rounded-lg border text-left transition-all ${
                                   proSettings.lighting === light.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -1131,12 +1213,13 @@ export default function AdvancedGenerator() {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={() => {
                                 setProSettings((prev) => ({
                                   ...prev,
                                   colorGrading: "auto",
-                                }))
-                              }
+                                }));
+                                toggleSection("colorGrading"); // ✅ AUTO-COLAPSAR
+                              }}
                               className={`p-2 rounded-lg border text-sm transition-all ${
                                 proSettings.colorGrading === "auto"
                                   ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -1149,12 +1232,13 @@ export default function AdvancedGenerator() {
                               <button
                                 key={grading.id}
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
                                   setProSettings((prev) => ({
                                     ...prev,
                                     colorGrading: grading.id,
-                                  }))
-                                }
+                                  }));
+                                  toggleSection("colorGrading"); // ✅ AUTO-COLAPSAR
+                                }}
                                 className={`p-3 rounded-lg border text-left transition-all ${
                                   proSettings.colorGrading === grading.id
                                     ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
@@ -1237,7 +1321,6 @@ export default function AdvancedGenerator() {
                   </div>
 
                   {/* 🔥 ANÁLISIS DE CALIDAD (NUEVO) */}
-                  {/* Esto ahora funcionará cuando 'isPro' sea true */}
                   {isPro && qualityAnalysis && (
                     <QualityAnalysis
                       analysis={qualityAnalysis}
@@ -1252,7 +1335,6 @@ export default function AdvancedGenerator() {
                     </h3>
 
                     {/* Mensaje de solo PRO/Premium */}
-                    {/* Esta variable 'isPro' ahora será la correcta */}
                     {!isPro ? (
                       <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg text-center">
                         <Lock className="w-6 h-6 text-red-400 mx-auto mb-2" />
@@ -1307,9 +1389,7 @@ export default function AdvancedGenerator() {
                           </div>
                         )}
 
-                        {/* ================================================================== */}
-                        {/* ✨ SECCIÓN DE ASPECT RATIO (NUEVA) */}
-                        {/* ================================================================== */}
+                        {/* SECCIÓN DE ASPECT RATIO */}
                         <div className="mb-6">
                           <label className="block text-sm font-medium text-[#C1C1C1] mb-3">
                             Selecciona la relación de aspecto
@@ -1395,33 +1475,6 @@ export default function AdvancedGenerator() {
           </AnimatedSection>
         )}
       </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// COMPONENTE HELPER: ProSection (MODIFICADO PARA MOSTRAR SELECCIÓN)
-// ============================================================================
-function ProSection({ title, description, isOpen, onToggle, children }) {
-  return (
-    <div className="border border-[#2D2D2D] rounded-lg overflow-hidden">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 bg-[#06060C]/50 hover:bg-[#06060C] transition-colors"
-      >
-        <div className="text-left">
-          <h4 className="text-white font-medium">{title}</h4>
-          {/* ✅ NUEVO: Muestra la descripción (selección actual) */}
-          <p className="text-xs text-[#D8C780] mt-1">{description}</p>
-        </div>
-        {isOpen ? (
-          <ChevronUp className="w-5 h-5 text-[#D8C780]" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-[#C1C1C1]" />
-        )}
-      </button>
-      {isOpen && <div className="p-4 bg-[#06060C]/30">{children}</div>}
     </div>
   );
 }
