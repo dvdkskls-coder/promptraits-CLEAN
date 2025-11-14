@@ -219,9 +219,11 @@ export default function AdvancedGenerator() {
       setCompactPrompt(data.compact || "");
       if (data.analysis) setQualityAnalysis(data.analysis);
 
-      // Actualización automática de género (Lógica PromptLab)
       if (data.detectedGender) {
         setGender(data.detectedGender);
+        // Limpiar imágenes anteriores si cambia el modo (ej: de single a couple)
+        setFaceImages([null, null]);
+        setFacePreviews([null, null]);
       }
 
       await consumeCredits(1);
@@ -340,7 +342,7 @@ export default function AdvancedGenerator() {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                      Describe tu idea (o selecciona abajo)
+                      Describe tu idea (o selecciona opciones)
                     </label>
                     <textarea
                       value={userPrompt}
@@ -501,7 +503,7 @@ export default function AdvancedGenerator() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <h3 className="text-xl font-bold text-[#D8C780]">
-                        Prompt Detallado
+                        Prompt Detallado (8 Líneas)
                       </h3>
                       <button
                         onClick={() => {
@@ -518,10 +520,9 @@ export default function AdvancedGenerator() {
                         )}
                       </button>
                     </div>
-                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-64 overflow-y-auto font-mono">
+                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-96 overflow-y-auto font-mono">
                       {detailedPrompt}
                     </div>
-
                     {compactPrompt && (
                       <button
                         onClick={() => {
@@ -536,7 +537,7 @@ export default function AdvancedGenerator() {
                         ) : (
                           <FileText className="w-4 h-4" />
                         )}
-                        Copiar Prompt Compacto (Multiplataforma)
+                        Copiar Prompt Compacto
                       </button>
                     )}
                   </div>
@@ -544,7 +545,7 @@ export default function AdvancedGenerator() {
                   <div className="bg-[#06060C] border border-[#2D2D2D] rounded-xl p-6">
                     <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-[#D8C780]" /> Generar
-                      Imagen (Nano)
+                      Imagen
                     </h3>
                     {!isPro ? (
                       <div className="text-center text-sm text-red-400">
@@ -608,7 +609,7 @@ export default function AdvancedGenerator() {
                           ) : (
                             <ImageIcon />
                           )}
-                          Generar Imagen
+                          Generar Imagen (1 crédito)
                         </button>
                       </div>
                     )}
