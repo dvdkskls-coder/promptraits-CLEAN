@@ -150,10 +150,21 @@ export default function AdvancedGenerator() {
   const [copiedCompact, setCopiedCompact] = useState(false);
   const [openSections, setOpenSections] = useState({});
 
+  // Estados de Configuración PRO (Replicando PromptGenerator.tsx)
   const [gender, setGender] = useState("masculine");
   const [faceImages, setFaceImages] = useState([null, null]);
   const [facePreviews, setFacePreviews] = useState([null, null]);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1");
+
+  const [proSettings, setProSettings] = useState({
+    environment: "automatic",
+    shotType: "automatic",
+    cameraAngle: "automatic",
+    lighting: "automatic",
+    colorGrading: "automatic",
+    outfit: "automatic",
+    pose: "automatic",
+  });
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
@@ -183,6 +194,13 @@ export default function AdvancedGenerator() {
     setFacePreviews(newPrevs);
   };
 
+  // Manejar cambios en settings PRO
+  const handleSettingChange = (key, value) => {
+    setProSettings((prev) => ({ ...prev, [key]: value }));
+    // Opcional: También agregarlo al texto si el usuario lo prefiere
+    // appendText(`${key}: ${value}`);
+  };
+
   const handleGeneratePrompt = async (e) => {
     e.preventDefault();
     if (!userPrompt && !referenceImage)
@@ -206,22 +224,21 @@ export default function AdvancedGenerator() {
           referenceImage: base64Ref,
           gender,
           mimeType: referenceImage?.type,
+          proSettings, // Enviamos los settings al backend
         }),
       });
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Error en API");
-      }
+      if (!res.ok) throw new Error((await res.json()).error);
       const data = await res.json();
 
       setDetailedPrompt(data.detailed || "");
       setCompactPrompt(data.compact || "");
       if (data.analysis) setQualityAnalysis(data.analysis);
 
+      // Actualización automática de género
       if (data.detectedGender) {
         setGender(data.detectedGender);
-        setFaceImages([null, null]);
+        setFaceImages([null, null]); // Reset selfies si cambia el modo
         setFacePreviews([null, null]);
       }
 
@@ -300,11 +317,21 @@ export default function AdvancedGenerator() {
       </button>
       {openSections[key] && (
         <div className="p-3 bg-[#06060C]/30 grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+          <button
+            type="button"
+            onClick={() => handleSettingChange(key, "automatic")}
+            className="text-xs p-2 border border-[#2D2D2D] rounded hover:border-[#D8C780] text-[#C1C1C1] hover:text-white text-left"
+          >
+            Automático
+          </button>
           {dataArray.map((item) => (
             <button
               key={item.id}
               type="button"
-              onClick={() => appendText(item[nameKey] || item.name)}
+              onClick={() => {
+                handleSettingChange(key, item.id);
+                appendText(item[nameKey] || item.name); // También añade al texto
+              }}
               className="text-xs p-2 border border-[#2D2D2D] rounded hover:border-[#D8C780] text-[#C1C1C1] hover:text-white text-left"
             >
               {item[nameKey] || item.name}
@@ -446,22 +473,31 @@ export default function AdvancedGenerator() {
                           ))}
                         </div>
                       </div>
-                      {renderProSection("Entornos", "env", ENVIRONMENTS_ARRAY)}
-                      {renderProSection("Planos", "shot", SHOT_TYPES, "nameES")}
+                      {renderProSection(
+                        "Entornos",
+                        "environment",
+                        ENVIRONMENTS_ARRAY
+                      )}
+                      {renderProSection(
+                        "Planos",
+                        "shotType",
+                        SHOT_TYPES,
+                        "nameES"
+                      )}
                       {renderProSection(
                         "Ángulos",
-                        "angle",
+                        "cameraAngle",
                         CAMERA_ANGLES,
                         "nameES"
                       )}
                       {renderProSection(
                         "Iluminación",
-                        "light",
+                        "lighting",
                         LIGHTING_SETUPS
                       )}
                       {renderProSection(
                         "Estilo Color",
-                        "color",
+                        "colorGrading",
                         COLOR_GRADING_FILTERS
                       )}
                       {renderProSection(
@@ -608,7 +644,7 @@ export default function AdvancedGenerator() {
                           ) : (
                             <ImageIcon />
                           )}
-                          Generar Imagen (1 crédito)
+                          Generar Imagen
                         </button>
                       </div>
                     )}

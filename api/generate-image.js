@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 const genAI = new GoogleGenerativeAI(
   process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY
 );
-// MODELO EXACTO DE TU APP AI STUDIO
+// MODELO EXACTO DE TU APP
 const MODEL_NAME = "gemini-2.5-flash-image";
 
 const supabase = createClient(
@@ -12,18 +12,17 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
-// Retry Logic
-async function generateWithRetry(model, contentsConfig, retries = 3) {
+// Función de reintento
+async function generateWithRetry(model, content, retries = 3) {
   try {
-    return await model.generateContent(contentsConfig);
+    return await model.generateContent(content);
   } catch (error) {
     if (
       (error.message.includes("503") || error.message.includes("overloaded")) &&
       retries > 0
     ) {
-      console.log(`⚠️ Modelo Imagen saturado. Reintentando... (${retries})`);
-      await new Promise((r) => setTimeout(r, 3000));
-      return generateWithRetry(model, contentsConfig, retries - 1);
+      await new Promise((r) => setTimeout(r, 4000));
+      return generateWithRetry(model, content, retries - 1);
     }
     throw error;
   }
@@ -52,16 +51,17 @@ export default async function handler(req, res) {
     const { prompt, faceImages } = req.body;
     if (!prompt) throw new Error("Falta el prompt");
 
+    // Replicando la estructura de `generateImageNano`
     const parts = [];
 
-    // Procesar imágenes (Array)
     if (faceImages && Array.isArray(faceImages)) {
       faceImages.forEach((img) => {
         if (img && img.base64) {
-          const cleanBase64 = img.base64.includes("base64,")
-            ? img.base64.split("base64,")[1]
-            : img.base64;
-
+          // Limpieza crítica del Base64
+          const cleanBase64 = img.base64.replace(
+            /^data:image\/\w+;base64,/,
+            ""
+          );
           parts.push({
             inlineData: {
               data: cleanBase64,
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
 
     const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
-    // Llamada con Retry
+    // Ejecución
     const result = await generateWithRetry(model, {
       contents: [{ role: "user", parts: parts }],
     });
@@ -85,7 +85,10 @@ export default async function handler(req, res) {
       (p) => p.inlineData
     );
 
-    if (!responsePart) throw new Error("La IA no devolvió una imagen.");
+    if (!responsePart)
+      throw new Error(
+        "La IA no devolvió una imagen. Puede que el prompt sea inseguro o el modelo esté saturado."
+      );
 
     return res.status(200).json({
       images: [
@@ -96,7 +99,7 @@ export default async function handler(req, res) {
       ],
     });
   } catch (error) {
-    console.error("Image Gen Error:", error);
+    console.error("Gemini Image Gen Error:", error);
     return res.status(500).json({ error: error.message });
   }
 }

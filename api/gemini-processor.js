@@ -1,100 +1,153 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY);
-const MODEL_NAME = 'gemini-2.5-flash';
+const genAI = new GoogleGenerativeAI(
+  process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY
+);
+const MODEL_NAME = "gemini-2.5-flash";
+
+// Función de reintento para evitar el error 503 (Overloaded)
+async function generateWithRetry(model, content, retries = 3) {
+  try {
+    return await model.generateContent(content);
+  } catch (error) {
+    if (
+      (error.message.includes("503") || error.message.includes("overloaded")) &&
+      retries > 0
+    ) {
+      console.log(`⚠️ Modelo saturado. Reintentando... (${retries})`);
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // Esperar 3s
+      return generateWithRetry(model, content, retries - 1);
+    }
+    throw error;
+  }
+}
 
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader("Access-Control-Allow-Credentials", true);
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
+  );
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { prompt: userIdea, referenceImage, mimeType } = req.body;
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const {
+      prompt: userIdea,
+      referenceImage,
+      mimeType,
+      gender,
+      proSettings,
+    } = req.body;
 
-    // ========================================================================
-    // 1. INSTRUCCIONES DEL SISTEMA (Copiadas de tu App AI Studio)
-    // ========================================================================
-    const baseSystemInstruction = `You are a world-class prompt engineer and virtual director of photography. Your task is to expand a user's simple idea into a structured, professional, point-by-point photography prompt in English.
+    // Configuración para JSON (para separar Detailed y Compact)
+    const model = genAI.getGenerativeModel({
+      model: MODEL_NAME,
+      generationConfig: { responseMimeType: "application/json" },
+    });
 
-    **Instructions:**
-    1. Analyze the user's core idea.
-    2. Format the final output as a detailed, structured analysis. Use the following headings: Subject Description, Composition & Framing, Environment & Background, Lighting, Color & Mood, and Technical Details & Style.
-    3. **CRITICAL RULE FOR SUBJECT:** Describe the clothing, pose, and expression. However, you MUST NOT describe the subject's physical appearance, face, age, hair, or facial hair if a reference image is provided.
-    4. **Output Format:** Your response must start *directly* with the "Subject Description" heading. Do not include any preambles.`;
-
-    // ========================================================================
-    // 2. MODO CON IMAGEN DE REFERENCIA (Análisis)
-    // ========================================================================
+    // 1. LIMPIEZA DE IMAGEN (CRÍTICO)
+    let imagePart = null;
     if (referenceImage) {
-      // Limpieza del Base64 asegurada
-      const cleanBase64 = referenceImage.includes(',') ? referenceImage.split(',')[1] : referenceImage;
-      
-      const imagePart = {
-        inlineData: { data: cleanBase64, mimeType: mimeType || 'image/jpeg' }
+      // Eliminamos cualquier prefijo data:image... para dejar solo el base64 puro
+      const cleanBase64 = referenceImage.replace(
+        /^data:image\/\w+;base64,/,
+        ""
+      );
+      imagePart = {
+        inlineData: { data: cleanBase64, mimeType: mimeType || "image/jpeg" },
       };
-
-      // Detectar sujetos para ajustar el prompt (Lógica AI Studio)
-      const countPrompt = 'How many prominent human subjects are in this image? Respond with a single number only.';
-      const animalPrompt = 'Is there a prominent animal in this image? Respond with "yes" or "no" only.';
-
-      const [countResult, animalResult] = await Promise.all([
-        model.generateContent([countPrompt, imagePart]),
-        model.generateContent([animalPrompt, imagePart])
-      ]);
-
-      const humanCount = parseInt(countResult.response.text().trim(), 10) || 0;
-      const hasAnimal = animalResult.response.text().trim().toLowerCase().includes('yes');
-
-      let specificInstruction = `Analyze the provided image to create a structured professional photography prompt.
-      **CRITICAL:** Describe pose/clothing but NOT the face. End Subject Description with: "The subject's face and appearance should be based on the reference photo @img1."`;
-
-      let detectedGender = 'masculine';
-
-      if (humanCount === 1 && hasAnimal) {
-         detectedGender = 'animal';
-         specificInstruction = `Analyze image with 1 person and 1 animal. Describe Person (@img1) clothing/pose (NO FACE). Describe Animal (@img2).`;
-      } else if (humanCount >= 2) {
-         detectedGender = 'couple';
-         specificInstruction = `Analyze image with 2+ people. Describe Subject 1 (@img1) and Subject 2 (@img2). Clothing/Pose only. NO FACES.`;
-      }
-
-      const result = await model.generateContent([
-        { text: baseSystemInstruction + "\n\n" + specificInstruction },
-        imagePart
-      ]);
-
-      return res.status(200).json({ 
-        prompt: result.response.text().trim(),
-        detectedGender,
-        analysis: { score: 9.5 } // Dummy analysis para velocidad
-      });
     }
 
-    // ========================================================================
-    // 3. MODO SOLO TEXTO
-    // ========================================================================
-    else {
-      const textPrompt = `User's Core Idea: "${userIdea}". Expand this into a full professional prompt following the system instructions.`;
-      
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: textPrompt }] }],
-        systemInstruction: { role: 'system', parts: [{ text: baseSystemInstruction }] }
-      });
+    // 2. DEFINICIÓN DE REFERENCIA (Lógica exacta de geminiService.ts)
+    let subjectRef =
+      "The subject's face and appearance should be based on the reference photo @img1.";
+    if (gender === "couple")
+      subjectRef =
+        "The subjects' faces and appearance should be based on their corresponding reference photos, @img1 and @img2.";
+    if (gender === "animal")
+      subjectRef =
+        "If a person is present, their face is @img1. The animal is @img2.";
 
-      return res.status(200).json({ 
-        prompt: result.response.text().trim(),
-        analysis: { score: 9.0 }
-      });
+    // 3. CONSTRUCCIÓN DEL PROMPT (Lógica de generateProfessionalPrompt)
+    // Inyectamos las instrucciones AQUÍ para evitar el Error 400 "Unknown field systemInstruction"
+    const systemText = `
+    You are a world-class prompt engineer and virtual director of photography.
+    
+    YOUR TASK: Analyze the input and return a JSON object with two fields: "detailed" and "compact".
+
+    --- FIELD 1: "detailed" ---
+    Format: Structured analysis with these exact headings (Markdown):
+    *Subject Description*, *Composition & Framing*, *Environment & Background*, *Lighting*, *Color & Mood*, *Technical Details & Style*.
+    
+    **CRITICAL RULE:** In "Subject Description", describe clothing/pose but ${
+      referenceImage
+        ? "DO NOT describe physical appearance (face/age/hair). Instead, END with: '" +
+          subjectRef +
+          "'."
+        : "describe the person fully."
     }
 
+    --- FIELD 2: "compact" ---
+    A single, comma-separated paragraph optimized for AI generators.
+    ${referenceImage ? "Start with '@img1' references." : ""}
+    `;
+
+    // 4. EJECUCIÓN
+    let result;
+
+    if (imagePart) {
+      // MODO ANÁLISIS DE IMAGEN
+      // Hacemos una sola llamada inteligente que detecta y genera a la vez (Evita error 503 por múltiples llamadas)
+      const analysisPrompt = `
+        ${systemText}
+        
+        CONTEXT: Analyze the provided image.
+        1. Detect if it's a single person, couple, or animal.
+        2. Generate the prompts based on the image style and pose.
+        3. Include a field "detectedGender" in the JSON with value: "masculine", "feminine", "couple", or "animal".
+        
+        Output ONLY valid JSON.
+        `;
+
+      result = await generateWithRetry(model, [analysisPrompt, imagePart]);
+    } else {
+      // MODO TEXTO + SETTINGS (Replicando generateProfessionalPrompt de la App)
+      const settingsText = proSettings
+        ? `
+        Additional Constraints:
+        - Shot Type: ${proSettings.shotType}
+        - Angle: ${proSettings.cameraAngle}
+        - Environment: ${proSettings.environment}
+        - Lighting: ${proSettings.lighting}
+        - Outfit: ${proSettings.outfit}
+        `
+        : "";
+
+      const fullTextPrompt = `${systemText}\n\nUser Idea: "${userIdea}"\n${settingsText}`;
+      result = await generateWithRetry(model, fullTextPrompt);
+    }
+
+    const responseText = result.response.text();
+    const jsonResponse = JSON.parse(responseText);
+
+    return res.status(200).json({
+      detailed: jsonResponse.detailed,
+      compact: jsonResponse.compact,
+      detectedGender: jsonResponse.detectedGender || null,
+      analysis: { score: 9.5 },
+    });
   } catch (error) {
-    console.error('Gemini Error:', error);
-    return res.status(500).json({ error: error.message || 'Error processing with Gemini' });
+    console.error("Gemini Processor Error:", error);
+    return res
+      .status(500)
+      .json({ error: error.message || "Error generating prompt" });
   }
 }
