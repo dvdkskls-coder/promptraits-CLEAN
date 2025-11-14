@@ -14,6 +14,7 @@ import {
   Camera,
   Download,
   XCircle,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
@@ -33,32 +34,32 @@ const QUICK_FEATURES = [
   {
     id: "lighting",
     name: "Iluminación Pro",
-    text: "Professional studio lighting setup, Rembrandt style.",
+    text: "Professional studio lighting setup, Rembrandt style",
   },
   {
     id: "bokeh",
     name: "Bokeh 85mm",
-    text: "Shot with 85mm f/1.8 lens, creamy bokeh background.",
+    text: "Shot with 85mm f/1.8 lens, creamy bokeh background",
   },
   {
     id: "cinematic",
     name: "Cinemático",
-    text: "Cinematic look, Black Pro-Mist filter effect.",
+    text: "Cinematic look, Black Pro-Mist filter effect",
   },
   {
     id: "golden",
     name: "Golden Hour",
-    text: "Warm golden hour lighting, sunset glow.",
+    text: "Warm golden hour lighting, sunset glow",
   },
   {
     id: "skin",
     name: "Piel Real",
-    text: "Natural skin texture, high detail, no smoothing.",
+    text: "Natural skin texture, high detail, no smoothing",
   },
   {
     id: "teal",
     name: "Teal & Orange",
-    text: "Teal and orange color grading, blockbuster look.",
+    text: "Teal and orange color grading, blockbuster look",
   },
 ];
 
@@ -82,7 +83,6 @@ const fileToBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
-// Componente Selfie
 const SelfieUploader = ({ label, onFileChange, currentPreview, onRemove }) => {
   const inputRef = useRef(null);
   const handleFile = async (e) => {
@@ -135,24 +135,22 @@ export default function AdvancedGenerator() {
     if (user !== undefined) setIsInitializing(false);
   }, [user]);
 
-  // Inputs
   const [userPrompt, setUserPrompt] = useState("");
   const [referenceImage, setReferenceImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
 
-  // Outputs
-  const [response, setResponse] = useState("");
+  const [detailedPrompt, setDetailedPrompt] = useState("");
+  const [compactPrompt, setCompactPrompt] = useState("");
   const [qualityAnalysis, setQualityAnalysis] = useState(null);
   const [generatedImages, setGeneratedImages] = useState([]);
 
-  // Estados UI
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [showProTools, setShowProTools] = useState(false);
+  const [copiedDetailed, setCopiedDetailed] = useState(false);
+  const [copiedCompact, setCopiedCompact] = useState(false);
+
   const [openSections, setOpenSections] = useState({});
 
-  // Settings
   const [gender, setGender] = useState("masculine");
   const [faceImages, setFaceImages] = useState([null, null]);
   const [facePreviews, setFacePreviews] = useState([null, null]);
@@ -160,15 +158,14 @@ export default function AdvancedGenerator() {
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
-  // Helpers para añadir texto al prompt (SOLUCIÓN PUNTO 3 y 4)
   const appendText = (text) => {
     setUserPrompt((prev) => {
-      const prefix = prev.trim() ? prev.trim() + ", " : "";
-      return prefix + text;
+      const cleanPrev = prev.trim();
+      if (cleanPrev.endsWith(",")) return cleanPrev + " " + text;
+      return cleanPrev ? cleanPrev + ", " + text : text;
     });
   };
 
-  // Manejo de archivos
   const handleRefChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -195,14 +192,13 @@ export default function AdvancedGenerator() {
     if (!profile || profile.credits < 1) return alert("Sin créditos.");
 
     setIsLoading(true);
-    setResponse("");
+    setDetailedPrompt("");
+    setCompactPrompt("");
+    setQualityAnalysis(null);
 
     try {
       let base64Ref = null;
-      if (referenceImage) {
-        // Aseguramos conversión limpia
-        base64Ref = await fileToBase64(referenceImage);
-      }
+      if (referenceImage) base64Ref = await fileToBase64(referenceImage);
 
       const res = await fetch("/api/gemini-processor", {
         method: "POST",
@@ -210,34 +206,35 @@ export default function AdvancedGenerator() {
         body: JSON.stringify({
           prompt: userPrompt,
           referenceImage: base64Ref,
-          gender, // Enviamos el género actual para contexto
+          gender,
+          mimeType: referenceImage?.type,
         }),
       });
 
-      if (!res.ok) throw new Error("Error en la API");
+      if (!res.ok) throw new Error((await res.json()).error);
       const data = await res.json();
 
-      setResponse(data.prompt);
-      if (data.analysis) setQualityAnalysis(data.analysis);
+      setDetailedPrompt(data.detailed || "");
+      setCompactPrompt(data.compact || "");
 
-      // Actualizar género si la IA detectó algo distinto
       if (data.detectedGender) setGender(data.detectedGender);
 
+      // Consumo de créditos y guardado seguro
       await consumeCredits(1);
-      try {
-        await savePromptToHistory(
-          data.prompt,
-          { platform: "nano-banana" },
-          null
-        );
-      } catch (e) {
-        console.warn("Historial no disponible", e);
-      } // Silenciar error historial
-
       await refreshProfile();
+
+      try {
+        if (data.detailed)
+          await savePromptToHistory(
+            data.detailed,
+            { platform: "nano-banana" },
+            null
+          );
+      } catch (e) {
+        console.log("Historial no disponible (seguro)");
+      }
     } catch (error) {
-      console.error(error);
-      alert("Error generando prompt: " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -245,8 +242,10 @@ export default function AdvancedGenerator() {
 
   // --- GENERAR IMAGEN ---
   const handleGenerateImage = async () => {
-    if (!response) return alert("Primero genera un prompt.");
+    const promptToUse = compactPrompt || detailedPrompt;
+    if (!promptToUse) return alert("Primero genera un prompt.");
     if (!isPro) return alert("Solo PRO.");
+    if (profile.credits < 1) return alert("Sin créditos.");
 
     setIsGeneratingImage(true);
     try {
@@ -262,15 +261,17 @@ export default function AdvancedGenerator() {
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          prompt: response,
-          faceImages: facesToSend, // Array limpio
+          prompt: promptToUse,
+          faceImages: facesToSend,
           aspectRatio: selectedAspectRatio,
         }),
       });
 
       if (!res.ok) throw new Error((await res.json()).error);
       const data = await res.json();
-      setGeneratedImages(data.images);
+
+      if (data.images) setGeneratedImages(data.images);
+      await consumeCredits(1);
       await refreshProfile();
     } catch (error) {
       alert("Error imagen: " + error.message);
@@ -279,7 +280,6 @@ export default function AdvancedGenerator() {
     }
   };
 
-  // Renderizado de Secciones PRO
   const toggleSection = (sec) =>
     setOpenSections((p) => ({ ...p, [sec]: !p[sec] }));
 
@@ -303,7 +303,7 @@ export default function AdvancedGenerator() {
             <button
               key={item.id}
               type="button"
-              onClick={() => appendText(`${item[nameKey] || item.name}`)}
+              onClick={() => appendText(item[nameKey] || item.name)}
               className="text-xs p-2 border border-[#2D2D2D] rounded hover:border-[#D8C780] text-[#C1C1C1] hover:text-white text-left"
             >
               {item[nameKey] || item.name}
@@ -323,13 +323,12 @@ export default function AdvancedGenerator() {
           </div>
         ) : (
           <AnimatedSection>
-            {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold mb-4 text-white">
                 Generador <span className="text-[#D8C780]">Pro</span> 🍌
               </h1>
               <p className="text-[#C1C1C1]">
-                Crea prompts profesionales. 1 Crédito.
+                Crea prompts ultra-detallados y genera imágenes.
               </p>
               <div className="mt-2 text-[#D8C780] text-sm font-medium">
                 Créditos: {profile?.credits || 0}
@@ -338,7 +337,6 @@ export default function AdvancedGenerator() {
 
             <form onSubmit={handleGeneratePrompt} className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* COLUMNA IZQ: INPUTS */}
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
@@ -347,12 +345,11 @@ export default function AdvancedGenerator() {
                     <textarea
                       value={userPrompt}
                       onChange={(e) => setUserPrompt(e.target.value)}
-                      placeholder="Ej: Retrato en estudio..."
+                      placeholder="Ej: Retrato de un astronauta en la playa..."
                       className="w-full h-48 bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] outline-none resize-none"
                     />
                   </div>
 
-                  {/* Referencia - Arreglado visualmente */}
                   <div>
                     <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
                       Imagen de Referencia (Analizador)
@@ -362,7 +359,7 @@ export default function AdvancedGenerator() {
                         <Camera className="w-6 h-6 text-[#D8C780]" />
                         <div>
                           <p className="text-white text-sm">
-                            Subir imagen para analizar
+                            Subir imagen para extraer prompt
                           </p>
                         </div>
                         <input
@@ -392,10 +389,9 @@ export default function AdvancedGenerator() {
                     )}
                   </div>
 
-                  {/* Características Rápidas */}
                   <div>
                     <p className="text-sm text-[#C1C1C1] mb-2">
-                      Añadir características:
+                      Características Rápidas:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {QUICK_FEATURES.map((f) => (
@@ -412,30 +408,26 @@ export default function AdvancedGenerator() {
                   </div>
                 </div>
 
-                {/* COLUMNA DER: HERRAMIENTAS PRO */}
                 <div className="bg-[#06060C]/30 p-4 rounded-xl border border-[#2D2D2D]">
                   <div className="flex items-center gap-2 mb-4">
                     <Crown className="w-5 h-5 text-[#D8C780]" />
                     <h3 className="text-white font-bold">Herramientas PRO</h3>
                   </div>
-
                   {!isPro ? (
                     <div className="text-center py-8 text-[#C1C1C1] text-sm">
-                      Actualiza a PRO para acceder a los selectores avanzados.
+                      Actualiza a PRO.
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {/* Renderizado Dinámico de Secciones */}
                       <div className="border border-[#2D2D2D] rounded-lg mb-2 p-3">
                         <p className="text-xs text-[#C1C1C1] mb-2">
-                          Género (Define la estructura):
+                          Género (Define estructura):
                         </p>
                         <div className="flex gap-2">
                           {[
                             { id: "masculine", n: "Hombre" },
                             { id: "feminine", n: "Mujer" },
                             { id: "couple", n: "Pareja" },
-                            { id: "animal", n: "Animal" },
                           ].map((g) => (
                             <button
                               key={g.id}
@@ -452,7 +444,6 @@ export default function AdvancedGenerator() {
                           ))}
                         </div>
                       </div>
-
                       {renderProSection("Entornos", "env", ENVIRONMENTS_ARRAY)}
                       {renderProSection("Planos", "shot", SHOT_TYPES, "nameES")}
                       {renderProSection(
@@ -498,50 +489,62 @@ export default function AdvancedGenerator() {
                   ) : (
                     <Sparkles />
                   )}
-                  Generar Prompt
+                  Generar Prompt Mejorado
                 </button>
               </div>
             </form>
 
-            {/* RESULTADOS */}
-            {response && (
+            {(detailedPrompt || compactPrompt) && (
               <AnimatedSection className="mt-12 border-t border-[#2D2D2D] pt-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <h3 className="text-xl font-bold text-[#D8C780]">
-                        Prompt Resultante
+                        Prompt Detallado
                       </h3>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(response);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
+                          navigator.clipboard.writeText(detailedPrompt);
+                          setCopiedDetailed(true);
+                          setTimeout(() => setCopiedDetailed(false), 2000);
                         }}
                         className="p-2 bg-[#2D2D2D] rounded text-[#D8C780]"
                       >
-                        {copied ? (
+                        {copiedDetailed ? (
                           <Check className="w-4 h-4" />
                         ) : (
                           <Copy className="w-4 h-4" />
                         )}
                       </button>
                     </div>
-                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed">
-                      {response}
+                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-64 overflow-y-auto">
+                      {detailedPrompt}
                     </div>
-                    {isPro && qualityAnalysis && (
-                      <QualityAnalysis analysis={qualityAnalysis} />
+
+                    {compactPrompt && (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(compactPrompt);
+                          setCopiedCompact(true);
+                          setTimeout(() => setCopiedCompact(false), 2000);
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3 border border-[#2D2D2D] rounded-lg text-[#C1C1C1] hover:border-[#D8C780] transition-all"
+                      >
+                        {copiedCompact ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <FileText className="w-4 h-4" />
+                        )}
+                        Copiar Prompt Compacto (Multiplataforma)
+                      </button>
                     )}
                   </div>
 
-                  {/* GENERADOR DE IMAGEN */}
                   <div className="bg-[#06060C] border border-[#2D2D2D] rounded-xl p-6">
                     <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-[#D8C780]" /> Generar
-                      Imagen
+                      Imagen (Nano)
                     </h3>
-
                     {!isPro ? (
                       <div className="text-center text-sm text-red-400">
                         Solo usuarios PRO
@@ -549,11 +552,10 @@ export default function AdvancedGenerator() {
                     ) : (
                       <div className="space-y-6">
                         <div className="flex justify-center gap-4">
-                          {/* Lógica visual para Uploaders según género */}
-                          {gender === "couple" || gender === "animal" ? (
+                          {gender === "couple" ? (
                             <>
                               <SelfieUploader
-                                label="Sujeto 1 / Persona"
+                                label="Sujeto 1"
                                 onFileChange={handleFaceChange(0)}
                                 currentPreview={facePreviews[0]}
                                 onRemove={() => {
@@ -566,7 +568,7 @@ export default function AdvancedGenerator() {
                                 }}
                               />
                               <SelfieUploader
-                                label="Sujeto 2 / Animal"
+                                label="Sujeto 2"
                                 onFileChange={handleFaceChange(1)}
                                 currentPreview={facePreviews[1]}
                                 onRemove={() => {
@@ -581,7 +583,7 @@ export default function AdvancedGenerator() {
                             </>
                           ) : (
                             <SelfieUploader
-                              label="Tu Selfie (Opcional)"
+                              label="Selfie (Opcional)"
                               onFileChange={handleFaceChange(0)}
                               currentPreview={facePreviews[0]}
                               onRemove={() => {
@@ -595,28 +597,6 @@ export default function AdvancedGenerator() {
                             />
                           )}
                         </div>
-
-                        <div>
-                          <p className="text-xs text-[#C1C1C1] mb-2">
-                            Formato:
-                          </p>
-                          <div className="flex gap-2">
-                            {VALID_ASPECT_RATIOS.map((r) => (
-                              <button
-                                key={r.id}
-                                onClick={() => setSelectedAspectRatio(r.id)}
-                                className={`px-3 py-1 text-xs border rounded ${
-                                  selectedAspectRatio === r.id
-                                    ? "border-[#D8C780] text-[#D8C780]"
-                                    : "border-[#2D2D2D] text-[#666]"
-                                }`}
-                              >
-                                {r.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
                         <button
                           onClick={handleGenerateImage}
                           disabled={isGeneratingImage}
@@ -627,11 +607,10 @@ export default function AdvancedGenerator() {
                           ) : (
                             <ImageIcon />
                           )}
-                          Crear Imagen
+                          Generar Imagen
                         </button>
                       </div>
                     )}
-
                     {generatedImages.length > 0 && (
                       <div className="mt-6 space-y-4">
                         {generatedImages.map((img, i) => (
