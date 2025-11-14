@@ -17,22 +17,16 @@ async function callServer(action, body) {
       body: JSON.stringify({ action, ...body }),
     });
 
-    const responseText = await response.text();
-
     if (!response.ok) {
-      let errorMessage = responseText;
-      try {
-        const errorJson = JSON.parse(responseText);
-        if (errorJson.error) errorMessage = errorJson.error;
-      } catch (e) {}
-      throw new Error(
-        `Error del servidor (${response.status}): ${errorMessage}`
-      );
+      const errorJson = await response
+        .json()
+        .catch(() => ({ error: "Server error with no JSON response" }));
+      throw new Error(errorJson.error || `Server error (${response.status})`);
     }
 
-    return JSON.parse(responseText);
+    return await response.json();
   } catch (error) {
-    console.error(`Error en servicio Gemini [${action}]:`, error);
+    console.error(`Error in Gemini Service [${action}]:`, error);
     throw error;
   }
 }
@@ -41,112 +35,22 @@ async function callServer(action, body) {
 // 1. GENERACIÓN DE PROMPTS DE TEXTO
 // ---------------------------------------------------------------------------
 export const generateProfessionalPrompt = async (options) => {
-  const {
-    simpleIdea,
-    gender,
-    shotType,
-    cameraAngle,
-    outfitId,
-    poseId,
-    environmentId,
-    lightingId,
-    colorGradingId,
-  } = options;
+  // La lógica compleja ahora está en el backend.
+  // El frontend solo pasa las opciones.
+  return await callServer("generateText", {
+    model: "gemini-2.5-flash-lite", // El backend podría incluso decidir el modelo
+    ...options,
+  });
+};
 
-  let subjectReference = `The subject's face and appearance should be based on the reference photo @img1.`;
-  if (gender === "couple") {
-    subjectReference = `The subjects' faces based on references @img1 and @img2.`;
-  } else if (gender === "animal") {
-    subjectReference = `Person based on @img1, animal based on @img2.`;
-  }
-
-  let outfitList =
-    gender === "feminine"
-      ? Outfits_women
-      : gender === "masculine"
-      ? Outfits_men
-      : [...Outfits_women, ...Outfits_men];
-  const poseList = Array.isArray(POSES) ? POSES : [];
-
-  const systemInstruction = `You are a world-class prompt engineer. Expand the user's simple idea into a structured photography prompt.
-    **Instructions:**
-    1. Analyze: "${simpleIdea}".
-    2. Incorporate selected options.
-    3. Format: Subject Description, Composition, Environment, Lighting, Color.
-    4. **CRITICAL:** In "Subject Description", describe clothing and pose. **DO NOT** describe face/age/hair. End section with: "${subjectReference}".
-    5. Output: Start directly with "Subject Description".`;
-
-  const textSections = [
-    `**User Idea:** "${simpleIdea}"`,
-    `**Shot:** ${
-      shotType === "auto" || !shotType
-        ? `(Automatic)`
-        : `(User: ${
-            SHOT_TYPES.find((s) => s.id === shotType)?.nameES || shotType
-          })`
-    }`,
-    `**Angle:** ${
-      cameraAngle === "auto" || !cameraAngle
-        ? `(Automatic)`
-        : `(User: ${
-            CAMERA_ANGLES.find((a) => a.id === cameraAngle)?.nameES ||
-            cameraAngle
-          })`
-    }`,
-    `**Environment:** ${
-      environmentId === "auto" || !environmentId
-        ? `(Automatic)`
-        : `(User: ${
-            ENVIRONMENTS_ARRAY.find((e) => e.id === environmentId)?.name ||
-            environmentId
-          })`
-    }`,
-    `**Lighting:** ${
-      lightingId === "auto" || !lightingId
-        ? `(Automatic)`
-        : `(User: ${
-            LIGHTING_SETUPS.find((l) => l.id === lightingId)?.name || lightingId
-          })`
-    }`,
-    `**Color:** ${
-      colorGradingId === "auto" || !colorGradingId
-        ? `(Automatic)`
-        : `(User: ${
-            COLOR_GRADING_FILTERS.find((c) => c.id === colorGradingId)?.name ||
-            colorGradingId
-          })`
-    }`,
-  ];
-
-  if (gender !== "animal") {
-    textSections.splice(
-      2,
-      0,
-      `**Outfit:** ${
-        outfitId === "auto" || !outfitId
-          ? `(Automatic)`
-          : `(User: ${
-              outfitList.find((o) => o.id === outfitId)?.name || outfitId
-            })`
-      }`
-    );
-    textSections.splice(
-      3,
-      0,
-      `**Pose:** ${
-        poseId === "auto" || !poseId
-          ? `(Automatic)`
-          : `(User: ${poseList.find((p) => p.id === poseId)?.name || poseId})`
-      }`
-    );
-  }
+export const summarizePromptForPlatforms = async (detailedPrompt) => {
+  const systemInstruction = `You are an expert prompt engineer specializing in AI image generation platforms. Your task is to convert the following detailed, photographic brief into a compact, single-paragraph, comma-separated prompt in English. Synthesize all key creative elements. Crucially, if you see references like "@img1" or "@img2", you must preserve them exactly as they are at the beginning of the prompt. The final output must be a single block of text, without any headings or introductory phrases.`;
 
   const response = await callServer("generateText", {
-    model: "gemini-2.5-flash-lite",
-    prompt: textSections.join("\n"),
+    model: "gemini-2.5-flash",
+    prompt: `Here is the detailed brief to convert:\n\n${detailedPrompt}`,
     systemInstruction,
   });
-
   return response.text;
 };
 
@@ -155,19 +59,44 @@ export const generateProfessionalPrompt = async (options) => {
 // ---------------------------------------------------------------------------
 export const analyzeImage = async (fileBase64, mimeType) => {
   return await callServer("analyzeImage", {
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-2.5-flash",
     imageBase64: fileBase64,
     mimeType,
   });
 };
 
 // ---------------------------------------------------------------------------
-// 3. GENERACIÓN DE IMAGEN (¡ESTA ES LA QUE FALTABA!)
+// 3. GENERACIÓN DE IMAGEN
 // ---------------------------------------------------------------------------
 export const generateImageNano = async (prompt, faceImages) => {
   return await callServer("generateImageNano", {
     model: "gemini-2.5-flash-image",
     prompt,
     faceImages,
+  });
+};
+
+// ============================================================================
+// 4. NUEVAS FUNCIONES (AÚN NO IMPLEMENTADAS EN BACKEND)
+// ============================================================================
+
+export const editImage = async (base64ImageData, mimeType, prompt) => {
+  // Esta función llamará a una nueva acción 'editImage' en el backend.
+  // Implementaremos la lógica del backend en el siguiente paso.
+  return await callServer("editImage", {
+    model: "gemini-2.5-flash-image",
+    base64ImageData,
+    mimeType,
+    prompt,
+  });
+};
+
+export const generateImageImagen = async (prompt, aspectRatio) => {
+  // Esta función llamará a una nueva acción 'generateImageImagen' en el backend.
+  // Implementaremos la lógica del backend en el siguiente paso.
+  return await callServer("generateImageImagen", {
+    model: "imagen-4.0-generate-001",
+    prompt,
+    aspectRatio,
   });
 };
