@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import {
   Camera,
@@ -205,16 +205,32 @@ function AppContent() {
       const handlePaymentSuccess = async () => {
         console.log("Pago exitoso detectado, refrescando perfil...");
         setShowPaymentSuccess(true);
-        await refreshProfile();
+
+        try {
+          await refreshProfile(); // FORZAR LA ACTUALIZACIÓN DEL PERFIL
+          console.log(
+            "Perfil refrescado. El plan y los créditos están al día."
+          );
+        } catch (error) {
+          console.error(
+            "Error al refrescar el perfil después del pago:",
+            error
+          );
+          // Aquí podrías mostrar una notificación de error al usuario
+        }
+
         window.history.replaceState(null, "", window.location.pathname);
+
         setTimeout(() => {
           setShowPaymentSuccess(false);
         }, 4000);
       };
+
       handlePaymentSuccess();
     }
   }, [refreshProfile]);
 
+  // Refrescar si el usuario está logueado
   useEffect(() => {
     if (user) {
       refreshProfile();
