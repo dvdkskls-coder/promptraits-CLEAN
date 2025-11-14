@@ -66,6 +66,7 @@ const GENDER_OPTIONS = [
   { id: "masculine", name: "Masculino" },
   { id: "feminine", name: "Femenino" },
   { id: "couple", name: "Pareja" },
+  { id: "animal", name: "Animal" },
 ];
 const VALID_ASPECT_RATIOS = [
   { id: "1:1", name: "Cuadrado" },
@@ -147,8 +148,6 @@ export default function AdvancedGenerator() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [copiedDetailed, setCopiedDetailed] = useState(false);
   const [copiedCompact, setCopiedCompact] = useState(false);
-
-  const [showProTools, setShowProTools] = useState(false);
   const [openSections, setOpenSections] = useState({});
 
   const [gender, setGender] = useState("masculine");
@@ -210,20 +209,23 @@ export default function AdvancedGenerator() {
         }),
       });
 
-      if (!res.ok) throw new Error((await res.json()).error);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Error en API");
+      }
       const data = await res.json();
 
       setDetailedPrompt(data.detailed || "");
       setCompactPrompt(data.compact || "");
       if (data.analysis) setQualityAnalysis(data.analysis);
 
+      // Actualización automática de género (Lógica PromptLab)
       if (data.detectedGender) {
         setGender(data.detectedGender);
       }
 
       await consumeCredits(1);
       await refreshProfile();
-
       try {
         if (data.detailed)
           await savePromptToHistory(
@@ -231,9 +233,7 @@ export default function AdvancedGenerator() {
             { platform: "nano-banana" },
             null
           );
-      } catch (e) {
-        console.log("Historial skip");
-      }
+      } catch (e) {}
     } catch (error) {
       alert("Error: " + error.message);
     } finally {
@@ -428,6 +428,7 @@ export default function AdvancedGenerator() {
                             { id: "masculine", n: "Hombre" },
                             { id: "feminine", n: "Mujer" },
                             { id: "couple", n: "Pareja" },
+                            { id: "animal", n: "Animal" },
                           ].map((g) => (
                             <button
                               key={g.id}
@@ -500,7 +501,7 @@ export default function AdvancedGenerator() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <h3 className="text-xl font-bold text-[#D8C780]">
-                        Prompt Detallado (8 Líneas)
+                        Prompt Detallado
                       </h3>
                       <button
                         onClick={() => {
@@ -517,9 +518,10 @@ export default function AdvancedGenerator() {
                         )}
                       </button>
                     </div>
-                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-96 overflow-y-auto font-mono">
+                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-64 overflow-y-auto font-mono">
                       {detailedPrompt}
                     </div>
+
                     {compactPrompt && (
                       <button
                         onClick={() => {
@@ -534,7 +536,7 @@ export default function AdvancedGenerator() {
                         ) : (
                           <FileText className="w-4 h-4" />
                         )}
-                        Copiar Prompt Compacto
+                        Copiar Prompt Compacto (Multiplataforma)
                       </button>
                     )}
                   </div>
@@ -551,10 +553,10 @@ export default function AdvancedGenerator() {
                     ) : (
                       <div className="space-y-6">
                         <div className="flex justify-center gap-4">
-                          {gender === "couple" ? (
+                          {gender === "couple" || gender === "animal" ? (
                             <>
                               <SelfieUploader
-                                label="Sujeto 1"
+                                label="Sujeto 1 / Persona"
                                 onFileChange={handleFaceChange(0)}
                                 currentPreview={facePreviews[0]}
                                 onRemove={() => {
@@ -567,7 +569,7 @@ export default function AdvancedGenerator() {
                                 }}
                               />
                               <SelfieUploader
-                                label="Sujeto 2"
+                                label="Sujeto 2 / Animal"
                                 onFileChange={handleFaceChange(1)}
                                 currentPreview={facePreviews[1]}
                                 onRemove={() => {
@@ -582,7 +584,7 @@ export default function AdvancedGenerator() {
                             </>
                           ) : (
                             <SelfieUploader
-                              label="Selfie (Opcional)"
+                              label="Tu Selfie (Opcional)"
                               onFileChange={handleFaceChange(0)}
                               currentPreview={facePreviews[0]}
                               onRemove={() => {
