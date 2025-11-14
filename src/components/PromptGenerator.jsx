@@ -3,7 +3,7 @@ import PropTypes from "prop-types"; // Importar PropTypes
 import { Sparkles, Wand2 } from "lucide-react";
 
 // Importar todos los datos necesarios
-import { environments } from "../data/environmentsData";
+import { ENVIRONMENTS as environments } from "../data/environmentsData";
 import { poses } from "../data/posesData";
 import { shotTypes } from "../data/shotTypesData";
 import { outfitStyles } from "../data/outfitStylesData";
