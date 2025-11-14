@@ -11,20 +11,18 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
-// --- FUNCIÓN DE REINTENTO MEJORADA ---
+// --- FUNCIÓN DE REINTENTO ROBUSTA ---
 async function generateWithRetry(params, retries = 3) {
   try {
     return await ai.models.generateContent(params);
   } catch (error) {
     const isOverloaded =
       error.status === 503 ||
-      error.code === 503 ||
-      (error.message &&
-        (error.message.includes("503") ||
-          error.message.includes("overloaded")));
+      (error.error && error.error.code === 503) ||
+      (error.message && error.message.includes("503"));
 
     if (isOverloaded && retries > 0) {
-      console.log(`⚠️ Modelo Imagen 503. Reintentando... (${retries})`);
+      console.log(`⚠️ Modelo Imagen 503. Reintentando en 5s... (${retries})`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
       return generateWithRetry(params, retries - 1);
     }
@@ -82,22 +80,20 @@ export default async function handler(req, res) {
       config: {},
     });
 
-    // Extracción segura de la imagen
-    let responsePart = null;
-    if (
-      result.candidates &&
-      result.candidates[0] &&
-      result.candidates[0].content &&
-      result.candidates[0].content.parts
-    ) {
-      responsePart = result.candidates[0].content.parts.find(
-        (p) => p.inlineData
-      );
-    }
+    // Extracción manual segura
+    const candidates = result.candidates;
+    const responsePart =
+      candidates &&
+      candidates[0] &&
+      candidates[0].content &&
+      candidates[0].content.parts
+        ? candidates[0].content.parts.find((p) => p.inlineData)
+        : null;
 
     if (!responsePart) {
+      console.log("Respuesta completa:", JSON.stringify(result, null, 2));
       throw new Error(
-        "La IA no devolvió una imagen. Puede ser un bloqueo de seguridad o el modelo no respondió correctamente."
+        "La IA no devolvió una imagen. Puede ser un bloqueo de seguridad."
       );
     }
 
@@ -111,16 +107,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Image Gen Error:", error);
-    const isOverloaded =
-      error.status === 503 || (error.message && error.message.includes("503"));
-    if (isOverloaded) {
-      return res
-        .status(503)
-        .json({
-          error:
-            "Modelo de imagen saturado. Intenta de nuevo en unos segundos.",
-        });
-    }
     return res.status(500).json({ error: error.message });
   }
 }
