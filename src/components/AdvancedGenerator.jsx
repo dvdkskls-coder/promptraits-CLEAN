@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Upload,
   Trash2,
@@ -9,671 +9,1410 @@ import {
   ChevronDown,
   ChevronUp,
   Crown,
+  Send,
+  Info,
   Image as ImageIcon,
+  Lock,
   User,
   Camera,
-  Download,
-  XCircle,
-  FileText,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
+// ✅ IMPORTAR OUTFITS SEPARADOS POR GÉNERO
 import Outfits_women from "../data/Outfits_women";
 import Outfits_men from "../data/Outfits_men";
+
+// ✅ IMPORTAR TIPOS DE PLANO Y ÁNGULOS DE CÁMARA
 import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
+
+// ✅ IMPORTAR ENTORNOS
 import { ENVIRONMENTS_ARRAY } from "../data/environmentsData";
-import { getPosesByGender } from "../data/posesData";
+
+// ✅ IMPORTAR NUEVOS COMPONENTES PRO
+import { getPosesByGender, POSES } from "../data/posesData";
 import { LIGHTING_SETUPS } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
 
+// ============================================================================
+// ✨ CARACTERÍSTICAS RÁPIDAS (Solo 1 seleccionable)
+// ============================================================================
 const QUICK_FEATURES = [
   {
-    id: "lighting",
-    name: "Iluminación Pro",
-    text: "Professional studio lighting setup, Rembrandt style",
+    id: "professional-lighting",
+    name: "Iluminación Profesional",
+    description: "Rembrandt, Butterfly o Loop lighting with professional setup",
+    textES: "Iluminación profesional estilo Rembrandt o Butterfly",
+    promptText:
+      "Professional studio lighting setup with Rembrandt or Butterfly lighting creating gentle shadow modeling, soft diffused key light at 45-degree angle, fill light maintaining detail in shadows",
   },
   {
     id: "bokeh",
-    name: "Bokeh 85mm",
-    text: "Shot with 85mm f/1.8 lens, creamy bokeh background",
+    name: "Fondo Desenfocado",
+    description: "Shallow depth of field con 85mm",
+    textES: "Fondo desenfocado con efecto bokeh (85mm f/1.8)",
+    promptText:
+      "Shallow depth of field with 85mm f/1.8 lens creating creamy smooth bokeh, background beautifully blurred with soft out-of-focus areas",
   },
   {
     id: "cinematic",
-    name: "Cinemático",
-    text: "Cinematic look, Black Pro-Mist filter effect",
+    name: "Look Cinematográfico",
+    description: "Black Pro-Mist effect",
+    textES: "Look cinematográfico con filtro Black Pro-Mist",
+    promptText:
+      "Cinematic look with soft diffused highlights using Black Pro-Mist filter effect, gentle halation on bright lights, organic film-like quality",
   },
   {
-    id: "golden",
+    id: "golden-hour",
     name: "Golden Hour",
-    text: "Warm golden hour lighting, sunset glow",
+    description: "Luz cálida de atardecer",
+    textES: "Luz cálida natural de golden hour",
+    promptText:
+      "Warm golden hour light with sunset glow, magical warm tones creating romantic atmosphere, soft natural illumination",
   },
   {
-    id: "skin",
-    name: "Piel Real",
-    text: "Natural skin texture, high detail, no smoothing",
+    id: "smooth-skin",
+    name: "Piel Suave y Uniforme",
+    description: "Skin tone uniformity",
+    textES: "Textura de piel suave y natural",
+    promptText:
+      "Skin tone uniformity with subtle texture preservation, even complexion, natural beauty retouching maintaining realistic appearance",
   },
   {
-    id: "teal",
+    id: "teal-orange",
     name: "Teal & Orange",
-    text: "Teal and orange color grading, blockbuster look",
+    description: "Color grading Hollywood",
+    textES: "Color grading cinematográfico teal & orange",
+    promptText:
+      "Cinematic color grading with teal shadows and orange highlights, Hollywood blockbuster style, complementary color contrast",
   },
 ];
 
+// ============================================================================
+// ✨ OPCIONES DE GÉNERO (Actualizado con PAREJA)
+// ============================================================================
 const GENDER_OPTIONS = [
   { id: "masculine", name: "Masculino" },
   { id: "feminine", name: "Femenino" },
   { id: "couple", name: "Pareja" },
-  { id: "animal", name: "Animal" },
 ];
-const VALID_ASPECT_RATIOS = [
-  { id: "1:1", name: "Cuadrado" },
-  { id: "3:4", name: "Vertical" },
-  { id: "9:16", name: "Historia" },
-  { id: "16:9", name: "Panorámica" },
-];
-
-const fileToBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
-
-const SelfieUploader = ({ label, onFileChange, currentPreview, onRemove }) => {
-  const inputRef = useRef(null);
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const base64 = await fileToBase64(file);
-      onFileChange({ base64, mimeType: file.type });
-    }
-  };
-  return (
-    <div className="flex flex-col items-center gap-2 p-3 bg-[#06060C]/50 rounded-lg border border-[#2D2D2D] hover:border-[#D8C780]/50 w-full">
-      <span className="text-xs font-medium text-[#C1C1C1]">{label}</span>
-      <input
-        type="file"
-        accept="image/*"
-        ref={inputRef}
-        onChange={handleFile}
-        className="hidden"
-      />
-      {!currentPreview ? (
-        <button
-          onClick={() => inputRef.current?.click()}
-          className="flex items-center justify-center w-16 h-16 bg-[#2D2D2D] rounded-full text-[#C1C1C1] hover:text-[#D8C780]"
-        >
-          <User className="w-8 h-8" />
-        </button>
-      ) : (
-        <div className="relative">
-          <img
-            src={currentPreview}
-            className="w-16 h-16 rounded-full object-cover border-2 border-[#D8C780]"
-          />
-          <button
-            onClick={onRemove}
-            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
-          >
-            <XCircle className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
 
 export default function AdvancedGenerator() {
-  const { user, profile, consumeCredits, savePromptToHistory, refreshProfile } =
-    useAuth();
-  const [isInitializing, setIsInitializing] = useState(true);
-  useEffect(() => {
-    if (user !== undefined) setIsInitializing(false);
-  }, [user]);
+  const { user, profile, refreshProfile } = useAuth();
 
-  const [userPrompt, setUserPrompt] = useState("");
-  const [referenceImage, setReferenceImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
+  // ✅ VALIDACIÓN: Si no hay datos de autenticación aún, mostrar loading
+  const [isInitializing, setIsInitializing] = React.useState(true);
 
-  const [detailedPrompt, setDetailedPrompt] = useState("");
-  const [compactPrompt, setCompactPrompt] = useState("");
-  const [qualityAnalysis, setQualityAnalysis] = useState(null);
+  React.useEffect(() => {
+    if (user !== undefined && profile !== undefined) {
+      setIsInitializing(false);
+    }
+  }, [user, profile]);
+
+  const [prompt, setPrompt] = useState("");
+  const [userPrompt, setUserPrompt] = useState(""); // ✅ Lo que escribe el usuario
+  const [response, setResponse] = useState("");
+
+  // Estados para el generador de imágenes con Nano Banana 🍌
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1");
+  const [selfieImage, setSelfieImage] = useState(null); // ✅ NUEVO: Imagen selfie para rostro
+  const [selfiePreview, setSelfiePreview] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [copiedDetailed, setCopiedDetailed] = useState(false);
-  const [copiedCompact, setCopiedCompact] = useState(false);
-  const [openSections, setOpenSections] = useState({});
+  const [referenceImage, setReferenceImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [qualityAnalysis, setQualityAnalysis] = useState(null);
+  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  // Estados de Configuración PRO (Replicando PromptGenerator.tsx)
-  const [gender, setGender] = useState("masculine");
-  const [faceImages, setFaceImages] = useState([null, null]);
-  const [facePreviews, setFacePreviews] = useState([null, null]);
-  const [selectedAspectRatio, setSelectedAspectRatio] = useState("1:1");
+  // Estados para características rápidas (solo 1)
+  const [selectedFeature, setSelectedFeature] = useState(null);
+  const [showProTools, setShowProTools] = useState(false);
 
+  // ✨ Estados para Herramientas PRO EXPANDIDAS (8 secciones)
   const [proSettings, setProSettings] = useState({
-    environment: "automatic",
-    shotType: "automatic",
-    cameraAngle: "automatic",
-    lighting: "automatic",
-    colorGrading: "automatic",
-    outfit: "automatic",
-    pose: "automatic",
+    environment: null,
+    customEnvironment: "",
+    shotType: null,
+    cameraAngle: null,
+    gender: "", // ✅ Sin género seleccionado por defecto
+    pose: null,
+    outfit: null,
+    lighting: null,
+    colorGrading: null,
+  });
+
+  // ✨ Estados para controlar desplegables
+  const [openSections, setOpenSections] = useState({
+    environment: false,
+    shotType: false,
+    cameraAngle: false,
+    gender: false,
+    pose: false,
+    outfit: false,
+    lighting: false,
+    colorGrading: false,
   });
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
-  const appendText = (text) => {
-    setUserPrompt((prev) => {
-      const cleanPrev = prev.trim();
-      if (cleanPrev.endsWith(",")) return cleanPrev + " " + text;
-      return cleanPrev ? cleanPrev + ", " + text : text;
-    });
+  // ✅ ABRIR HERRAMIENTAS PRO AUTOMÁTICAMENTE SI EL USUARIO ES PRO
+  useEffect(() => {
+    if (isPro && !showProTools) {
+      setShowProTools(true);
+    }
+  }, [isPro]);
+
+  // ✅ OBTENER OUTFITS SEGÚN GÉNERO
+  const getOutfitsByGender = () => {
+    if (proSettings.gender === "masculine" || proSettings.gender === "couple") {
+      return Outfits_men;
+    } else if (proSettings.gender === "feminine") {
+      return Outfits_women;
+    }
+    return [...Outfits_women, ...Outfits_men];
   };
 
-  const handleRefChange = async (e) => {
+  // ✅ OBTENER POSES SEGÚN GÉNERO
+  const getPosesForGender = () => {
+    return getPosesByGender(proSettings.gender);
+  };
+
+  // ✅ VALORES POR DEFECTO PARA EVITAR ERRORES - Usar useMemo para memorizar
+  const safeEnvironments = React.useMemo(() => {
+    const result = Array.isArray(ENVIRONMENTS_ARRAY) ? ENVIRONMENTS_ARRAY : [];
+    if (result.length === 0) {
+      console.warn("⚠️ ENVIRONMENTS_ARRAY está vacío o undefined");
+    }
+    return result;
+  }, []);
+
+  const safeShotTypes = React.useMemo(() => {
+    const result = Array.isArray(SHOT_TYPES) ? SHOT_TYPES : [];
+    if (result.length === 0) {
+      console.warn("⚠️ SHOT_TYPES está vacío o undefined");
+    }
+    return result;
+  }, []);
+
+  const safeCameraAngles = React.useMemo(() => {
+    const result = Array.isArray(CAMERA_ANGLES) ? CAMERA_ANGLES : [];
+    if (result.length === 0) {
+      console.warn("⚠️ CAMERA_ANGLES está vacío o undefined");
+    }
+    return result;
+  }, []);
+
+  const safeLightingSetups = React.useMemo(() => {
+    const result = Array.isArray(LIGHTING_SETUPS) ? LIGHTING_SETUPS : [];
+    if (result.length === 0) {
+      console.warn("⚠️ LIGHTING_SETUPS está vacío o undefined");
+    }
+    return result;
+  }, []);
+
+  const safeColorGrading = React.useMemo(() => {
+    const result = Array.isArray(COLOR_GRADING_FILTERS)
+      ? COLOR_GRADING_FILTERS
+      : [];
+    if (result.length === 0) {
+      console.warn("⚠️ COLOR_GRADING_FILTERS está vacío o undefined");
+    }
+    return result;
+  }, []);
+
+  const currentOutfits = getOutfitsByGender();
+  const currentPoses = getPosesForGender();
+
+  const safeOutfits = React.useMemo(() => {
+    const result = Array.isArray(currentOutfits) ? currentOutfits : [];
+    if (result.length === 0) {
+      console.warn("⚠️ Outfits está vacío o undefined");
+    }
+    return result;
+  }, [currentOutfits]);
+
+  const safePoses = React.useMemo(() => {
+    const result = Array.isArray(currentPoses) ? currentPoses : [];
+    if (result.length === 0) {
+      console.warn("⚠️ Poses está vacío o undefined");
+    }
+    return result;
+  }, [currentPoses]);
+
+  // ============================================================================
+  // EFECTO: Cuando se abre PRO, limpia características rápidas
+  // ============================================================================
+  useEffect(() => {
+    if (showProTools) {
+      setSelectedFeature(null);
+    }
+  }, [showProTools]);
+
+  // ============================================================================
+  // EFECTO: Construir prompt combinando userPrompt + características/PRO
+  // ============================================================================
+  useEffect(() => {
+    let combinedPrompt = userPrompt.trim();
+
+    // Añadir característica rápida si está seleccionada
+    if (selectedFeature && !showProTools) {
+      const feature = QUICK_FEATURES.find((f) => f.id === selectedFeature);
+      if (feature) {
+        combinedPrompt += `\n\n${feature.textES}`;
+      }
+    }
+
+    // Añadir parámetros PRO seleccionados
+    if (showProTools && isPro) {
+      const proParams = [];
+
+      if (proSettings.environment && proSettings.environment !== "auto") {
+        const env = safeEnvironments.find(
+          (e) => e.id === proSettings.environment
+        );
+        if (env) proParams.push(`Entorno: ${env.name}`);
+      }
+
+      if (proSettings.shotType && proSettings.shotType !== "auto") {
+        const shot = safeShotTypes.find((s) => s.id === proSettings.shotType);
+        if (shot) proParams.push(`Plano: ${shot.nameES}`);
+      }
+
+      if (proSettings.cameraAngle && proSettings.cameraAngle !== "auto") {
+        const angle = safeCameraAngles.find(
+          (a) => a.id === proSettings.cameraAngle
+        );
+        if (angle) proParams.push(`Ángulo: ${angle.nameES}`);
+      }
+
+      if (proSettings.gender) {
+        const gender = GENDER_OPTIONS.find((g) => g.id === proSettings.gender);
+        if (gender) proParams.push(`Género: ${gender.name}`);
+      }
+
+      if (proSettings.pose && proSettings.pose !== "auto") {
+        const pose = safePoses.find((p) => p.id === proSettings.pose);
+        if (pose) proParams.push(`Pose: ${pose.name}`);
+      }
+
+      if (proSettings.outfit && proSettings.outfit !== "auto") {
+        const outfit = safeOutfits.find((o) => o.id === proSettings.outfit);
+        if (outfit) proParams.push(`Outfit: ${outfit.name}`);
+      }
+
+      if (proSettings.lighting && proSettings.lighting !== "auto") {
+        const light = safeLightingSetups.find(
+          (l) => l.id === proSettings.lighting
+        );
+        if (light) proParams.push(`Iluminación: ${light.name}`);
+      }
+
+      if (proSettings.colorGrading && proSettings.colorGrading !== "auto") {
+        const grading = safeColorGrading.find(
+          (g) => g.id === proSettings.colorGrading
+        );
+        if (grading) proParams.push(`Color: ${grading.name}`);
+      }
+
+      if (proParams.length > 0) {
+        combinedPrompt += "\n\n" + proParams.join(" | ");
+      }
+    }
+
+    setPrompt(combinedPrompt);
+  }, [
+    userPrompt,
+    selectedFeature,
+    showProTools,
+    proSettings,
+    isPro,
+    safePoses,
+    safeOutfits,
+    safeEnvironments,
+    safeShotTypes,
+    safeCameraAngles,
+    safeLightingSetups,
+    safeColorGrading,
+  ]);
+
+  // ============================================================================
+  // MANEJO DE IMAGEN DE REFERENCIA
+  // ============================================================================
+  const handleReferenceImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setReferenceImage(file);
-      const b64 = await fileToBase64(file);
-      setImagePreview(b64);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleFaceChange = (idx) => (data) => {
-    const newFaces = [...faceImages];
-    newFaces[idx] = data;
-    setFaceImages(newFaces);
-    const newPrevs = [...facePreviews];
-    newPrevs[idx] = data.base64;
-    setFacePreviews(newPrevs);
+  const removeReferenceImage = () => {
+    setReferenceImage(null);
+    setImagePreview("");
   };
 
-  // Manejar cambios en settings PRO
-  const handleSettingChange = (key, value) => {
-    setProSettings((prev) => ({ ...prev, [key]: value }));
-    // Opcional: También agregarlo al texto si el usuario lo prefiere
-    // appendText(`${key}: ${value}`);
+  // ============================================================================
+  // MANEJO DE IMAGEN SELFIE (PARA GENERAR IMAGEN CON ROSTRO)
+  // ============================================================================
+  const handleSelfieChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelfieImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelfiePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleGeneratePrompt = async (e) => {
+  const removeSelfie = () => {
+    setSelfieImage(null);
+    setSelfiePreview("");
+  };
+
+  // ============================================================================
+  // GENERAR PROMPT
+  // ============================================================================
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!userPrompt && !referenceImage)
-      return alert("Escribe una idea o sube una referencia.");
-    if (!profile || profile.credits < 1) return alert("Sin créditos.");
+
+    // ✅ PERMITIR generar si hay imagen de referencia O texto
+    if (!prompt.trim() && !referenceImage) {
+      alert(
+        "Por favor, describe lo que quieres generar o sube una imagen de referencia"
+      );
+      return;
+    }
+
+    if (!profile || profile.credits < 1) {
+      alert("No tienes suficientes créditos. Compra más en la sección Planes.");
+      return;
+    }
 
     setIsLoading(true);
-    setDetailedPrompt("");
-    setCompactPrompt("");
+    setResponse("");
     setQualityAnalysis(null);
 
     try {
-      let base64Ref = null;
-      if (referenceImage) base64Ref = await fileToBase64(referenceImage);
+      let requestData;
+      let headers = {};
+
+      // Si hay imagen de referencia, usar FormData
+      if (referenceImage) {
+        const formData = new FormData();
+        // Si no hay texto, usar un prompt descriptivo por defecto
+        const promptToSend =
+          prompt.trim() ||
+          "Recreate this exact image with all its details, environment, lighting, subject pose, camera angle, and composition. Using the exact face from the provided selfie — no editing, no retouching, no smoothing. Match the reference image precisely.";
+        formData.append("prompt", promptToSend);
+        formData.append("platform", "nano-banana");
+        formData.append("userId", user.id);
+        formData.append("proSettings", JSON.stringify(proSettings));
+        formData.append("referenceImage", referenceImage);
+        formData.append("analyzeReference", "true"); // ✅ Indicar que debe analizar la referencia
+
+        requestData = formData;
+        // No establecer Content-Type para FormData
+      } else {
+        // Sin imagen, usar JSON simple
+        requestData = JSON.stringify({
+          prompt: prompt,
+          platform: "nano-banana",
+          userId: user.id,
+          proSettings: proSettings,
+        });
+
+        headers["Content-Type"] = "application/json";
+      }
 
       const res = await fetch("/api/gemini-processor", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: userPrompt,
-          referenceImage: base64Ref,
-          gender,
-          mimeType: referenceImage?.type,
-          proSettings, // Enviamos los settings al backend
-        }),
+        headers: headers,
+        body: requestData,
       });
 
-      if (!res.ok) throw new Error((await res.json()).error);
-      const data = await res.json();
-
-      setDetailedPrompt(data.detailed || "");
-      setCompactPrompt(data.compact || "");
-      if (data.analysis) setQualityAnalysis(data.analysis);
-
-      // Actualización automática de género
-      if (data.detectedGender) {
-        setGender(data.detectedGender);
-        setFaceImages([null, null]); // Reset selfies si cambia el modo
-        setFacePreviews([null, null]);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Error al generar el prompt");
       }
 
-      await consumeCredits(1);
+      const data = await res.json();
+
+      setResponse(data.prompt || "");
+      if (data.analysis) {
+        setQualityAnalysis(data.analysis);
+      }
+
       await refreshProfile();
-      try {
-        if (data.detailed)
-          await savePromptToHistory(
-            data.detailed,
-            { platform: "nano-banana" },
-            null
-          );
-      } catch (e) {}
     } catch (error) {
-      alert("Error: " + error.message);
+      console.error("Error:", error);
+      alert(error.message || "Error al generar el prompt");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ============================================================================
+  // GENERAR IMAGEN CON NANO BANANA 🍌
+  // ============================================================================
   const handleGenerateImage = async () => {
-    const promptToUse = compactPrompt || detailedPrompt;
-    if (!promptToUse) return alert("Primero genera un prompt.");
-    if (!isPro) return alert("Solo PRO.");
-    if (profile.credits < 1) return alert("Sin créditos.");
+    if (!response) {
+      alert("Primero debes generar un prompt");
+      return;
+    }
+
+    if (!profile || profile.credits < 1) {
+      alert("No tienes suficientes créditos. Compra más en la sección Planes.");
+      return;
+    }
+
+    if (!selfieImage) {
+      alert("Debes subir una foto selfie para generar la imagen con tu rostro");
+      return;
+    }
 
     setIsGeneratingImage(true);
+    setGeneratedImages([]);
+
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const facesToSend = faceImages.filter((f) => f !== null);
+      const formData = new FormData();
+      formData.append("prompt", response);
+      formData.append("aspectRatio", selectedAspectRatio);
+      formData.append("userId", user.id);
+      formData.append("selfieImage", selfieImage); // ✅ Enviar selfie
 
       const res = await fetch("/api/generate-image", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          prompt: promptToUse,
-          faceImages: facesToSend,
-          aspectRatio: selectedAspectRatio,
-        }),
+        body: formData,
       });
 
-      if (!res.ok) throw new Error((await res.json()).error);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Error al generar imagen");
+      }
+
       const data = await res.json();
 
-      if (data.images) setGeneratedImages(data.images);
-      await consumeCredits(1);
+      if (data.images && data.images.length > 0) {
+        setGeneratedImages(data.images);
+      } else {
+        throw new Error("No se generaron imágenes");
+      }
+
       await refreshProfile();
     } catch (error) {
-      alert("Error imagen: " + error.message);
+      console.error("Error generando imagen:", error);
+      alert(error.message || "Error al generar imagen");
     } finally {
       setIsGeneratingImage(false);
     }
   };
 
-  const toggleSection = (sec) =>
-    setOpenSections((p) => ({ ...p, [sec]: !p[sec] }));
+  // ============================================================================
+  // COPIAR PROMPT
+  // ============================================================================
+  const handleCopy = () => {
+    navigator.clipboard.writeText(response);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-  const renderProSection = (title, key, dataArray, nameKey = "name") => (
-    <div className="border border-[#2D2D2D] rounded-lg overflow-hidden mb-2">
-      <button
-        type="button"
-        onClick={() => toggleSection(key)}
-        className="w-full flex justify-between p-3 bg-[#06060C]/50 hover:bg-[#06060C] text-left"
-      >
-        <span className="text-white font-medium text-sm">{title}</span>
-        {openSections[key] ? (
-          <ChevronUp className="w-4 h-4 text-[#D8C780]" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-[#C1C1C1]" />
-        )}
-      </button>
-      {openSections[key] && (
-        <div className="p-3 bg-[#06060C]/30 grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-          <button
-            type="button"
-            onClick={() => handleSettingChange(key, "automatic")}
-            className="text-xs p-2 border border-[#2D2D2D] rounded hover:border-[#D8C780] text-[#C1C1C1] hover:text-white text-left"
-          >
-            Automático
-          </button>
-          {dataArray.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                handleSettingChange(key, item.id);
-                appendText(item[nameKey] || item.name); // También añade al texto
-              }}
-              className="text-xs p-2 border border-[#2D2D2D] rounded hover:border-[#D8C780] text-[#C1C1C1] hover:text-white text-left"
-            >
-              {item[nameKey] || item.name}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  // ============================================================================
+  // TOGGLE SECCIONES PRO
+  // ============================================================================
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  // ============================================================================
+  // SELECCIONAR/DESELECCIONAR CARACTERÍSTICA RÁPIDA
+  // ============================================================================
+  const toggleFeature = (featureId) => {
+    setSelectedFeature((prev) => (prev === featureId ? null : featureId));
+    setShowProTools(false);
+  };
 
   return (
-    <div className="min-h-screen bg-[#06060C] py-20 px-4">
-      <div className="max-w-6xl mx-auto">
-        {isInitializing ? (
-          <div className="text-center py-20">
-            <Loader2 className="w-10 h-10 animate-spin mx-auto text-[#D8C780]" />
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Loading mientras se inicializa */}
+      {isInitializing ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-[#D8C780] mx-auto mb-4" />
+            <p className="text-[#C1C1C1]">Cargando generador...</p>
           </div>
-        ) : (
-          <AnimatedSection>
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-4 text-white">
-                Generador <span className="text-[#D8C780]">Pro</span> 🍌
-              </h1>
-              <p className="text-[#C1C1C1]">
-                Crea prompts ultra-detallados y genera imágenes.
-              </p>
-              <div className="mt-2 text-[#D8C780] text-sm font-medium">
-                Créditos: {profile?.credits || 0}
+        </div>
+      ) : (
+        <AnimatedSection>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-[#D8C780] to-[#D8C780] bg-clip-text text-transparent">
+                Generador Profesional Nano Banana
+              </span>{" "}
+              <span className="text-4xl">🍌</span>
+            </h1>
+            <p className="text-[#C1C1C1] max-w-2xl mx-auto">
+              Crea prompts profesionales optimizados para Nano Banana (Google
+              Gemini). Cada generación de prompt consume 1 crédito. Cada
+              generación de imagen consume 1 crédito adicional.
+            </p>
+            {profile && (
+              <div className="mt-4 inline-block px-4 py-2 bg-[#D8C780]/20 border border-[#D8C780] rounded-lg">
+                <span className="text-[#D8C780] font-medium">
+                  Créditos disponibles: {profile.credits || 0}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Formulario Principal */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Layout Responsive: Mobile = columna única, Desktop = dos columnas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* COLUMNA IZQUIERDA: Descripción + Imagen Referencia + Características Rápidas */}
+              <div className="space-y-6">
+                {/* Textarea Principal */}
+                <div>
+                  <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
+                    Describe lo que quieres generar
+                  </label>
+                  <textarea
+                    value={userPrompt}
+                    onChange={(e) => setUserPrompt(e.target.value)}
+                    placeholder="Ej: Retrato profesional en estudio con fondo negro..."
+                    className="w-full h-40 bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] focus:outline-none resize-none"
+                  />
+                  <p className="text-xs text-[#C1C1C1] mt-1">
+                    Los parámetros seleccionados se añadirán automáticamente
+                  </p>
+                </div>
+
+                {/* Imagen de Referencia - BOTÓN */}
+                <div>
+                  <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
+                    Imagen de referencia (opcional)
+                  </label>
+                  <p className="text-xs text-[#C1C1C1] mb-3">
+                    Sube una imagen para que el generador analice el estilo,
+                    iluminación y composición
+                  </p>
+
+                  {!imagePreview ? (
+                    <label className="cursor-pointer block">
+                      <div className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg transition-colors">
+                        <Camera className="w-6 h-6 text-[#D8C780]" />
+                        <div>
+                          <p className="text-white font-medium">
+                            Adjuntar imagen de referencia
+                          </p>
+                          <p className="text-xs text-[#C1C1C1]">
+                            Formatos: JPG, PNG (máx 5MB)
+                          </p>
+                        </div>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleReferenceImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Referencia"
+                        className="w-full h-48 object-cover rounded-lg border border-[#2D2D2D]"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeReferenceImage}
+                        className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Características Rápidas */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-medium text-[#C1C1C1]">
+                      Características Rápidas
+                    </label>
+                    <Info className="w-4 h-4 text-[#C1C1C1]" />
+                  </div>
+                  <p className="text-xs text-[#C1C1C1] mb-3">
+                    Selecciona una característica rápida o usa las Herramientas
+                    PRO para control completo
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {QUICK_FEATURES.map((feature) => (
+                      <button
+                        key={feature.id}
+                        type="button"
+                        onClick={() => toggleFeature(feature.id)}
+                        disabled={showProTools}
+                        className={`p-3 rounded-lg border transition-all text-sm ${
+                          selectedFeature === feature.id
+                            ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                            : showProTools
+                            ? "border-[#2D2D2D] bg-[#06060C]/30 text-[#666] cursor-not-allowed"
+                            : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                        }`}
+                      >
+                        {feature.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* COLUMNA DERECHA: Herramientas PRO */}
+              <div>
+                {!isPro ? (
+                  <div className="p-6 bg-gradient-to-br from-[#D8C780]/10 to-[#D8C780]/5 border border-[#D8C780]/30 rounded-lg">
+                    <Crown className="w-12 h-12 text-[#D8C780] mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-white mb-3 text-center">
+                      Herramientas PRO
+                    </h3>
+                    <div className="space-y-3 text-[#C1C1C1] text-sm">
+                      <p>
+                        <span className="text-[#D8C780] font-semibold">
+                          Regístrate o inicia sesión
+                        </span>{" "}
+                        con una cuenta PRO para acceder a:
+                      </p>
+                      <ul className="space-y-2 ml-4">
+                        <li className="flex items-start gap-2">
+                          <span className="text-[#D8C780] mt-1">•</span>
+                          <span>Control completo de entornos y locaciones</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-[#D8C780] mt-1">•</span>
+                          <span>
+                            Selección de planos de cámara profesionales
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-[#D8C780] mt-1">•</span>
+                          <span>
+                            56 poses profesionales (masculinas, femeninas y
+                            pareja)
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-[#D8C780] mt-1">•</span>
+                          <span>
+                            Estilos de vestuario y outfits personalizados
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-[#D8C780] mt-1">•</span>
+                          <span>23 esquemas de iluminación profesional</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-[#D8C780] mt-1">•</span>
+                          <span>
+                            27 filtros de color grading cinematográfico
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-[#D8C780] mt-1">•</span>
+                          <span className="font-semibold text-white">
+                            Generar imágenes con Nano Banana 🍌 desde
+                            Promptraits.com
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-medium text-white">
+                          Herramientas PRO
+                        </h3>
+                        <p className="text-xs text-[#C1C1C1]">
+                          Control profesional completo
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowProTools(!showProTools)}
+                        className={`px-4 py-2 rounded-lg border transition-all ${
+                          showProTools
+                            ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                            : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1]"
+                        }`}
+                      >
+                        {showProTools ? "Ocultar" : "Mostrar"}
+                      </button>
+                    </div>
+
+                    {showProTools && (
+                      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                        {/* Género */}
+                        <ProSection
+                          title="Género"
+                          description="Selecciona el género para personalizar poses y vestuario"
+                          isOpen={openSections.gender}
+                          onToggle={() => toggleSection("gender")}
+                        >
+                          <div className="grid grid-cols-3 gap-2">
+                            {GENDER_OPTIONS.map((option) => (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    gender: option.id,
+                                  }))
+                                }
+                                className={`p-2 rounded-lg border text-sm transition-all ${
+                                  proSettings.gender === option.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                {option.name}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+
+                        {/* Entorno */}
+                        <ProSection
+                          title="Entorno"
+                          description="Selecciona el entorno o ubicación"
+                          isOpen={openSections.environment}
+                          onToggle={() => toggleSection("environment")}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProSettings((prev) => ({
+                                  ...prev,
+                                  environment: "auto",
+                                }))
+                              }
+                              className={`p-2 rounded-lg border text-sm transition-all ${
+                                proSettings.environment === "auto"
+                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                              }`}
+                            >
+                              Automático
+                            </button>
+                            {safeEnvironments.map((env) => (
+                              <button
+                                key={env.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    environment: env.id,
+                                  }))
+                                }
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  proSettings.environment === env.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {env.name}
+                                </div>
+                                {env.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {env.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+
+                        {/* Tipo de Plano */}
+                        <ProSection
+                          title="Tipo de Plano"
+                          description="Define el encuadre de la foto"
+                          isOpen={openSections.shotType}
+                          onToggle={() => toggleSection("shotType")}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProSettings((prev) => ({
+                                  ...prev,
+                                  shotType: "auto",
+                                }))
+                              }
+                              className={`p-2 rounded-lg border text-sm transition-all ${
+                                proSettings.shotType === "auto"
+                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                              }`}
+                            >
+                              Automático
+                            </button>
+                            {safeShotTypes.map((shot) => (
+                              <button
+                                key={shot.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    shotType: shot.id,
+                                  }))
+                                }
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  proSettings.shotType === shot.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {shot.nameES}
+                                </div>
+                                {shot.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {shot.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+
+                        {/* Ángulo de Cámara */}
+                        <ProSection
+                          title="Ángulo de Cámara"
+                          description="Perspectiva desde la que se toma la foto"
+                          isOpen={openSections.cameraAngle}
+                          onToggle={() => toggleSection("cameraAngle")}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProSettings((prev) => ({
+                                  ...prev,
+                                  cameraAngle: "auto",
+                                }))
+                              }
+                              className={`p-2 rounded-lg border text-sm transition-all ${
+                                proSettings.cameraAngle === "auto"
+                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                              }`}
+                            >
+                              Automático
+                            </button>
+                            {safeCameraAngles.map((angle) => (
+                              <button
+                                key={angle.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    cameraAngle: angle.id,
+                                  }))
+                                }
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  proSettings.cameraAngle === angle.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {angle.nameES}
+                                </div>
+                                {angle.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {angle.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+
+                        {/* Poses */}
+                        {proSettings.gender && (
+                          <ProSection
+                            title="Poses"
+                            description="Selecciona una pose específica"
+                            isOpen={openSections.pose}
+                            onToggle={() => toggleSection("pose")}
+                          >
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    pose: "auto",
+                                  }))
+                                }
+                                className={`p-2 rounded-lg border text-sm transition-all ${
+                                  proSettings.pose === "auto"
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                Automático
+                              </button>
+                              {safePoses.map((pose) => (
+                                <button
+                                  key={pose.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setProSettings((prev) => ({
+                                      ...prev,
+                                      pose: pose.id,
+                                    }))
+                                  }
+                                  className={`p-3 rounded-lg border text-left transition-all ${
+                                    proSettings.pose === pose.id
+                                      ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                      : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                  }`}
+                                >
+                                  <div className="font-medium text-sm">
+                                    {pose.name}
+                                  </div>
+                                  {pose.description && (
+                                    <div className="text-xs text-[#C1C1C1] mt-1">
+                                      {pose.description}
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </ProSection>
+                        )}
+
+                        {/* Vestuario */}
+                        {proSettings.gender && (
+                          <ProSection
+                            title="Vestuario"
+                            description="Estilo de outfit"
+                            isOpen={openSections.outfit}
+                            onToggle={() => toggleSection("outfit")}
+                          >
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    outfit: "auto",
+                                  }))
+                                }
+                                className={`p-2 rounded-lg border text-sm transition-all ${
+                                  proSettings.outfit === "auto"
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                Automático
+                              </button>
+                              {safeOutfits.map((outfit) => (
+                                <button
+                                  key={outfit.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setProSettings((prev) => ({
+                                      ...prev,
+                                      outfit: outfit.id,
+                                    }))
+                                  }
+                                  className={`p-3 rounded-lg border text-left transition-all ${
+                                    proSettings.outfit === outfit.id
+                                      ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                      : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                  }`}
+                                >
+                                  <div className="font-medium text-sm">
+                                    {outfit.name}
+                                  </div>
+                                  {outfit.description && (
+                                    <div className="text-xs text-[#C1C1C1] mt-1">
+                                      {outfit.description}
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </ProSection>
+                        )}
+
+                        {/* Iluminación */}
+                        <ProSection
+                          title="Iluminación"
+                          description="Esquema de luces profesional"
+                          isOpen={openSections.lighting}
+                          onToggle={() => toggleSection("lighting")}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProSettings((prev) => ({
+                                  ...prev,
+                                  lighting: "auto",
+                                }))
+                              }
+                              className={`p-2 rounded-lg border text-sm transition-all ${
+                                proSettings.lighting === "auto"
+                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                              }`}
+                            >
+                              Automático
+                            </button>
+                            {safeLightingSetups.map((light) => (
+                              <button
+                                key={light.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    lighting: light.id,
+                                  }))
+                                }
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  proSettings.lighting === light.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {light.name}
+                                </div>
+                                {light.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {light.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+
+                        {/* Color Grading */}
+                        <ProSection
+                          title="Color Grading"
+                          description="Corrección de color cinematográfica"
+                          isOpen={openSections.colorGrading}
+                          onToggle={() => toggleSection("colorGrading")}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProSettings((prev) => ({
+                                  ...prev,
+                                  colorGrading: "auto",
+                                }))
+                              }
+                              className={`p-2 rounded-lg border text-sm transition-all ${
+                                proSettings.colorGrading === "auto"
+                                  ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                  : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                              }`}
+                            >
+                              Automático
+                            </button>
+                            {safeColorGrading.map((grading) => (
+                              <button
+                                key={grading.id}
+                                type="button"
+                                onClick={() =>
+                                  setProSettings((prev) => ({
+                                    ...prev,
+                                    colorGrading: grading.id,
+                                  }))
+                                }
+                                className={`p-3 rounded-lg border text-left transition-all ${
+                                  proSettings.colorGrading === grading.id
+                                    ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                                    : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                                }`}
+                              >
+                                <div className="font-medium text-sm">
+                                  {grading.name}
+                                </div>
+                                {grading.description && (
+                                  <div className="text-xs text-[#C1C1C1] mt-1">
+                                    {grading.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </ProSection>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
-            <form onSubmit={handleGeneratePrompt} className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                      Describe tu idea (o selecciona opciones)
-                    </label>
-                    <textarea
-                      value={userPrompt}
-                      onChange={(e) => setUserPrompt(e.target.value)}
-                      placeholder="Ej: Retrato de un astronauta..."
-                      className="w-full h-48 bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] outline-none resize-none"
-                    />
-                  </div>
+            {/* Botón Generar Prompt - Ancho completo */}
+            <button
+              type="submit"
+              disabled={isLoading || (!prompt.trim() && !referenceImage)}
+              className="w-full py-4 bg-gradient-to-r from-[#D8C780] to-[#D8C780] hover:from-[#C4B66D] hover:to-[#C4B66D] disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {referenceImage && !prompt.trim()
+                    ? "Analizando imagen de referencia..."
+                    : "Generando prompt..."}{" "}
+                  (1 crédito)
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  {referenceImage && !prompt.trim()
+                    ? "Generar desde Imagen de Referencia"
+                    : "Generar Prompt Profesional"}{" "}
+                  (1 crédito)
+                </>
+              )}
+            </button>
+          </form>
 
-                  <div>
-                    <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                      Analizador de Imagen (Opcional)
-                    </label>
-                    {!imagePreview ? (
-                      <label className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg cursor-pointer transition-colors">
-                        <Camera className="w-6 h-6 text-[#D8C780]" />
+          {/* Resultados: Prompt + Análisis */}
+          {response && (
+            <>
+              {/* Prompt Generado y Análisis de Calidad - Lado a lado en Desktop */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                {/* Prompt Generado */}
+                <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-white">
+                      Prompt Generado
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#D8C780] hover:bg-[#C4B66D] rounded-lg transition-colors"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Copiado
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copiar
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="bg-[#06060C]/50 rounded-lg p-4 text-[#C1C1C1] whitespace-pre-wrap max-h-[400px] overflow-y-auto">
+                    {response}
+                  </div>
+                </div>
+
+                {/* Análisis de Calidad */}
+                {qualityAnalysis && (
+                  <div className="bg-[#2D2D2D] backdrop-blur-sm rounded-xl p-6 border border-[#2D2D2D]">
+                    <QualityAnalysis analysis={qualityAnalysis} />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Generador de Imagen con Nano Banana 🍌 */}
+          {response && (
+            <div className="mt-8 bg-[#2D2D2D] rounded-xl p-6 border border-[#2D2D2D]">
+              <h3 className="text-xl font-medium text-white mb-2">
+                ¿Quieres generar la imagen con Nano Banana 🍌?
+              </h3>
+              <p className="text-[#C1C1C1] text-sm mb-6">
+                Sube una foto selfie para adaptar el prompt generado con tu
+                rostro. La generación de imagen consume 1 crédito adicional.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Subir Selfie */}
+                <div>
+                  <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
+                    Foto Selfie (requerida)
+                  </label>
+                  <p className="text-xs text-[#C1C1C1] mb-3">
+                    Sube tu foto para crear la imagen con tu rostro
+                  </p>
+
+                  {!selfiePreview ? (
+                    <label className="cursor-pointer block">
+                      <div className="flex items-center gap-3 p-4 bg-[#06060C]/50 border-2 border-dashed border-[#D8C780]/50 hover:border-[#D8C780] rounded-lg transition-colors">
+                        <User className="w-6 h-6 text-[#D8C780]" />
                         <div>
-                          <p className="text-white text-sm">
-                            Subir imagen para extraer prompt
+                          <p className="text-white font-medium">
+                            Subir foto selfie
+                          </p>
+                          <p className="text-xs text-[#C1C1C1]">
+                            JPG, PNG (máx 5MB)
                           </p>
                         </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleRefChange}
-                          className="hidden"
-                        />
-                      </label>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleSelfieChange}
+                        className="hidden"
+                      />
+                    </label>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={selfiePreview}
+                        alt="Selfie"
+                        className="w-full h-48 object-cover rounded-lg border border-[#D8C780]"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeSelfie}
+                        className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Formato de Imagen */}
+                <div>
+                  <label className="text-sm font-medium text-[#C1C1C1] mb-2 block">
+                    Formato de imagen
+                  </label>
+                  <div className="grid grid-cols-5 gap-2 mb-4">
+                    {["1:1", "3:4", "4:3", "9:16", "16:9"].map((ratio) => (
+                      <button
+                        key={ratio}
+                        type="button"
+                        onClick={() => setSelectedAspectRatio(ratio)}
+                        className={`py-2 px-3 rounded-lg border transition-all text-sm ${
+                          selectedAspectRatio === ratio
+                            ? "border-[#D8C780] bg-[#D8C780]/20 text-white"
+                            : "border-[#2D2D2D] bg-[#06060C] text-[#C1C1C1] hover:border-[#D8C780]/50"
+                        }`}
+                      >
+                        {ratio}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Botón generar */}
+                  <button
+                    type="button"
+                    onClick={handleGenerateImage}
+                    disabled={isGeneratingImage || !selfieImage}
+                    className="w-full py-4 bg-[#D8C780] hover:bg-[#C4B66D] disabled:bg-[#2D2D2D] disabled:cursor-not-allowed rounded-xl font-medium text-[#06060C] disabled:text-[#C1C1C1] transition-all flex items-center justify-center gap-2"
+                  >
+                    {isGeneratingImage ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Generando imagen...
+                      </>
                     ) : (
-                      <div className="relative w-full h-32 bg-[#06060C] rounded-lg overflow-hidden border border-[#2D2D2D]">
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Generar Imagen con Nano Banana 🍌 (1 crédito)
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Galería de imágenes generadas */}
+              {generatedImages.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-lg font-medium text-white mb-3">
+                    Imagen generada:
+                  </h4>
+                  <div className="grid gap-4">
+                    {generatedImages.map((img, idx) => (
+                      <div key={idx} className="relative group">
                         <img
-                          src={imagePreview}
-                          className="w-full h-full object-contain"
+                          src={`data:${img.mimeType};base64,${img.base64}`}
+                          alt={`Generada ${idx + 1}`}
+                          className="w-full max-h-[600px] object-contain rounded-lg border border-[#2D2D2D] bg-black"
                         />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setReferenceImage(null);
-                            setImagePreview("");
-                          }}
-                          className="absolute top-2 right-2 p-1 bg-red-500 rounded"
+                        <a
+                          href={`data:${img.mimeType};base64,${img.base64}`}
+                          download={`promptraits-nanoBanana-${Date.now()}.png`}
+                          className="absolute bottom-4 right-4 px-4 py-3 bg-[#D8C780] hover:bg-[#C4B66D] rounded-lg text-[#06060C] font-medium opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <Trash2 className="w-4 h-4 text-white" />
-                        </button>
+                          Descargar Imagen
+                        </a>
                       </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-[#C1C1C1] mb-2">
-                      Características Rápidas:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {QUICK_FEATURES.map((f) => (
-                        <button
-                          key={f.id}
-                          type="button"
-                          onClick={() => appendText(f.text)}
-                          className="px-3 py-1.5 text-xs border border-[#2D2D2D] rounded-full text-[#C1C1C1] hover:border-[#D8C780] hover:text-white transition-colors"
-                        >
-                          + {f.name}
-                        </button>
-                      ))}
-                    </div>
+                    ))}
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+        </AnimatedSection>
+      )}
+    </div>
+  );
+}
 
-                <div className="bg-[#06060C]/30 p-4 rounded-xl border border-[#2D2D2D]">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Crown className="w-5 h-5 text-[#D8C780]" />
-                    <h3 className="text-white font-bold">Herramientas PRO</h3>
-                  </div>
-                  {!isPro ? (
-                    <div className="text-center py-8 text-[#C1C1C1] text-sm">
-                      Actualiza a PRO.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="border border-[#2D2D2D] rounded-lg mb-2 p-3">
-                        <p className="text-xs text-[#C1C1C1] mb-2">
-                          Género (Define estructura):
-                        </p>
-                        <div className="flex gap-2">
-                          {[
-                            { id: "masculine", n: "Hombre" },
-                            { id: "feminine", n: "Mujer" },
-                            { id: "couple", n: "Pareja" },
-                            { id: "animal", n: "Animal" },
-                          ].map((g) => (
-                            <button
-                              key={g.id}
-                              type="button"
-                              onClick={() => setGender(g.id)}
-                              className={`flex-1 py-1 text-xs rounded ${
-                                gender === g.id
-                                  ? "bg-[#D8C780] text-black"
-                                  : "bg-[#2D2D2D] text-[#C1C1C1]"
-                              }`}
-                            >
-                              {g.n}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      {renderProSection(
-                        "Entornos",
-                        "environment",
-                        ENVIRONMENTS_ARRAY
-                      )}
-                      {renderProSection(
-                        "Planos",
-                        "shotType",
-                        SHOT_TYPES,
-                        "nameES"
-                      )}
-                      {renderProSection(
-                        "Ángulos",
-                        "cameraAngle",
-                        CAMERA_ANGLES,
-                        "nameES"
-                      )}
-                      {renderProSection(
-                        "Iluminación",
-                        "lighting",
-                        LIGHTING_SETUPS
-                      )}
-                      {renderProSection(
-                        "Estilo Color",
-                        "colorGrading",
-                        COLOR_GRADING_FILTERS
-                      )}
-                      {renderProSection(
-                        "Poses",
-                        "pose",
-                        getPosesByGender(gender) || []
-                      )}
-                      {renderProSection(
-                        "Vestuario",
-                        "outfit",
-                        (gender === "feminine" ? Outfits_women : Outfits_men) ||
-                          []
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+// ============================================================================
+// COMPONENTE HELPER: ProSection
+// ============================================================================
+function ProSection({ title, description, isOpen, onToggle, children }) {
+  return (
+    <div className="border border-[#2D2D2D] rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-3 bg-[#06060C]/50 hover:bg-[#06060C] transition-colors"
+      >
+        <div className="text-left flex-1">
+          <div className="font-medium text-white text-sm">{title}</div>
+          <div className="text-xs text-[#C1C1C1]">{description}</div>
+        </div>
 
-              <div className="flex justify-center pt-4">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-8 py-3 bg-gradient-to-r from-[#D8C780] to-[#B8A760] text-black font-bold rounded-lg hover:shadow-[0_0_20px_rgba(216,199,128,0.3)] transition-all flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <Sparkles />
-                  )}
-                  Generar Prompt Mejorado
-                </button>
-              </div>
-            </form>
+        <span className="text-xl">
+          {isOpen ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </span>
+      </button>
 
-            {(detailedPrompt || compactPrompt) && (
-              <AnimatedSection className="mt-12 border-t border-[#2D2D2D] pt-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-bold text-[#D8C780]">
-                        Prompt Detallado (8 Líneas)
-                      </h3>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(detailedPrompt);
-                          setCopiedDetailed(true);
-                          setTimeout(() => setCopiedDetailed(false), 2000);
-                        }}
-                        className="p-2 bg-[#2D2D2D] rounded text-[#D8C780]"
-                      >
-                        {copiedDetailed ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-96 overflow-y-auto font-mono">
-                      {detailedPrompt}
-                    </div>
-                    {compactPrompt && (
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(compactPrompt);
-                          setCopiedCompact(true);
-                          setTimeout(() => setCopiedCompact(false), 2000);
-                        }}
-                        className="w-full flex items-center justify-center gap-2 py-3 border border-[#2D2D2D] rounded-lg text-[#C1C1C1] hover:border-[#D8C780] transition-all"
-                      >
-                        {copiedCompact ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <FileText className="w-4 h-4" />
-                        )}
-                        Copiar Prompt Compacto
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="bg-[#06060C] border border-[#2D2D2D] rounded-xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                      <ImageIcon className="w-5 h-5 text-[#D8C780]" /> Generar
-                      Imagen
-                    </h3>
-                    {!isPro ? (
-                      <div className="text-center text-sm text-red-400">
-                        Solo usuarios PRO
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        <div className="flex justify-center gap-4">
-                          {gender === "couple" || gender === "animal" ? (
-                            <>
-                              <SelfieUploader
-                                label="Sujeto 1 / Persona"
-                                onFileChange={handleFaceChange(0)}
-                                currentPreview={facePreviews[0]}
-                                onRemove={() => {
-                                  const n = [...faceImages];
-                                  n[0] = null;
-                                  setFaceImages(n);
-                                  const p = [...facePreviews];
-                                  p[0] = null;
-                                  setFacePreviews(p);
-                                }}
-                              />
-                              <SelfieUploader
-                                label="Sujeto 2 / Animal"
-                                onFileChange={handleFaceChange(1)}
-                                currentPreview={facePreviews[1]}
-                                onRemove={() => {
-                                  const n = [...faceImages];
-                                  n[1] = null;
-                                  setFaceImages(n);
-                                  const p = [...facePreviews];
-                                  p[1] = null;
-                                  setFacePreviews(p);
-                                }}
-                              />
-                            </>
-                          ) : (
-                            <SelfieUploader
-                              label="Tu Selfie (Opcional)"
-                              onFileChange={handleFaceChange(0)}
-                              currentPreview={facePreviews[0]}
-                              onRemove={() => {
-                                const n = [...faceImages];
-                                n[0] = null;
-                                setFaceImages(n);
-                                const p = [...facePreviews];
-                                p[0] = null;
-                                setFacePreviews(p);
-                              }}
-                            />
-                          )}
-                        </div>
-                        <button
-                          onClick={handleGenerateImage}
-                          disabled={isGeneratingImage}
-                          className="w-full py-3 bg-[#D8C780] text-black font-bold rounded hover:bg-[#B8A760] transition-colors flex justify-center items-center gap-2"
-                        >
-                          {isGeneratingImage ? (
-                            <Loader2 className="animate-spin" />
-                          ) : (
-                            <ImageIcon />
-                          )}
-                          Generar Imagen
-                        </button>
-                      </div>
-                    )}
-                    {generatedImages.length > 0 && (
-                      <div className="mt-6 space-y-4">
-                        {generatedImages.map((img, i) => (
-                          <div key={i} className="relative group">
-                            <img
-                              src={`data:${img.mimeType};base64,${img.base64}`}
-                              className="w-full rounded-lg border border-[#2D2D2D]"
-                            />
-                            <a
-                              href={`data:${img.mimeType};base64,${img.base64}`}
-                              download="imagen_ia.png"
-                              className="absolute bottom-2 right-2 bg-black/70 text-white p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Download className="w-4 h-4" />
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </AnimatedSection>
-            )}
-          </AnimatedSection>
-        )}
-      </div>
+      {isOpen && <div className="p-3 bg-black/20">{children}</div>}
     </div>
   );
 }
