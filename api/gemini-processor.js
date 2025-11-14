@@ -54,13 +54,13 @@ export default async function handler(req) {
       });
     }
 
-    // 2. GENERAR IMAGEN (NANO BANANA) - Añadido por si acaso lo usas aquí
+    // 2. GENERAR IMAGEN (NANO BANANA) - CORREGIDO AQUI
     if (action === "generateImageNano") {
       const { model, prompt, faceImages } = body;
       const parts = [];
       if (faceImages?.length) {
         faceImages.forEach((img) => {
-          // Limpiar base64 si viene con prefijo
+          // Limpiar base64 de entrada
           const cleanData = img.base64.includes(",")
             ? img.base64.split(",")[1]
             : img.base64;
@@ -69,7 +69,10 @@ export default async function handler(req) {
           });
         });
       }
-      parts.push({ text: prompt });
+      // Prompt + Instrucción de realismo
+      parts.push({
+        text: prompt + " . Photorealistic, 8k, highly detailed portrait.",
+      });
 
       const payload = {
         contents: [{ parts }],
@@ -80,18 +83,22 @@ export default async function handler(req) {
       const imagePart = data.candidates?.[0]?.content?.parts?.find(
         (p) => p.inlineData
       );
-      if (!imagePart) throw new Error("No image generated");
+      if (!imagePart)
+        throw new Error(
+          "Google AI no devolvió ninguna imagen. Intenta simplificar el prompt."
+        );
 
+      // ✅ CORRECCIÓN: Enviamos SOLO la data cruda, sin el prefijo 'data:image...'
       return new Response(
         JSON.stringify({
-          base64: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`,
+          base64: imagePart.inlineData.data,
           mimeType: imagePart.inlineData.mimeType,
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // 3. ANÁLISIS DE IMAGEN
+    // 3. ANÁLISIS DE IMAGEN (MEJORADO)
     if (action === "analyzeImage") {
       const { model, imageBase64, mimeType } = body;
       const cleanBase64 = imageBase64.includes(",")
@@ -99,47 +106,23 @@ export default async function handler(req) {
         : imageBase64;
       const imagePart = { inlineData: { mimeType, data: cleanBase64 } };
 
-      // Count humans
-      const countData = await callGemini(model, "generateContent", {
-        contents: {
-          parts: [
-            imagePart,
-            { text: "How many prominent human subjects? Return number only." },
-          ],
-        },
-      });
-      const humanCount =
-        parseInt(
-          (countData.candidates?.[0]?.content?.parts?.[0]?.text || "0").trim()
-        ) || 0;
+      const analysisPromptText = `Act as a professional Director of Photography. Analyze this image to create a high-end prompt for AI image generation.
+      
+      Focus on these technical aspects:
+      1. **Subject Description:** Describe the pose, action, clothing texture, and expression. IMPORTANT: Use the placeholder @img1 for the person. DO NOT describe specific facial features.
+      2. **Lighting:** Identify the lighting setup (e.g., Rembrandt, Soft Butterfly), direction, and color temperature.
+      3. **Camera & Angle:** Estimate the lens focal length, aperture, and camera angle.
+      4. **Environment:** Describe the background and atmosphere.
+      5. **Style:** Cinematic tone, color grading.
 
-      // Check animals
-      const animalData = await callGemini(model, "generateContent", {
-        contents: { parts: [imagePart, { text: "Prominent animal? yes/no" }] },
-      });
-      const hasAnimal = (
-        animalData.candidates?.[0]?.content?.parts?.[0]?.text || ""
-      )
-        .toLowerCase()
-        .includes("yes");
-
-      let detectedSubjectType = "masculine";
-      let analysisPromptText =
-        'Analyze image for photography prompt. Start with "Subject Description".';
-
-      if (humanCount === 1 && hasAnimal) {
-        detectedSubjectType = "animal";
-        analysisPromptText = `Analyze image with 1 person and 1 animal. Describe Person (@img1) and Animal (@img2). Do NOT describe faces. Structure: Subject, Composition, Lighting, Color.`;
-      } else if (humanCount >= 2) {
-        detectedSubjectType = "couple";
-        analysisPromptText = `Analyze image with 2 people (@img1, @img2). Do NOT describe faces. Structure: Subject, Composition, Lighting, Color.`;
-      }
+      Format the output as a single, cohesive, detailed paragraph starting directly with "Subject Description:".`;
 
       const finalData = await callGemini(model, "generateContent", {
         contents: { parts: [imagePart, { text: analysisPromptText }] },
       });
       const promptResult =
         finalData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const detectedSubjectType = "masculine"; // Default
 
       return new Response(
         JSON.stringify({ prompt: promptResult, detectedSubjectType }),
