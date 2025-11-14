@@ -2,8 +2,6 @@ import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
 import { ENVIRONMENTS_ARRAY } from "../data/environmentsData";
 import { LIGHTING_SETUPS } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
-// Importamos POSES directamente si es un array, o la función si lo prefieres.
-// Para asegurar compatibilidad usamos POSES. Si tu archivo posesData exporta por defecto, ajusta aquí.
 import { POSES } from "../data/posesData";
 import Outfits_women from "../data/Outfits_women";
 import Outfits_men from "../data/Outfits_men";
@@ -19,24 +17,19 @@ async function callServer(action, body) {
       body: JSON.stringify({ action, ...body }),
     });
 
-    // Leemos el texto UNA sola vez para evitar el error "body stream already read"
     const responseText = await response.text();
 
     if (!response.ok) {
-      // Intentamos parsear el error si es JSON, si no, usamos el texto
       let errorMessage = responseText;
       try {
         const errorJson = JSON.parse(responseText);
         if (errorJson.error) errorMessage = errorJson.error;
-      } catch (e) {
-        // Si no es JSON, usamos el texto plano tal cual
-      }
+      } catch (e) {}
       throw new Error(
         `Error del servidor (${response.status}): ${errorMessage}`
       );
     }
 
-    // Si todo fue bien, parseamos el resultado
     return JSON.parse(responseText);
   } catch (error) {
     console.error(`Error en servicio Gemini [${action}]:`, error);
@@ -47,11 +40,10 @@ async function callServer(action, body) {
 // ---------------------------------------------------------------------------
 // 1. GENERACIÓN DE PROMPTS DE TEXTO
 // ---------------------------------------------------------------------------
-
 export const generateProfessionalPrompt = async (options) => {
   const {
     simpleIdea,
-    gender, // 'masculine', 'feminine', 'couple'
+    gender,
     shotType,
     cameraAngle,
     outfitId,
@@ -61,80 +53,65 @@ export const generateProfessionalPrompt = async (options) => {
     colorGradingId,
   } = options;
 
-  // 1. Definir referencia de sujeto (Crucial para Nano Banana)
   let subjectReference = `The subject's face and appearance should be based on the reference photo @img1.`;
   if (gender === "couple") {
-    subjectReference = `The subjects' faces and appearance should be based on their corresponding reference photos, @img1 and @img2.`;
+    subjectReference = `The subjects' faces based on references @img1 and @img2.`;
   } else if (gender === "animal") {
-    subjectReference = `If a person is present, face based on @img1. The animal based on @img2.`;
+    subjectReference = `Person based on @img1, animal based on @img2.`;
   }
 
-  // 2. Resolver listas de datos según género
-  let outfitList = [];
-  if (gender === "feminine") outfitList = Outfits_women;
-  else if (gender === "masculine") outfitList = Outfits_men;
-  else outfitList = [...Outfits_women, ...Outfits_men]; // Couple o default
-
-  // 3. Resolver lista de poses
-  // Asumimos que POSES es un array importado. Si usas getPosesByGender, úsalo aquí.
+  let outfitList =
+    gender === "feminine"
+      ? Outfits_women
+      : gender === "masculine"
+      ? Outfits_men
+      : [...Outfits_women, ...Outfits_men];
   const poseList = Array.isArray(POSES) ? POSES : [];
 
-  // 4. Construir System Instruction
-  const systemInstruction = `You are a world-class prompt engineer and virtual director of photography. Your task is to expand a user's simple idea into a structured, professional, point-by-point photography prompt in English.
-
+  const systemInstruction = `You are a world-class prompt engineer. Expand the user's simple idea into a structured photography prompt.
     **Instructions:**
-    1. Analyze the user's core idea: "${simpleIdea}". This is the main theme.
-    2. For each photographic category below, if the user selected a specific option, you MUST incorporate its essence.
-    3. If a category is 'Automatic', you MUST CHOOSE the single BEST option from the provided list to creatively and professionally enhance the user's idea.
-    4. Format the final output as a detailed, structured analysis. Headings: Subject Description, Composition & Framing, Environment & Background, Lighting, Color & Mood, and Technical Details & Style.
-    5. **CRITICAL RULE FOR SUBJECT:** In "Subject Description", describe clothing, pose, and expression. **DO NOT** describe physical appearance, face, age, or hair. Instead, conclude with: "${subjectReference}".
-    6. **Output Format:** Start directly with "Subject Description". No preambles.`;
+    1. Analyze: "${simpleIdea}".
+    2. Incorporate selected options.
+    3. Format: Subject Description, Composition, Environment, Lighting, Color.
+    4. **CRITICAL:** In "Subject Description", describe clothing and pose. **DO NOT** describe face/age/hair. End section with: "${subjectReference}".
+    5. Output: Start directly with "Subject Description".`;
 
-  // 5. Construir el contexto de opciones
   const textSections = [
-    `**User's Core Idea:** "${simpleIdea}"`,
-    `**Shot Type:** ${
+    `**User Idea:** "${simpleIdea}"`,
+    `**Shot:** ${
       shotType === "auto" || !shotType
-        ? `(Automatic - Choose from: ${SHOT_TYPES.map((s) => s.nameES).join(
-            ", "
-          )})`
-        : `(User Selected: ${
+        ? `(Automatic)`
+        : `(User: ${
             SHOT_TYPES.find((s) => s.id === shotType)?.nameES || shotType
           })`
     }`,
-    `**Camera Angle:** ${
+    `**Angle:** ${
       cameraAngle === "auto" || !cameraAngle
-        ? `(Automatic - Choose from: ${CAMERA_ANGLES.map((a) => a.nameES).join(
-            ", "
-          )})`
-        : `(User Selected: ${
+        ? `(Automatic)`
+        : `(User: ${
             CAMERA_ANGLES.find((a) => a.id === cameraAngle)?.nameES ||
             cameraAngle
           })`
     }`,
     `**Environment:** ${
       environmentId === "auto" || !environmentId
-        ? `(Automatic - Choose appropriate)`
-        : `(User Selected: ${
+        ? `(Automatic)`
+        : `(User: ${
             ENVIRONMENTS_ARRAY.find((e) => e.id === environmentId)?.name ||
             environmentId
           })`
     }`,
     `**Lighting:** ${
       lightingId === "auto" || !lightingId
-        ? `(Automatic - Choose from: ${LIGHTING_SETUPS.map((l) => l.name).join(
-            ", "
-          )})`
-        : `(User Selected: ${
+        ? `(Automatic)`
+        : `(User: ${
             LIGHTING_SETUPS.find((l) => l.id === lightingId)?.name || lightingId
           })`
     }`,
-    `**Color Grading:** ${
+    `**Color:** ${
       colorGradingId === "auto" || !colorGradingId
-        ? `(Automatic - Choose from: ${COLOR_GRADING_FILTERS.map(
-            (c) => c.name
-          ).join(", ")})`
-        : `(User Selected: ${
+        ? `(Automatic)`
+        : `(User: ${
             COLOR_GRADING_FILTERS.find((c) => c.id === colorGradingId)?.name ||
             colorGradingId
           })`
@@ -147,8 +124,8 @@ export const generateProfessionalPrompt = async (options) => {
       0,
       `**Outfit:** ${
         outfitId === "auto" || !outfitId
-          ? `(Automatic - Choose suitable)`
-          : `(User Selected: ${
+          ? `(Automatic)`
+          : `(User: ${
               outfitList.find((o) => o.id === outfitId)?.name || outfitId
             })`
       }`
@@ -158,20 +135,15 @@ export const generateProfessionalPrompt = async (options) => {
       0,
       `**Pose:** ${
         poseId === "auto" || !poseId
-          ? `(Automatic - Choose suitable)`
-          : `(User Selected: ${
-              poseList.find((p) => p.id === poseId)?.name || poseId
-            })`
+          ? `(Automatic)`
+          : `(User: ${poseList.find((p) => p.id === poseId)?.name || poseId})`
       }`
     );
   }
 
-  const fullPrompt = textSections.join("\n");
-
-  // 6. Llamada al Backend
   const response = await callServer("generateText", {
     model: "gemini-2.5-flash-lite",
-    prompt: fullPrompt,
+    prompt: textSections.join("\n"),
     systemInstruction,
   });
 
@@ -179,18 +151,23 @@ export const generateProfessionalPrompt = async (options) => {
 };
 
 // ---------------------------------------------------------------------------
-// 2. ANÁLISIS DE IMAGEN (¡Aquí estaba el error antes!)
+// 2. ANÁLISIS DE IMAGEN
 // ---------------------------------------------------------------------------
-
-/**
- * Analiza una imagen subida para extraer un prompt.
- * @param {string} fileBase64 - La imagen en formato base64
- * @param {string} mimeType - Tipo MIME (image/jpeg, etc.)
- */
 export const analyzeImage = async (fileBase64, mimeType) => {
   return await callServer("analyzeImage", {
     model: "gemini-2.5-flash-lite",
     imageBase64: fileBase64,
     mimeType,
+  });
+};
+
+// ---------------------------------------------------------------------------
+// 3. GENERACIÓN DE IMAGEN (¡ESTA ES LA QUE FALTABA!)
+// ---------------------------------------------------------------------------
+export const generateImageNano = async (prompt, faceImages) => {
+  return await callServer("generateImageNano", {
+    model: "gemini-2.5-flash-image",
+    prompt,
+    faceImages,
   });
 };
