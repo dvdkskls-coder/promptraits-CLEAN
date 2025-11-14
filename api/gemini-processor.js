@@ -57,6 +57,13 @@ export default async function handler(req) {
     // 2. GENERAR IMAGEN (NANO BANANA) - CORREGIDO AQUI
     if (action === "generateImageNano") {
       const { model, prompt, faceImages } = body;
+      if (!prompt) {
+        return new Response(JSON.stringify({ error: "Prompt is required" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
       const parts = [];
       if (faceImages?.length) {
         faceImages.forEach((img) => {

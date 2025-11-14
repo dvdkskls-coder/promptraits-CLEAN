@@ -208,24 +208,50 @@ export default function AdvancedGenerator() {
 
     if (showProTools && isPro) {
       const proParams = [];
-      if (proSettings.environment && proSettings.environment !== "auto") {
-        const env = safeEnvironments.find(
-          (e) => e.id === proSettings.environment
-        );
-        if (env) proParams.push(`Entorno: ${env.name}`);
-      }
-      if (proSettings.gender) {
-        const gender = GENDER_OPTIONS.find((g) => g.id === proSettings.gender);
-        if (gender) proParams.push(`Género: ${gender.name}`);
-      }
-      // ... Se pueden añadir más visualizaciones aquí si se desea
+
+      const proSettingsConfig = [
+        { key: "environment", label: "Entorno", data: safeEnvironments },
+        { key: "shotType", label: "Tipo de Plano", data: safeShotTypes },
+        {
+          key: "cameraAngle",
+          label: "Ángulo de Cámara",
+          data: safeCameraAngles,
+        },
+        { key: "gender", label: "Género", data: GENDER_OPTIONS },
+        { key: "pose", label: "Pose", data: safePoses },
+        { key: "outfit", label: "Atuendo", data: safeOutfits },
+        { key: "lighting", label: "Iluminación", data: safeLightingSetups },
+        {
+          key: "colorGrading",
+          label: "Filtro de Color",
+          data: safeColorGrading,
+        },
+      ];
+
+      proSettingsConfig.forEach(({ key, label, data }) => {
+        const selectedValue = proSettings[key];
+        if (selectedValue && selectedValue !== "auto") {
+          const item = data.find((d) => d.id === selectedValue);
+          if (item) {
+            proParams.push(`${label}: ${item.name}`);
+          }
+        }
+      });
 
       if (proParams.length > 0) {
         combinedPrompt += "\n\n" + proParams.join(" | ");
       }
     }
     setPrompt(combinedPrompt);
-  }, [userPrompt, selectedFeature, showProTools, proSettings, isPro]);
+  }, [
+    userPrompt,
+    selectedFeature,
+    showProTools,
+    proSettings,
+    isPro,
+    safeEnvironments,
+    GENDER_OPTIONS,
+  ]);
 
   // --------------------------------------------------------------------------
   // MANEJO DE ARCHIVOS
