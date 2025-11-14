@@ -204,12 +204,12 @@ function AppContent() {
     if (params.get("payment") === "success") {
       const handlePaymentSuccess = async () => {
         console.log("Pago exitoso detectado, refrescando perfil...");
-        setShowPaymentSuccess(true); 
-        await refreshProfile(); 
-        window.history.replaceState(null, '', window.location.pathname);
+        setShowPaymentSuccess(true);
+        await refreshProfile();
+        window.history.replaceState(null, "", window.location.pathname);
         setTimeout(() => {
           setShowPaymentSuccess(false);
-        }, 4000); 
+        }, 4000);
       };
       handlePaymentSuccess();
     }
@@ -424,7 +424,9 @@ function AppContent() {
                     </div>
                   </div>
                   <div className="flex items-center px-3 py-2 bg-[color:var(--surface)] rounded-lg">
-                    {isPro && <Crown className="w-4 h-4 text-[color:var(--primary)] mr-2" />}
+                    {isPro && (
+                      <Crown className="w-4 h-4 text-[color:var(--primary)] mr-2" />
+                    )}
                     <span className="text-sm font-medium">
                       {user.email?.split("@")[0]}
                     </span>
@@ -657,7 +659,8 @@ function AppContent() {
                       Desbloquea todos los presets
                     </h3>
                     <p className="text-muted mb-6 text-lg">
-                      Obtén acceso completo a los 12 presets profesionales con un plan PRO
+                      Obtén acceso completo a los 12 presets profesionales con
+                      un plan PRO
                     </p>
                     <button
                       onClick={() => setView("pricing")}
@@ -668,8 +671,8 @@ function AppContent() {
                     </button>
                   </div>
                 )}
-              </AnimatedSection>
-            </div>
+              </div>
+            </AnimatedSection>
           </>
         )}
 
