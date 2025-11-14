@@ -221,7 +221,6 @@ export default function AdvancedGenerator() {
 
       if (data.detectedGender) {
         setGender(data.detectedGender);
-        // Limpiar imágenes anteriores si cambia el modo (ej: de single a couple)
         setFaceImages([null, null]);
         setFacePreviews([null, null]);
       }
