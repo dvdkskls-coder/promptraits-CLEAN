@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai"; // ✅ LIBRERÍA NUEVA
 import { createClient } from "@supabase/supabase-js";
 
 const ai = new GoogleGenAI({
@@ -36,7 +36,6 @@ export default async function handler(req, res) {
 
     const parts = [];
 
-    // Procesar imágenes (Array)
     if (faceImages && Array.isArray(faceImages)) {
       faceImages.forEach((img) => {
         if (img && img.base64) {
@@ -44,7 +43,6 @@ export default async function handler(req, res) {
             ? img.base64.split("base64,")[1]
             : img.base64;
 
-          // Sintaxis @google/genai
           parts.push({
             inlineData: {
               data: cleanBase64,
@@ -57,18 +55,12 @@ export default async function handler(req, res) {
 
     parts.push({ text: prompt });
 
-    // Llamada con la nueva SDK
     const result = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: [{ role: "user", parts: parts }],
-      config: {
-        // En la nueva SDK, a veces se especifica la modalidad de respuesta,
-        // pero para imagenes suele devolver el inlineData automáticamente si el modelo es de imagen.
-      },
+      config: {},
     });
 
-    // En la nueva SDK, la estructura de respuesta puede variar ligeramente.
-    // Buscamos la parte de imagen en los candidatos.
     const responsePart = result.candidates?.[0]?.content?.parts?.find(
       (p) => p.inlineData
     );
