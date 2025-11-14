@@ -1,98 +1,161 @@
-import { GoogleGenAI } from "@google/genai";
+export const config = {
+  runtime: "edge",
+};
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY,
-});
-const MODEL_NAME = "gemini-2.5-flash";
+const API_KEY = process.env.GEMINI_API_KEY;
+const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
-  );
+async function callGemini(model, method, payload) {
+  const url = `${BASE_URL}/models/${model}:${method}?key=${API_KEY}`;
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Google API Error (${response.status}): ${errorText}`);
+  }
+
+  return await response.json();
+}
+
+export default async function handler(req) {
   try {
-    const { prompt: userIdea, referenceImage, mimeType, gender } = req.body;
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-    // 1. Preparar Imagen (Limpieza Base64)
-    let imagePart = null;
-    if (referenceImage) {
-      const cleanBase64 = referenceImage.includes("base64,")
-        ? referenceImage.split("base64,")[1]
-        : referenceImage;
+    const body = await req.json();
+    const { action } = body;
 
-      // Sintaxis nueva librería: objeto inlineData directo
-      imagePart = {
-        inlineData: { data: cleanBase64, mimeType: mimeType || "image/jpeg" },
+    // 1. GENERAR TEXTO
+    if (action === "generateText") {
+      const { model, prompt, systemInstruction } = body;
+
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: systemInstruction
+          ? { parts: [{ text: systemInstruction }] }
+          : undefined,
       };
+
+      const data = await callGemini(model, "generateContent", payload);
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+      return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // 2. Definir Referencia de Sujeto
-    let subjectRef =
-      "The subject's face and appearance should be based on the reference photo @img1.";
-    if (gender === "couple")
-      subjectRef =
-        "The subjects' faces should be based on reference photos @img1 and @img2.";
-    if (gender === "animal")
-      subjectRef = "The person is @img1 and the animal is @img2.";
+    // 2. GENERAR IMAGEN (NANO BANANA) - Añadido por si acaso lo usas aquí
+    if (action === "generateImageNano") {
+      const { model, prompt, faceImages } = body;
+      const parts = [];
+      if (faceImages?.length) {
+        faceImages.forEach((img) => {
+          // Limpiar base64 si viene con prefijo
+          const cleanData = img.base64.includes(",")
+            ? img.base64.split(",")[1]
+            : img.base64;
+          parts.push({
+            inlineData: { mimeType: img.mimeType, data: cleanData },
+          });
+        });
+      }
+      parts.push({ text: prompt });
 
-    // 3. Instrucciones del Sistema (Incrustadas para evitar errores)
-    const systemPrompt = `
-    You are a world-class Photography Director.
-    YOUR TASK: Analyze the input and return a JSON object with exactly two fields: "detailed" and "compact".
-    
-    Structure:
-    - FIELD "detailed": 8 lines strict. Headings: Image type, Subject Identity, Pose, Wardrobe, Lighting, Camera Specs, Style, Keywords.
-    - CRITICAL: In Subject Identity, WRITE EXACTLY: "${
-      referenceImage ? subjectRef : "Detailed subject description."
-    }"
-    - FIELD "compact": Single paragraph for Midjourney.
-    
-    Output ONLY valid JSON.
-    `;
+      const payload = {
+        contents: [{ parts }],
+        generationConfig: { responseModalities: ["IMAGE"] },
+      };
+      const data = await callGemini(model, "generateContent", payload);
 
-    // 4. Ejecución con la NUEVA librería (@google/genai)
-    let contents = [];
+      const imagePart = data.candidates?.[0]?.content?.parts?.find(
+        (p) => p.inlineData
+      );
+      if (!imagePart) throw new Error("No image generated");
 
-    if (imagePart) {
-      const promptText = userIdea
-        ? `User Idea: ${userIdea}. Analyze image.`
-        : `Analyze this image.`;
-      // En la nueva librería pasamos un array plano de partes
-      contents = [{ text: systemPrompt }, { text: promptText }, imagePart];
-    } else {
-      contents = [{ text: systemPrompt }, { text: `User Idea: ${userIdea}` }];
+      return new Response(
+        JSON.stringify({
+          base64: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`,
+          mimeType: imagePart.inlineData.mimeType,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
     }
 
-    // Llamada a la API nueva
-    const result = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: contents,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.7,
-      },
-    });
+    // 3. ANÁLISIS DE IMAGEN
+    if (action === "analyzeImage") {
+      const { model, imageBase64, mimeType } = body;
+      const cleanBase64 = imageBase64.includes(",")
+        ? imageBase64.split(",")[1]
+        : imageBase64;
+      const imagePart = { inlineData: { mimeType, data: cleanBase64 } };
 
-    // En la nueva librería se obtiene el texto así:
-    const responseText = result.text();
-    const jsonResponse = JSON.parse(responseText);
+      // Count humans
+      const countData = await callGemini(model, "generateContent", {
+        contents: {
+          parts: [
+            imagePart,
+            { text: "How many prominent human subjects? Return number only." },
+          ],
+        },
+      });
+      const humanCount =
+        parseInt(
+          (countData.candidates?.[0]?.content?.parts?.[0]?.text || "0").trim()
+        ) || 0;
 
-    return res.status(200).json({
-      detailed: jsonResponse.detailed,
-      compact: jsonResponse.compact,
-      detectedGender: null,
-      analysis: { score: 9.8 },
+      // Check animals
+      const animalData = await callGemini(model, "generateContent", {
+        contents: { parts: [imagePart, { text: "Prominent animal? yes/no" }] },
+      });
+      const hasAnimal = (
+        animalData.candidates?.[0]?.content?.parts?.[0]?.text || ""
+      )
+        .toLowerCase()
+        .includes("yes");
+
+      let detectedSubjectType = "masculine";
+      let analysisPromptText =
+        'Analyze image for photography prompt. Start with "Subject Description".';
+
+      if (humanCount === 1 && hasAnimal) {
+        detectedSubjectType = "animal";
+        analysisPromptText = `Analyze image with 1 person and 1 animal. Describe Person (@img1) and Animal (@img2). Do NOT describe faces. Structure: Subject, Composition, Lighting, Color.`;
+      } else if (humanCount >= 2) {
+        detectedSubjectType = "couple";
+        analysisPromptText = `Analyze image with 2 people (@img1, @img2). Do NOT describe faces. Structure: Subject, Composition, Lighting, Color.`;
+      }
+
+      const finalData = await callGemini(model, "generateContent", {
+        contents: { parts: [imagePart, { text: analysisPromptText }] },
+      });
+      const promptResult =
+        finalData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+      return new Response(
+        JSON.stringify({ prompt: promptResult, detectedSubjectType }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    return new Response(JSON.stringify({ error: "Action not found" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Gemini Processor Error:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("API Handler Error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
