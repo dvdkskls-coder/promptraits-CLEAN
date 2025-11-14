@@ -19,16 +19,25 @@ async function callServer(action, body) {
       body: JSON.stringify({ action, ...body }),
     });
 
+    // Leemos el texto UNA sola vez para evitar el error "body stream already read"
+    const responseText = await response.text();
+
     if (!response.ok) {
-      // Intentamos leer el error como JSON, si falla, texto plano
-      const errorData = await response.json().catch(() => null);
-      const errorMessage = errorData?.error || (await response.text());
+      // Intentamos parsear el error si es JSON, si no, usamos el texto
+      let errorMessage = responseText;
+      try {
+        const errorJson = JSON.parse(responseText);
+        if (errorJson.error) errorMessage = errorJson.error;
+      } catch (e) {
+        // Si no es JSON, usamos el texto plano tal cual
+      }
       throw new Error(
         `Error del servidor (${response.status}): ${errorMessage}`
       );
     }
 
-    return await response.json();
+    // Si todo fue bien, parseamos el resultado
+    return JSON.parse(responseText);
   } catch (error) {
     console.error(`Error en servicio Gemini [${action}]:`, error);
     throw error;
