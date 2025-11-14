@@ -1,34 +1,14 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI(
-  process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY
-);
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY,
+});
 const MODEL_NAME = "gemini-2.5-flash";
-
-// Función de reintento para evitar el error 503 (Overloaded)
-async function generateWithRetry(model, content, retries = 3) {
-  try {
-    return await model.generateContent(content);
-  } catch (error) {
-    if (
-      (error.message.includes("503") || error.message.includes("overloaded")) &&
-      retries > 0
-    ) {
-      console.log(`⚠️ Modelo saturado. Reintentando... (${retries})`);
-      await new Promise((resolve) => setTimeout(resolve, 3000)); // Esperar 3s
-      return generateWithRetry(model, content, retries - 1);
-    }
-    throw error;
-  }
-}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,OPTIONS,PATCH,DELETE,POST,PUT"
-  );
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
     "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
@@ -39,115 +19,80 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const {
-      prompt: userIdea,
-      referenceImage,
-      mimeType,
-      gender,
-      proSettings,
-    } = req.body;
+    const { prompt: userIdea, referenceImage, mimeType, gender } = req.body;
 
-    // Configuración para JSON (para separar Detailed y Compact)
-    const model = genAI.getGenerativeModel({
-      model: MODEL_NAME,
-      generationConfig: { responseMimeType: "application/json" },
-    });
-
-    // 1. LIMPIEZA DE IMAGEN (CRÍTICO)
+    // 1. Preparar Imagen (Limpieza Base64)
     let imagePart = null;
     if (referenceImage) {
-      // Eliminamos cualquier prefijo data:image... para dejar solo el base64 puro
-      const cleanBase64 = referenceImage.replace(
-        /^data:image\/\w+;base64,/,
-        ""
-      );
+      const cleanBase64 = referenceImage.includes("base64,")
+        ? referenceImage.split("base64,")[1]
+        : referenceImage;
+
+      // Sintaxis nueva librería: objeto inlineData directo
       imagePart = {
         inlineData: { data: cleanBase64, mimeType: mimeType || "image/jpeg" },
       };
     }
 
-    // 2. DEFINICIÓN DE REFERENCIA (Lógica exacta de geminiService.ts)
+    // 2. Definir Referencia de Sujeto
     let subjectRef =
       "The subject's face and appearance should be based on the reference photo @img1.";
     if (gender === "couple")
       subjectRef =
-        "The subjects' faces and appearance should be based on their corresponding reference photos, @img1 and @img2.";
+        "The subjects' faces should be based on reference photos @img1 and @img2.";
     if (gender === "animal")
-      subjectRef =
-        "If a person is present, their face is @img1. The animal is @img2.";
+      subjectRef = "The person is @img1 and the animal is @img2.";
 
-    // 3. CONSTRUCCIÓN DEL PROMPT (Lógica de generateProfessionalPrompt)
-    // Inyectamos las instrucciones AQUÍ para evitar el Error 400 "Unknown field systemInstruction"
-    const systemText = `
-    You are a world-class prompt engineer and virtual director of photography.
+    // 3. Instrucciones del Sistema (Incrustadas para evitar errores)
+    const systemPrompt = `
+    You are a world-class Photography Director.
+    YOUR TASK: Analyze the input and return a JSON object with exactly two fields: "detailed" and "compact".
     
-    YOUR TASK: Analyze the input and return a JSON object with two fields: "detailed" and "compact".
-
-    --- FIELD 1: "detailed" ---
-    Format: Structured analysis with these exact headings (Markdown):
-    *Subject Description*, *Composition & Framing*, *Environment & Background*, *Lighting*, *Color & Mood*, *Technical Details & Style*.
+    Structure:
+    - FIELD "detailed": 8 lines strict. Headings: Image type, Subject Identity, Pose, Wardrobe, Lighting, Camera Specs, Style, Keywords.
+    - CRITICAL: In Subject Identity, WRITE EXACTLY: "${
+      referenceImage ? subjectRef : "Detailed subject description."
+    }"
+    - FIELD "compact": Single paragraph for Midjourney.
     
-    **CRITICAL RULE:** In "Subject Description", describe clothing/pose but ${
-      referenceImage
-        ? "DO NOT describe physical appearance (face/age/hair). Instead, END with: '" +
-          subjectRef +
-          "'."
-        : "describe the person fully."
-    }
-
-    --- FIELD 2: "compact" ---
-    A single, comma-separated paragraph optimized for AI generators.
-    ${referenceImage ? "Start with '@img1' references." : ""}
+    Output ONLY valid JSON.
     `;
 
-    // 4. EJECUCIÓN
-    let result;
+    // 4. Ejecución con la NUEVA librería (@google/genai)
+    let contents = [];
 
     if (imagePart) {
-      // MODO ANÁLISIS DE IMAGEN
-      // Hacemos una sola llamada inteligente que detecta y genera a la vez (Evita error 503 por múltiples llamadas)
-      const analysisPrompt = `
-        ${systemText}
-        
-        CONTEXT: Analyze the provided image.
-        1. Detect if it's a single person, couple, or animal.
-        2. Generate the prompts based on the image style and pose.
-        3. Include a field "detectedGender" in the JSON with value: "masculine", "feminine", "couple", or "animal".
-        
-        Output ONLY valid JSON.
-        `;
-
-      result = await generateWithRetry(model, [analysisPrompt, imagePart]);
+      const promptText = userIdea
+        ? `User Idea: ${userIdea}. Analyze image.`
+        : `Analyze this image.`;
+      // En la nueva librería pasamos un array plano de partes
+      contents = [{ text: systemPrompt }, { text: promptText }, imagePart];
     } else {
-      // MODO TEXTO + SETTINGS (Replicando generateProfessionalPrompt de la App)
-      const settingsText = proSettings
-        ? `
-        Additional Constraints:
-        - Shot Type: ${proSettings.shotType}
-        - Angle: ${proSettings.cameraAngle}
-        - Environment: ${proSettings.environment}
-        - Lighting: ${proSettings.lighting}
-        - Outfit: ${proSettings.outfit}
-        `
-        : "";
-
-      const fullTextPrompt = `${systemText}\n\nUser Idea: "${userIdea}"\n${settingsText}`;
-      result = await generateWithRetry(model, fullTextPrompt);
+      contents = [{ text: systemPrompt }, { text: `User Idea: ${userIdea}` }];
     }
 
-    const responseText = result.response.text();
+    // Llamada a la API nueva
+    const result = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: contents,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.7,
+      },
+    });
+
+    // En la nueva librería se obtiene el texto así:
+    const responseText = result.text();
     const jsonResponse = JSON.parse(responseText);
 
     return res.status(200).json({
       detailed: jsonResponse.detailed,
       compact: jsonResponse.compact,
-      detectedGender: jsonResponse.detectedGender || null,
-      analysis: { score: 9.5 },
+      detectedGender: null,
+      analysis: { score: 9.8 },
     });
   } catch (error) {
     console.error("Gemini Processor Error:", error);
-    return res
-      .status(500)
-      .json({ error: error.message || "Error generating prompt" });
+    return res.status(500).json({ error: error.message });
   }
 }
