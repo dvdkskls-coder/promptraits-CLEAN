@@ -21,9 +21,11 @@ import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
 // ✅ IMPORTAR NUEVO SERVICIO (El cerebro inteligente)
+// Hemos añadido generateImageNano aquí 👇
 import {
   generateProfessionalPrompt,
   analyzeImage,
+  generateImageNano,
 } from "../services/geminiService";
 
 // ✅ IMPORTAR DATOS
@@ -329,7 +331,7 @@ export default function AdvancedGenerator() {
   };
 
   // --------------------------------------------------------------------------
-  // GENERAR IMAGEN (Nano Banana) - Mantiene endpoint original de imagen
+  // GENERAR IMAGEN (Nano Banana) - ACTUALIZADO AL NUEVO SERVICIO
   // --------------------------------------------------------------------------
   const handleGenerateImage = async () => {
     if (!response) return alert("Primero debes generar un prompt");
@@ -341,27 +343,26 @@ export default function AdvancedGenerator() {
     setGeneratedImages([]);
 
     try {
-      const formData = new FormData();
-      formData.append("prompt", response);
-      formData.append("aspectRatio", selectedAspectRatio);
-      formData.append("userId", user.id);
-      formData.append("selfieImage", selfieImage);
+      // 1. Convertir selfie a Base64
+      const base64 = await fileToBase64(selfieImage);
 
-      const res = await fetch("/api/generate-image", {
-        method: "POST",
-        body: formData,
-      });
+      // 2. Preparar datos para el servicio (prompt + selfie)
+      const faceImages = [
+        {
+          base64: base64,
+          mimeType: selfieImage.type,
+        },
+      ];
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Error al generar imagen");
-      }
+      // 3. Llamar al servicio nuevo (que llama a gemini-processor y funciona)
+      // NO llamamos a /api/generate-image, llamamos al servicio unificado.
+      const imageFile = await generateImageNano(response, faceImages);
 
-      const data = await res.json();
-      if (data.images?.length > 0) {
-        setGeneratedImages(data.images);
+      // 4. Mostrar resultado
+      if (imageFile && imageFile.base64) {
+        setGeneratedImages([imageFile]); // Lo metemos en un array porque tu UI espera un array
       } else {
-        throw new Error("No se generaron imágenes");
+        throw new Error("No se recibieron datos de imagen");
       }
 
       await refreshProfile();
