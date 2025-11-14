@@ -110,8 +110,8 @@ export default function AdvancedGenerator() {
     if (subjectType) {
       setDetectedSubjectType(subjectType);
       // Opcional: cambiar el género automáticamente si el análisis lo sugiere
-      if (['male', 'female', 'couple', 'animal'].includes(subjectType)) {
-        const genderMap = { male: 'masculine', female: 'feminine' };
+      if (["male", "female", "couple", "animal"].includes(subjectType)) {
+        const genderMap = { male: "masculine", female: "feminine" };
         setGender(genderMap[subjectType] || subjectType);
       }
     }
@@ -198,7 +198,21 @@ export default function AdvancedGenerator() {
                   3. Generar Imagen Final
                 </h3>
                 <p className="text-[#C1C1C1] text-sm mb-6">
-                 
+                  Sube tu selfie para aplicar tu cara al prompt generado.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
+                      Tu Selfie
+                    </label>
+                    {!selfiePreview ? (
+                      <label className="cursor-pointer block p-4 border-2 border-dashed border-[#D8C780] rounded-lg text-center hover:bg-[#D8C780]/10">
+                        <User className="w-8 h-8 text-[#D8C780] mx-auto mb-2" />
+                        <span className="text-[#D8C780]">Subir Selfie</span>
+                        <input
+                          type="file"
+                          accept="image/png, image/jpeg, image/webp"
                           onChange={handleSelfieChange}
                           className="hidden"
                         />
