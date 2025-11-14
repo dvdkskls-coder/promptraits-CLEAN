@@ -21,7 +21,6 @@ import { supabase } from "../lib/supabase";
 import AnimatedSection from "./AnimatedSection";
 import QualityAnalysis from "./QualityAnalysis";
 
-// DATOS
 import Outfits_women from "../data/Outfits_women";
 import Outfits_men from "../data/Outfits_men";
 import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
@@ -67,6 +66,7 @@ const GENDER_OPTIONS = [
   { id: "masculine", name: "Masculino" },
   { id: "feminine", name: "Femenino" },
   { id: "couple", name: "Pareja" },
+  { id: "animal", name: "Animal" },
 ];
 const VALID_ASPECT_RATIOS = [
   { id: "1:1", name: "Cuadrado" },
@@ -148,7 +148,6 @@ export default function AdvancedGenerator() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [copiedDetailed, setCopiedDetailed] = useState(false);
   const [copiedCompact, setCopiedCompact] = useState(false);
-
   const [openSections, setOpenSections] = useState({});
 
   const [gender, setGender] = useState("masculine");
@@ -184,7 +183,6 @@ export default function AdvancedGenerator() {
     setFacePreviews(newPrevs);
   };
 
-  // --- GENERAR PROMPT ---
   const handleGeneratePrompt = async (e) => {
     e.preventDefault();
     if (!userPrompt && !referenceImage)
@@ -216,13 +214,16 @@ export default function AdvancedGenerator() {
 
       setDetailedPrompt(data.detailed || "");
       setCompactPrompt(data.compact || "");
+      if (data.analysis) setQualityAnalysis(data.analysis);
 
-      if (data.detectedGender) setGender(data.detectedGender);
+      // ✅ Actualizar género si la IA detectó algo distinto (Auto-Detección)
+      if (data.detectedGender) {
+        setGender(data.detectedGender);
+        console.log("Género detectado:", data.detectedGender);
+      }
 
-      // Consumo de créditos y guardado seguro
       await consumeCredits(1);
       await refreshProfile();
-
       try {
         if (data.detailed)
           await savePromptToHistory(
@@ -230,9 +231,7 @@ export default function AdvancedGenerator() {
             { platform: "nano-banana" },
             null
           );
-      } catch (e) {
-        console.log("Historial no disponible (seguro)");
-      }
+      } catch (e) {}
     } catch (error) {
       alert("Error: " + error.message);
     } finally {
@@ -240,7 +239,6 @@ export default function AdvancedGenerator() {
     }
   };
 
-  // --- GENERAR IMAGEN ---
   const handleGenerateImage = async () => {
     const promptToUse = compactPrompt || detailedPrompt;
     if (!promptToUse) return alert("Primero genera un prompt.");
@@ -340,19 +338,19 @@ export default function AdvancedGenerator() {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                      Describe tu idea (o selecciona abajo)
+                      Describe tu idea (o selecciona opciones)
                     </label>
                     <textarea
                       value={userPrompt}
                       onChange={(e) => setUserPrompt(e.target.value)}
-                      placeholder="Ej: Retrato de un astronauta en la playa..."
+                      placeholder="Ej: Retrato de un astronauta..."
                       className="w-full h-48 bg-[#06060C]/50 text-white rounded-lg p-4 border border-[#2D2D2D] focus:border-[#D8C780] outline-none resize-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                      Imagen de Referencia (Analizador)
+                      Analizador de Imagen (Opcional)
                     </label>
                     {!imagePreview ? (
                       <label className="flex items-center gap-3 p-4 bg-[#06060C]/50 border border-[#2D2D2D] hover:border-[#D8C780] rounded-lg cursor-pointer transition-colors">
@@ -428,6 +426,7 @@ export default function AdvancedGenerator() {
                             { id: "masculine", n: "Hombre" },
                             { id: "feminine", n: "Mujer" },
                             { id: "couple", n: "Pareja" },
+                            { id: "animal", n: "Animal" },
                           ].map((g) => (
                             <button
                               key={g.id}
@@ -500,7 +499,7 @@ export default function AdvancedGenerator() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <h3 className="text-xl font-bold text-[#D8C780]">
-                        Prompt Detallado
+                        Prompt Detallado (8 Líneas)
                       </h3>
                       <button
                         onClick={() => {
@@ -517,10 +516,9 @@ export default function AdvancedGenerator() {
                         )}
                       </button>
                     </div>
-                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-64 overflow-y-auto">
+                    <div className="p-4 bg-[#06060C] border border-[#D8C780]/50 rounded-lg text-[#C1C1C1] text-sm whitespace-pre-wrap leading-relaxed h-96 overflow-y-auto font-mono">
                       {detailedPrompt}
                     </div>
-
                     {compactPrompt && (
                       <button
                         onClick={() => {
@@ -535,7 +533,7 @@ export default function AdvancedGenerator() {
                         ) : (
                           <FileText className="w-4 h-4" />
                         )}
-                        Copiar Prompt Compacto (Multiplataforma)
+                        Copiar Prompt Compacto
                       </button>
                     )}
                   </div>
@@ -543,7 +541,7 @@ export default function AdvancedGenerator() {
                   <div className="bg-[#06060C] border border-[#2D2D2D] rounded-xl p-6">
                     <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-[#D8C780]" /> Generar
-                      Imagen (Nano)
+                      Imagen
                     </h3>
                     {!isPro ? (
                       <div className="text-center text-sm text-red-400">
@@ -552,10 +550,10 @@ export default function AdvancedGenerator() {
                     ) : (
                       <div className="space-y-6">
                         <div className="flex justify-center gap-4">
-                          {gender === "couple" ? (
+                          {gender === "couple" || gender === "animal" ? (
                             <>
                               <SelfieUploader
-                                label="Sujeto 1"
+                                label="Sujeto 1 / Persona"
                                 onFileChange={handleFaceChange(0)}
                                 currentPreview={facePreviews[0]}
                                 onRemove={() => {
@@ -568,7 +566,7 @@ export default function AdvancedGenerator() {
                                 }}
                               />
                               <SelfieUploader
-                                label="Sujeto 2"
+                                label="Sujeto 2 / Animal"
                                 onFileChange={handleFaceChange(1)}
                                 currentPreview={facePreviews[1]}
                                 onRemove={() => {
@@ -583,7 +581,7 @@ export default function AdvancedGenerator() {
                             </>
                           ) : (
                             <SelfieUploader
-                              label="Selfie (Opcional)"
+                              label="Tu Selfie (Opcional)"
                               onFileChange={handleFaceChange(0)}
                               currentPreview={facePreviews[0]}
                               onRemove={() => {
@@ -607,7 +605,7 @@ export default function AdvancedGenerator() {
                           ) : (
                             <ImageIcon />
                           )}
-                          Generar Imagen
+                          Generar Imagen (1 crédito)
                         </button>
                       </div>
                     )}
