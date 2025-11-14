@@ -11,17 +11,21 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
-// --- RETRY LOGIC ---
+// --- FUNCIÓN DE REINTENTO MEJORADA ---
 async function generateWithRetry(params, retries = 3) {
   try {
     return await ai.models.generateContent(params);
   } catch (error) {
     const isOverloaded =
-      error.status === 503 || (error.message && error.message.includes("503"));
+      error.status === 503 ||
+      error.code === 503 ||
+      (error.message &&
+        (error.message.includes("503") ||
+          error.message.includes("overloaded")));
 
     if (isOverloaded && retries > 0) {
       console.log(`⚠️ Modelo Imagen 503. Reintentando... (${retries})`);
-      await new Promise((resolve) => setTimeout(resolve, 4000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       return generateWithRetry(params, retries - 1);
     }
     throw error;
@@ -78,13 +82,22 @@ export default async function handler(req, res) {
       config: {},
     });
 
-    const responsePart = result.candidates?.[0]?.content?.parts?.find(
-      (p) => p.inlineData
-    );
+    // Extracción segura de la imagen
+    let responsePart = null;
+    if (
+      result.candidates &&
+      result.candidates[0] &&
+      result.candidates[0].content &&
+      result.candidates[0].content.parts
+    ) {
+      responsePart = result.candidates[0].content.parts.find(
+        (p) => p.inlineData
+      );
+    }
 
     if (!responsePart) {
       throw new Error(
-        "La IA no devolvió una imagen. Puede ser un bloqueo de seguridad."
+        "La IA no devolvió una imagen. Puede ser un bloqueo de seguridad o el modelo no respondió correctamente."
       );
     }
 
@@ -98,6 +111,16 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Image Gen Error:", error);
+    const isOverloaded =
+      error.status === 503 || (error.message && error.message.includes("503"));
+    if (isOverloaded) {
+      return res
+        .status(503)
+        .json({
+          error:
+            "Modelo de imagen saturado. Intenta de nuevo en unos segundos.",
+        });
+    }
     return res.status(500).json({ error: error.message });
   }
 }
