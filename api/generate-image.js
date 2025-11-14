@@ -1,32 +1,15 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
 
-const genAI = new GoogleGenerativeAI(
-  process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY
-);
-// MODELO EXACTO DE TU APP
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY || process.env.VITE_GOOGLE_API_KEY,
+});
 const MODEL_NAME = "gemini-2.5-flash-image";
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
 );
-
-// Función de reintento
-async function generateWithRetry(model, content, retries = 3) {
-  try {
-    return await model.generateContent(content);
-  } catch (error) {
-    if (
-      (error.message.includes("503") || error.message.includes("overloaded")) &&
-      retries > 0
-    ) {
-      await new Promise((r) => setTimeout(r, 4000));
-      return generateWithRetry(model, content, retries - 1);
-    }
-    throw error;
-  }
-}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Credentials", true);
@@ -51,17 +34,17 @@ export default async function handler(req, res) {
     const { prompt, faceImages } = req.body;
     if (!prompt) throw new Error("Falta el prompt");
 
-    // Replicando la estructura de `generateImageNano`
     const parts = [];
 
+    // Procesar imágenes (Array)
     if (faceImages && Array.isArray(faceImages)) {
       faceImages.forEach((img) => {
         if (img && img.base64) {
-          // Limpieza crítica del Base64
-          const cleanBase64 = img.base64.replace(
-            /^data:image\/\w+;base64,/,
-            ""
-          );
+          const cleanBase64 = img.base64.includes("base64,")
+            ? img.base64.split("base64,")[1]
+            : img.base64;
+
+          // Sintaxis @google/genai
           parts.push({
             inlineData: {
               data: cleanBase64,
@@ -74,21 +57,26 @@ export default async function handler(req, res) {
 
     parts.push({ text: prompt });
 
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-
-    // Ejecución
-    const result = await generateWithRetry(model, {
+    // Llamada con la nueva SDK
+    const result = await ai.models.generateContent({
+      model: MODEL_NAME,
       contents: [{ role: "user", parts: parts }],
+      config: {
+        // En la nueva SDK, a veces se especifica la modalidad de respuesta,
+        // pero para imagenes suele devolver el inlineData automáticamente si el modelo es de imagen.
+      },
     });
 
-    const responsePart = result.response.candidates?.[0]?.content?.parts?.find(
+    // En la nueva SDK, la estructura de respuesta puede variar ligeramente.
+    // Buscamos la parte de imagen en los candidatos.
+    const responsePart = result.candidates?.[0]?.content?.parts?.find(
       (p) => p.inlineData
     );
 
-    if (!responsePart)
-      throw new Error(
-        "La IA no devolvió una imagen. Puede que el prompt sea inseguro o el modelo esté saturado."
-      );
+    if (!responsePart) {
+      console.log("Respuesta completa:", JSON.stringify(result, null, 2));
+      throw new Error("La IA no devolvió una imagen.");
+    }
 
     return res.status(200).json({
       images: [
@@ -99,7 +87,7 @@ export default async function handler(req, res) {
       ],
     });
   } catch (error) {
-    console.error("Gemini Image Gen Error:", error);
+    console.error("Image Gen Error:", error);
     return res.status(500).json({ error: error.message });
   }
 }

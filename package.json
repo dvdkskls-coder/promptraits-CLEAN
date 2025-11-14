@@ -13,7 +13,7 @@
         "test:coverage": "vitest --coverage"
     },
     "dependencies": {
-        "@google/generative-ai": "^0.1.3",
+        "@google/genai": "^1.29.1",
         "@supabase/supabase-js": "^2.75.1",
         "formidable": "^3.5.4",
         "google-auth-library": "^10.5.0",
