@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai"; // ✅ LIBRERÍA NUEVA
+import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
 
 const ai = new GoogleGenAI({
@@ -10,6 +10,23 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
 );
+
+// --- RETRY LOGIC ---
+async function generateWithRetry(params, retries = 3) {
+  try {
+    return await ai.models.generateContent(params);
+  } catch (error) {
+    const isOverloaded =
+      error.status === 503 || (error.message && error.message.includes("503"));
+
+    if (isOverloaded && retries > 0) {
+      console.log(`⚠️ Modelo Imagen 503. Reintentando... (${retries})`);
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      return generateWithRetry(params, retries - 1);
+    }
+    throw error;
+  }
+}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Credentials", true);
@@ -55,7 +72,7 @@ export default async function handler(req, res) {
 
     parts.push({ text: prompt });
 
-    const result = await ai.models.generateContent({
+    const result = await generateWithRetry({
       model: MODEL_NAME,
       contents: [{ role: "user", parts: parts }],
       config: {},
@@ -66,8 +83,9 @@ export default async function handler(req, res) {
     );
 
     if (!responsePart) {
-      console.log("Respuesta completa:", JSON.stringify(result, null, 2));
-      throw new Error("La IA no devolvió una imagen.");
+      throw new Error(
+        "La IA no devolvió una imagen. Puede ser un bloqueo de seguridad."
+      );
     }
 
     return res.status(200).json({
