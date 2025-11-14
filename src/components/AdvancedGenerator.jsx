@@ -66,7 +66,6 @@ const GENDER_OPTIONS = [
   { id: "masculine", name: "Masculino" },
   { id: "feminine", name: "Femenino" },
   { id: "couple", name: "Pareja" },
-  { id: "animal", name: "Animal" },
 ];
 const VALID_ASPECT_RATIOS = [
   { id: "1:1", name: "Cuadrado" },
@@ -148,6 +147,8 @@ export default function AdvancedGenerator() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [copiedDetailed, setCopiedDetailed] = useState(false);
   const [copiedCompact, setCopiedCompact] = useState(false);
+
+  const [showProTools, setShowProTools] = useState(false);
   const [openSections, setOpenSections] = useState({});
 
   const [gender, setGender] = useState("masculine");
@@ -216,14 +217,13 @@ export default function AdvancedGenerator() {
       setCompactPrompt(data.compact || "");
       if (data.analysis) setQualityAnalysis(data.analysis);
 
-      // ✅ Actualizar género si la IA detectó algo distinto (Auto-Detección)
       if (data.detectedGender) {
         setGender(data.detectedGender);
-        console.log("Género detectado:", data.detectedGender);
       }
 
       await consumeCredits(1);
       await refreshProfile();
+
       try {
         if (data.detailed)
           await savePromptToHistory(
@@ -231,7 +231,9 @@ export default function AdvancedGenerator() {
             { platform: "nano-banana" },
             null
           );
-      } catch (e) {}
+      } catch (e) {
+        console.log("Historial skip");
+      }
     } catch (error) {
       alert("Error: " + error.message);
     } finally {
@@ -338,7 +340,7 @@ export default function AdvancedGenerator() {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-[#C1C1C1] mb-2">
-                      Describe tu idea (o selecciona opciones)
+                      Describe tu idea (o selecciona abajo)
                     </label>
                     <textarea
                       value={userPrompt}
@@ -426,7 +428,6 @@ export default function AdvancedGenerator() {
                             { id: "masculine", n: "Hombre" },
                             { id: "feminine", n: "Mujer" },
                             { id: "couple", n: "Pareja" },
-                            { id: "animal", n: "Animal" },
                           ].map((g) => (
                             <button
                               key={g.id}
@@ -541,7 +542,7 @@ export default function AdvancedGenerator() {
                   <div className="bg-[#06060C] border border-[#2D2D2D] rounded-xl p-6">
                     <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-[#D8C780]" /> Generar
-                      Imagen
+                      Imagen (Nano)
                     </h3>
                     {!isPro ? (
                       <div className="text-center text-sm text-red-400">
@@ -550,10 +551,10 @@ export default function AdvancedGenerator() {
                     ) : (
                       <div className="space-y-6">
                         <div className="flex justify-center gap-4">
-                          {gender === "couple" || gender === "animal" ? (
+                          {gender === "couple" ? (
                             <>
                               <SelfieUploader
-                                label="Sujeto 1 / Persona"
+                                label="Sujeto 1"
                                 onFileChange={handleFaceChange(0)}
                                 currentPreview={facePreviews[0]}
                                 onRemove={() => {
@@ -566,7 +567,7 @@ export default function AdvancedGenerator() {
                                 }}
                               />
                               <SelfieUploader
-                                label="Sujeto 2 / Animal"
+                                label="Sujeto 2"
                                 onFileChange={handleFaceChange(1)}
                                 currentPreview={facePreviews[1]}
                                 onRemove={() => {
@@ -581,7 +582,7 @@ export default function AdvancedGenerator() {
                             </>
                           ) : (
                             <SelfieUploader
-                              label="Tu Selfie (Opcional)"
+                              label="Selfie (Opcional)"
                               onFileChange={handleFaceChange(0)}
                               currentPreview={facePreviews[0]}
                               onRemove={() => {
@@ -605,7 +606,7 @@ export default function AdvancedGenerator() {
                           ) : (
                             <ImageIcon />
                           )}
-                          Generar Imagen (1 crédito)
+                          Generar Imagen
                         </button>
                       </div>
                     )}
