@@ -1,10 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import {
   Camera,
   Check,
-  Instagram,
-  Send,
   Menu,
   X,
   Download,
@@ -12,11 +10,6 @@ import {
   Gift,
   Crown,
   Lock,
-  ChevronDown,
-  ChevronUp,
-  Lightbulb,
-  Trash2,
-  Upload,
   Sparkles,
 } from "lucide-react";
 
@@ -24,7 +17,6 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { supabase } from "./lib/supabase.js";
 
 import AnimatedSection from "./components/AnimatedSection.jsx";
-import CategoryTabs from "./components/CategoryTabs.jsx";
 
 import Login from "./components/Auth/Login.jsx";
 import Register from "./components/Auth/Register.jsx";
@@ -37,9 +29,6 @@ import Gallery from "./components/Gallery.jsx";
 import AdvancedGenerator from "./components/AdvancedGenerator.jsx";
 import History from "./components/History.jsx";
 
-import QualityAnalysis from "./components/QualityAnalysis.jsx";
-
-// Sistema Legal
 import Footer from "./components/Footer.jsx";
 import CookieBanner from "./components/CookieBanner.jsx";
 import LegalPages from "./pages/LegalPages.jsx";
@@ -55,6 +44,7 @@ import Caracteristicas from "./pages/Caracteristicas.jsx";
 // prompts externos
 import { ALL_PROMPTS } from "./data/prompts.js";
 
+// --- DATOS ---
 const CATEGORIES = [
   { id: "todos", name: "Todos" },
   { id: "hombre", name: "Hombre" },
@@ -64,7 +54,6 @@ const CATEGORIES = [
   { id: "pareja", name: "Parejas" },
 ];
 
-// PRESETS (3 free + 12 pro)
 const PRESETS = [
   {
     id: 1,
@@ -188,119 +177,11 @@ const PRESETS = [
   },
 ];
 
-const SCENARIOS = [
-  {
-    id: 1,
-    name: "Estudio Fondo Negro",
-    description: "Minimalista, dramático, fondo oscuro",
-    prompt: "Professional studio with seamless black backdrop...",
-  },
-  {
-    id: 2,
-    name: "Calle Europea Atardecer",
-    description: "Arquitectura clásica, luz dorada",
-    prompt: "Narrow European street at golden hour...",
-  },
-  {
-    id: 3,
-    name: "Playa Amanecer Contraluz",
-    description: "Costa, luz suave, horizonte marino",
-    prompt: "Sandy beach at sunrise...",
-  },
-  {
-    id: 4,
-    name: "Urbano Nocturno Neones",
-    description: "Ciudad de noche, luces vibrantes",
-    prompt: "Night city street with neon signs...",
-  },
-  {
-    id: 5,
-    name: "Interior Ventana Natural",
-    description: "Luz de ventana lateral suave",
-    prompt: "Indoor setting with large window as single light source...",
-  },
-  {
-    id: 6,
-    name: "Bosque Niebla Atmosférico",
-    description: "Naturaleza, bruma, luz filtrada",
-    prompt: "Misty forest setting...",
-  },
-  {
-    id: 7,
-    name: "Azotea Ciudad Atardecer",
-    description: "Skyline urbano, golden hour",
-    prompt: "Rooftop location at sunset...",
-  },
-  {
-    id: 8,
-    name: "Industrial Warehouse Oscuro",
-    description: "Grungy, luces prácticas, textura",
-    prompt: "Dark industrial warehouse...",
-  },
-];
-
-// Packs de recarga
-const CREDIT_PACKS = [
-  { credits: 20, price: "3.99" },
-  { credits: 50, price: "8.99" },
-  { credits: 100, price: "15.99" },
-];
-
-// Planes y créditos
-const SUBSCRIPTION_PLANS = [
-  {
-    name: "FREE",
-    price: "0",
-    priceLabel: "0€",
-    period: "/mes",
-    popular: false,
-    credits: 3,
-    features: [
-      "3 créditos al registrarse",
-      "Newsletter con consejos y trucos",
-      "Acceso a galería pública",
-      "Presets free",
-      "Comprar créditos",
-    ],
-  },
-  {
-    name: "PRO",
-    price: "6.99",
-    priceLabel: "6.99€",
-    period: "/mes",
-    popular: true,
-    credits: 60,
-    features: [
-      "60 créditos/mes",
-      "Generador de PROMPTS con IA",
-      "Newsletter con consejos y trucos",
-      "Acceso a galería pública",
-      "Presets PRO",
-      "Comprar créditos",
-    ],
-  },
-  {
-    name: "PREMIUM",
-    displayName: "PRO",
-    price: "19.99",
-    priceLabel: "19.99€",
-    period: "/mes",
-    popular: false,
-    credits: 300,
-    features: [
-      "300 créditos/mes",
-      "Generador de PROMPTS con IA",
-      "Asesoría 1 a 1",
-      "Newsletter con consejos y trucos",
-      "Acceso a galería pública",
-      "Presets PRO",
-      "Comprar créditos",
-    ],
-  },
-];
-
+// ============================================================================
+// COMPONENTE AppContent
+// ============================================================================
 function AppContent() {
-  const { user, profile, isLoading, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
 
   const [view, setView] = useState("home");
   const [showAuth, setShowAuth] = useState(false);
@@ -315,57 +196,55 @@ function AppContent() {
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
-  // Verificar query params
+  // ============================================================================
+  // LÓGICA DE PAGO
+  // ============================================================================
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
-      setShowPaymentSuccess(true);
-      setTimeout(() => {
-        setShowPaymentSuccess(false);
-        window.location.href = window.location.pathname;
-      }, 3000);
+      const handlePaymentSuccess = async () => {
+        console.log("Pago exitoso detectado, refrescando perfil...");
+        setShowPaymentSuccess(true); 
+        await refreshProfile(); 
+        window.history.replaceState(null, '', window.location.pathname);
+        setTimeout(() => {
+          setShowPaymentSuccess(false);
+        }, 4000); 
+      };
+      handlePaymentSuccess();
     }
-  }, []);
+  }, [refreshProfile]);
 
-  // Refrescar si el usuario está logueado
   useEffect(() => {
     if (user) {
       refreshProfile();
     }
-  }, [user, refreshProfile]);
+  }, [user]);
 
-  // Manejo de plan
   const handlePlanSelection = async (plan) => {
     if (!user) {
       setShowAuth(true);
       setAuthMode("login");
       return;
     }
-
     if (plan.name === "FREE") {
       return;
     }
-
     setSelectedPlan(plan);
     setShowCheckout(true);
   };
 
-  // Cerrar sesión
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setShowUserMenu(false);
     setView("home");
   };
 
-  // Función de copia
   const handleCopyPreset = async (preset) => {
-    // Solo copiar si es FREE o usuario tiene plan PRO
     if (!preset.free && !isPro) {
-      // Si es PRO sin plan, redirigir a planes
       setView("pricing");
       return;
     }
-
     try {
       await navigator.clipboard.writeText(preset.promptBlock);
       setShowCopyNotification(true);
@@ -378,7 +257,6 @@ function AppContent() {
     }
   };
 
-  // Menú de navegación
   const navItems = [
     { label: "Inicio", value: "home" },
     { label: "Galería", value: "gallery" },
@@ -386,9 +264,6 @@ function AppContent() {
     { label: "Presets", value: "presets" },
     { label: "Planes", value: "pricing" },
   ];
-
-  // Mi Perfil e Historial ya no se muestran en el menú principal
-  // Están accesibles desde el botón de usuario (UserMenu)
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--fg)]">
@@ -539,7 +414,6 @@ function AppContent() {
 
               {user && (
                 <div className="pt-3 border-t border-[color:var(--border)] space-y-2">
-                  {/* Créditos */}
                   <div className="flex items-center justify-between px-3 py-2 bg-[color:var(--surface)] rounded-lg">
                     <span className="text-sm text-muted">Créditos</span>
                     <div className="flex items-center">
@@ -549,16 +423,12 @@ function AppContent() {
                       </span>
                     </div>
                   </div>
-
-                  {/* Usuario */}
                   <div className="flex items-center px-3 py-2 bg-[color:var(--surface)] rounded-lg">
                     {isPro && <Crown className="w-4 h-4 text-[color:var(--primary)] mr-2" />}
                     <span className="text-sm font-medium">
                       {user.email?.split("@")[0]}
                     </span>
                   </div>
-
-                  {/* Mi Perfil */}
                   <button
                     type="button"
                     onClick={() => {
@@ -569,8 +439,6 @@ function AppContent() {
                   >
                     Mi Perfil
                   </button>
-
-                  {/* Historial */}
                   <button
                     type="button"
                     onClick={() => {
@@ -581,8 +449,6 @@ function AppContent() {
                   >
                     Historial
                   </button>
-
-                  {/* Cerrar Sesión */}
                   <button
                     type="button"
                     onClick={() => {
@@ -719,7 +585,6 @@ function AppContent() {
                 <div className="grid md:grid-cols-3 gap-6 mb-8">
                   {PRESETS.slice(0, 6).map((preset) => {
                     const canView = preset.free || isPro;
-
                     return (
                       <div
                         key={preset.id}
@@ -754,8 +619,6 @@ function AppContent() {
                         <p className="text-sm text-[color:var(--primary)] mb-3">
                           {preset.subtitle}
                         </p>
-
-                        {/* ✅ Contenido: mostrar si canView, sino mensaje bloqueado */}
                         <div className="mb-4 min-h-[60px]">
                           {canView ? (
                             <p className="text-xs text-muted line-clamp-3">
@@ -773,8 +636,6 @@ function AppContent() {
                             </div>
                           )}
                         </div>
-
-                        {/* Footer */}
                         {canView ? (
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
                             <Copy className="w-3 h-3 mr-1" />
@@ -789,42 +650,49 @@ function AppContent() {
                     );
                   })}
                 </div>
-                <div className="text-center">
-                  <button
-                    onClick={() => setView("presets")}
-                    className="px-8 py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition"
-                  >
-                    Ver Todos los Presets
-                  </button>
-                </div>
-              </div>
-            </AnimatedSection>
-
-            {/* CTA Guía PDF */}
-            <section className="py-12 px-4">
-              <div className="max-w-7xl mx-auto text-center">
-                <h3 className="text-2xl font-heading font-semibold mb-3">
-                  Guía para crear PROMPTS de retratos profesional{" "}
-                  <span className="text-[color:var(--primary)]">GRATIS</span>
-                </h3>
-                <p className="text-lg text-muted mb-6">
-                  Descarga nuestra guía en pdf
-                </p>
-                <a
-                  href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf"
-                  download
-                  className="inline-flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg transition-all"
-                >
-                  <Download className="w-5 h-5" />
-                  <span>Descargar guía GRATIS</span>
-                </a>
-              </div>
-            </section>
-
-            {/* Footer */}
-            {/* Footer antiguo eliminado - Ahora se usa el componente Footer al final del AppContent */}
+                {!isPro && (
+                  <div className="mt-12 text-center bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl p-8">
+                    <Crown className="w-16 h-16 text-[color:var(--primary)] mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold mb-2">
+                      Desbloquea todos los presets
+                    </h3>
+                    <p className="text-muted mb-6 text-lg">
+                      Obtén acceso completo a los 12 presets profesionales con un plan PRO
+                    </p>
+                    <button
+                      onClick={() => setView("pricing")}
+                      className="px-8 py-4 bg-[color:var(--primary)] text-black font-bold rounded-full text-lg hover:opacity-90 transition inline-flex items-center"
+                    >
+                      <Crown className="w-5 h-5 mr-2" />
+                      Ver Planes
+                    </button>
+                  </div>
+                )}
+              </AnimatedSection>
+            </div>
           </>
         )}
+
+        {/* CTA Guía PDF */}
+        <section className="py-12 px-4">
+          <div className="max-w-7xl mx-auto text-center">
+            <h3 className="text-2xl font-heading font-semibold mb-3">
+              Guía para crear PROMPTS de retratos profesional{" "}
+              <span className="text-[color:var(--primary)]">GRATIS</span>
+            </h3>
+            <p className="text-lg text-muted mb-6">
+              Descarga nuestra guía en pdf
+            </p>
+            <a
+              href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf"
+              download
+              className="inline-flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg transition-all"
+            >
+              <Download className="w-5 h-5" />
+              <span>Descargar guía GRATIS</span>
+            </a>
+          </div>
+        </section>
 
         {/* GALERÍA */}
         {view === "gallery" && <Gallery />}
@@ -987,7 +855,6 @@ function AppContent() {
           <Profile
             onNavigate={(viewName) => setView(viewName)}
             onAccountDeleted={() => {
-              // Refrescar la página automáticamente al eliminar cuenta
               window.location.reload();
             }}
           />
@@ -1068,21 +935,18 @@ function AppContent() {
               ¡Pago Exitoso!
             </h2>
             <p className="text-gray-400 mb-6">
-              Tu compra se ha procesado correctamente. Actualizando tus
+              Tu compra se ha procesado correctamente. Actualizando tu plan y
               créditos...
             </p>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--primary)] mx-auto"></div>
             <p className="text-sm text-gray-500 mt-4">
-              Recargando en 3 segundos...
+              Serás redirigido en breve...
             </p>
           </div>
         </div>
       )}
 
-      {/* Footer en todas las páginas */}
       <Footer />
-
-      {/* Banner de Cookies */}
       <CookieBanner />
     </div>
   );
@@ -1093,15 +957,10 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Ruta principal de la aplicación */}
           <Route path="/" element={<AppContent />} />
-
-          {/* Rutas del sistema legal */}
           <Route path="/legal/:page" element={<LegalPages />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
-
-          {/* Páginas nuevas */}
           <Route path="/guia" element={<GuiaUso />} />
           <Route path="/ejemplos" element={<Ejemplos />} />
           <Route path="/planes" element={<PlanesPrecios />} />
