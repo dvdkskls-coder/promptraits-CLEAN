@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Wand2, FileSearch, Star } from "lucide-react";
 import PromptGenerator from "./PromptGenerator";
-import ImageAnalyzer from "./ImageAnalyzer"; // Importar el nuevo componente
+import { ImageAnalyzer } from "./ImageAnalyzer"; // Importar el nuevo componente
 
 // Placeholder para los otros componentes de pestañas
 const PresetPrompts = () => (
