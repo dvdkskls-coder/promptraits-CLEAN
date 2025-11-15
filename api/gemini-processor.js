@@ -131,16 +131,17 @@ const ACTIONS = {
   analyzeImage: async (params) => {
     const { image, mimeType } = params;
     if (!image || !mimeType) {
-      throw new Error(
-        "Se requiere una imagen y su tipo MIME para el análisis."
-      );
+      throw new Error("Se requiere una imagen y su tipo MIME para el análisis.");
     }
+
+    // Limpiar el prefijo 'data:image/jpeg;base64,' si existe
+    const base64Data = image.includes(',') ? image.split(',')[1] : image;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const imagePart = {
       inlineData: {
-        data: image,
+        data: base64Data, // Usar los datos limpios
         mimeType,
       },
     };
@@ -226,14 +227,21 @@ const ACTIONS = {
    */
   generateImageNano: async (params) => {
     const { prompt, faceImages } = params;
-    if (!prompt || !faceImages || faceImages.length === 0) {
+    if (!prompt || !faceImages || !faceImages.length) {
       throw new Error("Se requiere un prompt y al menos una imagen de cara.");
     }
 
     const model = genAI.getGenerativeModel({ model: "nano-1.0" });
+
+    // Limpiar el base64 de las imágenes de cara
+    const cleanedFaceImages = faceImages.map(img => ({
+      ...img,
+      base64: img.base64.includes(',') ? img.base64.split(',')[1] : img.base64,
+    }));
+
     const result = await model.generateContent([
       prompt,
-      ...faceImages.map((img) => ({
+      ...cleanedFaceImages.map((img) => ({
         inlineData: { data: img.base64, mimeType: img.mimeType },
       })),
     ]);
@@ -245,40 +253,15 @@ const ACTIONS = {
 // =================================================================
 // 🚪 HANDLER PRINCIPAL (PUNTO DE ENTRADA)
 // =================================================================
-export default async function handler(req) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-    });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
     const body = await req.json();
-    const { action } = body;
+    const { action, ...params } = body; // Separar la acción de los parámetros
 
     const actionFn = ACTIONS[action];
 
-    if (actionFn) {
-      const result = await actionFn(body);
-      return new Response(JSON.stringify(result), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    } else {
-      return new Response(JSON.stringify({ error: "Action not found" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-  } catch (error) {
-    console.error(
-      `[HANDLER_ERROR] Action: ${req.body ? req.body.action : "N/A"}`,
-      error
-    );
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-}
+    if
