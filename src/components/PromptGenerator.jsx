@@ -12,7 +12,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Wand2 } from "lucide-react";
 import { processAndSetItems } from "../utils/dataProcessor";
-import { generateProfessionalPrompt } from "../utils/apiService";
+import { generateProfessionalPrompt } from "../services/geminiService";
 
 // Importación de datos
 import { ENVIRONMENTS as environments } from "../data/environmentsData";
