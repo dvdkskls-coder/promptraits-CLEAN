@@ -1132,7 +1132,11 @@ async function generateProfessionalProfileAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generateProfessionalProfile", payload);
+  const result = await callGoogleAI(
+    model,
+    "generateProfessionalProfile",
+    payload
+  );
   return { professionalProfile: result.candidates[0].text };
 }
 
@@ -1692,7 +1696,11 @@ async function generateDissertationSummaryAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generateDissertationSummary", payload);
+  const result = await callGoogleAI(
+    model,
+    "generateDissertationSummary",
+    payload
+  );
   return { dissertationSummary: result.candidates[0].text };
 }
 
@@ -1712,7 +1720,11 @@ async function generateCourseWorkSummaryAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generateCourseWorkSummary", payload);
+  const result = await callGoogleAI(
+    model,
+    "generateCourseWorkSummary",
+    payload
+  );
   return { courseWorkSummary: result.candidates[0].text };
 }
 
@@ -1752,7 +1764,11 @@ async function generatePresentationSummaryAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generatePresentationSummary", payload);
+  const result = await callGoogleAI(
+    model,
+    "generatePresentationSummary",
+    payload
+  );
   return { presentationSummary: result.candidates[0].text };
 }
 
@@ -1952,7 +1968,11 @@ async function generateTongueTwisterSummaryAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generateTongueTwisterSummary", payload);
+  const result = await callGoogleAI(
+    model,
+    "generateTongueTwisterSummary",
+    payload
+  );
   return { tongueTwisterSummary: result.candidates[0].text };
 }
 
@@ -1992,7 +2012,11 @@ async function generateHorrorStorySummaryAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generateHorrorStorySummary", payload);
+  const result = await callGoogleAI(
+    model,
+    "generateHorrorStorySummary",
+    payload
+  );
   return { horrorStorySummary: result.candidates[0].text };
 }
 
@@ -2012,7 +2036,11 @@ async function generateSciFiStorySummaryAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generateSciFiStorySummary", payload);
+  const result = await callGoogleAI(
+    model,
+    "generateSciFiStorySummary",
+    payload
+  );
   return { sciFiStorySummary: result.candidates[0].text };
 }
 
@@ -2032,7 +2060,11 @@ async function generateRomanceStorySummaryAction({ description }) {
     presencePenalty: 0,
   };
 
-  const result = await callGoogleAI(model, "generateRomanceStorySummary", payload);
+  const result = await callGoogleAI(
+    model,
+    "generateRomanceStorySummary",
+    payload
+  );
   return { romanceStorySummary: result.candidates[0].text };
 }
 
@@ -2049,4 +2081,65 @@ async function generateAdventureStorySummaryAction({ description }) {
     temperature: 0.7,
     topP: 0.9,
     frequencyPenalty: 0,
-    presence
+    presencePenalty: 0,
+  };
+
+  const result = await callGoogleAI(
+    model,
+    "generateAdventureStorySummary",
+    payload
+  );
+  return { adventureStorySummary: result.candidates[0].text };
+}
+
+// =================================================================
+// 🚀 PUNTO DE ENTRADA PRINCIPAL (HANDLER)
+// =================================================================
+
+export default async function handler(req) {
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const { action, ...body } = await req.json();
+
+    if (!action) {
+      return new Response(JSON.stringify({ error: "Action is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    let result;
+    switch (action) {
+      case "generate-text":
+        result = await generateTextAction(body);
+        break;
+      case "analyze-image":
+        result = await analyzeImageAction(body);
+        break;
+      // Agrega aquí los otros casos para cada acción
+      default:
+        return new Response(JSON.stringify({ error: "Invalid action" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+    }
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error in handler:", error);
+    const errorMessage = error.message || "An internal server error occurred.";
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
