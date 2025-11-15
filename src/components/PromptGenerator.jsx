@@ -14,12 +14,12 @@ import { Wand2 } from "lucide-react";
 import { processAndSetItems } from "../utils/dataProcessor";
 
 // Importación de datos
-import { environments } from "../data/environmentsData";
-import { poses } from "../data/posesData";
-import { shotTypes } from "../data/shotTypesData";
-import { outfitStyles } from "../data/outfitStylesData";
-import { lighting } from "../data/lightingData";
-import { colorGrading } from "../data/colorGradingData";
+import { ENVIRONMENTS as environments } from "../data/environmentsData";
+import { POSES as poses } from "../data/posesData";
+import { SHOT_TYPES as shotTypes } from "../data/shotTypesData";
+import { OUTFIT_STYLES as outfitStyles } from "../data/outfitStylesData";
+import { LIGHTING_SETUPS as lighting } from "../data/lightingData";
+import { COLOR_GRADING_FILTERS as colorGrading } from "../data/colorGradingData";
 import { cameras } from "../data/camerasData";
 import { lenses } from "../data/lensesData";
 import { filmEmulations } from "../data/filmEmulationsData";
