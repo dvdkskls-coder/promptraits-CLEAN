@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Wand2 } from "lucide-react";
-import { processAndSetItems } from "../../utils/dataProcessor";
+import { processAndSetItems } from "../utils/dataProcessor";
 
 // Importación de datos
 import { environments } from "../../data/environmentsData";
