@@ -14,15 +14,15 @@ import { Wand2 } from "lucide-react";
 import { processAndSetItems } from "../utils/dataProcessor";
 
 // Importación de datos
-import { environments } from "../../data/environmentsData";
-import { poses } from "../../data/posesData";
-import { shotTypes } from "../../data/shotTypesData";
-import { outfitStyles } from "../../data/outfitStylesData";
-import { lighting } from "../../data/lightingData";
-import { colorGrading } from "../../data/colorGradingData";
-import { cameras } from "../../data/camerasData";
-import { lenses } from "../../data/lensesData";
-import { filmEmulations } from "../../data/filmEmulationsData";
+import { environments } from "../data/environmentsData";
+import { poses } from "../data/posesData";
+import { shotTypes } from "../data/shotTypesData";
+import { outfitStyles } from "../data/outfitStylesData";
+import { lighting } from "../data/lightingData";
+import { colorGrading } from "../data/colorGradingData";
+import { cameras } from "../data/camerasData";
+import { lenses } from "../data/lensesData";
+import { filmEmulations } from "../data/filmEmulationsData";
 
 const Section = ({ title, children }) => (
   <Card className="bg-gray-800 border border-gray-700 rounded-lg">
