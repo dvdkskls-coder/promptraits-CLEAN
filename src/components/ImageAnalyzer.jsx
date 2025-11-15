@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import {
-  ScanSearch,
+  FileSearch, // Corregido: ScanSearch -> FileSearch
   Loader2,
   UploadCloud,
   Trash2,
@@ -136,7 +136,7 @@ export const ImageAnalyzer = ({ onPromptReady, isPro }) => {
         {isLoading ? (
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
-          <ScanSearch className="w-5 h-5" />
+          <FileSearch className="w-5 h-5" />
         )}
         {isLoading ? "Analizando..." : "Analizar Imagen (1 Crédito)"}
       </button>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Wand2, ScanSearch, Star } from "lucide-react";
+import { Wand2, FileSearch, Star } from "lucide-react";
 import { PromptGenerator } from "./PromptGenerator";
 import { ImageAnalyzer } from "./ImageAnalyzer"; // Importar el nuevo componente
 
@@ -20,7 +20,7 @@ export const PromptLab = ({ onPromptGenerated, gender, setGender, isPro }) => {
 
   const tabs = [
     { id: "manual", label: "Manual", icon: Wand2 },
-    { id: "analyzer", label: "Analizador", icon: ScanSearch },
+    { id: "analyzer", label: "Analizador", icon: FileSearch },
     { id: "presets", label: "Presets", icon: Star },
   ];
 

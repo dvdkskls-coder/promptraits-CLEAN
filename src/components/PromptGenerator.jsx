@@ -13,15 +13,34 @@ import { LIGHTING_SETUPS } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
 
 // Convertir objetos a arrays para los selectores
-const environments = Object.values(ENVIRONMENTS).map(e => ({ value: e.prompt, label: e.name }));
+const environments = Object.values(ENVIRONMENTS).map((e) => ({
+  value: e.prompt,
+  label: e.name,
+}));
 const poses = POSES; // Se manejará dinámicamente según el género
-const shotTypes = SHOT_TYPES.map(s => ({ value: s.keywords, label: s.name }));
-const outfitStyles = Object.values(OUTFIT_STYLES).map(s => ({ value: s.id, label: s.name }));
-const outfitsMen = Outfits_men.map(o => ({ value: o.keywords, label: o.name, style: o.id.includes('elegant') ? 'elegant' : 'casual' })); // Asignar estilo basado en ID
-const outfitsWomen = Outfits_women.map(o => ({ value: o.keywords, label: o.name, style: o.id.includes('elegant') ? 'elegant' : 'casual' })); // Asignar estilo basado en ID
-const lighting = LIGHTING_SETUPS.map(l => ({ value: l.keywords, label: l.name }));
-const colorGrading = COLOR_GRADING_FILTERS.map(c => ({ value: c.keywords, label: c.name }));
-
+const shotTypes = SHOT_TYPES.map((s) => ({ value: s.keywords, label: s.name }));
+const outfitStyles = Object.values(OUTFIT_STYLES).map((s) => ({
+  value: s.id,
+  label: s.name,
+}));
+const outfitsMen = Outfits_men.map((o) => ({
+  value: o.keywords,
+  label: o.name,
+  style: o.id.includes("elegant") ? "elegant" : "casual",
+})); // Asignar estilo basado en ID
+const outfitsWomen = Outfits_women.map((o) => ({
+  value: o.keywords,
+  label: o.name,
+  style: o.id.includes("elegant") ? "elegant" : "casual",
+})); // Asignar estilo basado en ID
+const lighting = LIGHTING_SETUPS.map((l) => ({
+  value: l.keywords,
+  label: l.name,
+}));
+const colorGrading = COLOR_GRADING_FILTERS.map((c) => ({
+  value: c.keywords,
+  label: c.name,
+}));
 
 // Componente reutilizable para un selector
 const ProSelect = ({ label, value, onChange, options, pro, disabled }) => (
@@ -61,7 +80,9 @@ ProSelect.propTypes = {
 
 export const PromptGenerator = ({ onPromptReady, isPro, gender }) => {
   // Determinar qué lista de poses usar
-  const poseOptions = (gender === 'masculine' ? poses.masculine : poses.feminine).map(p => ({ value: p.keywords, label: p.name }));
+  const poseOptions = (
+    gender === "masculine" ? poses.masculine : poses.feminine
+  ).map((p) => ({ value: p.keywords, label: p.name }));
 
   // Estados para cada parte del prompt
   const [environment, setEnvironment] = useState(environments[0].value);
@@ -74,35 +95,39 @@ export const PromptGenerator = ({ onPromptReady, isPro, gender }) => {
   const [camera, setCamera] = useState("Sony A7R IV");
   const [lens, setLens] = useState("Zeiss Planar T* 50mm f/1.4");
   const [filmStock, setFilmStock] = useState("Kodak Portra 400");
-  const [customDetails, setCustomDetails] = useState('');
+  const [customDetails, setCustomDetails] = useState("");
 
   // Determinar qué lista de outfits usar
-  const outfitOptions = gender === 'masculine' ? outfitsMen : outfitsWomen;
+  const outfitOptions = gender === "masculine" ? outfitsMen : outfitsWomen;
 
   // Sincronizar la pose y el outfit inicial cuando cambia el género
   useEffect(() => {
-    const newPoseOptions = (gender === 'masculine' ? poses.masculine : poses.feminine).map(p => ({ value: p.keywords, label: p.name }));
+    const newPoseOptions = (
+      gender === "masculine" ? poses.masculine : poses.feminine
+    ).map((p) => ({ value: p.keywords, label: p.name }));
     setPose(newPoseOptions[0].value);
-    
-    const filteredOutfits = (gender === 'masculine' ? outfitsMen : outfitsWomen).filter(o => o.style === outfitStyle);
+
+    const filteredOutfits = (
+      gender === "masculine" ? outfitsMen : outfitsWomen
+    ).filter((o) => o.style === outfitStyle);
     if (filteredOutfits.length > 0) {
       setOutfit(filteredOutfits[0].value);
     } else {
-      setOutfit('');
+      setOutfit("");
     }
   }, [gender]);
 
-
   // Sincronizar el outfit cuando cambia el estilo
   useEffect(() => {
-    const filteredOutfits = outfitOptions.filter(o => o.style === outfitStyle);
+    const filteredOutfits = outfitOptions.filter(
+      (o) => o.style === outfitStyle
+    );
     if (filteredOutfits.length > 0) {
       setOutfit(filteredOutfits[0].value);
     } else {
-      setOutfit(''); // Si no hay outfits para ese estilo, se resetea
+      setOutfit(""); // Si no hay outfits para ese estilo, se resetea
     }
   }, [outfitStyle, outfitOptions]);
-
 
   const handleGeneratePrompt = () => {
     const promptParts = [
@@ -131,10 +156,38 @@ export const PromptGenerator = ({ onPromptReady, isPro, gender }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Columna 1 */}
         <div className="space-y-4">
-          <ProSelect label="Entorno" value={environment} onChange={(e) => setEnvironment(e.target.value)} options={environments} pro disabled={!isPro} />
-          <ProSelect label="Pose" value={pose} onChange={(e) => setPose(e.target.value)} options={poseOptions} pro disabled={!isPro} />
-          <ProSelect label="Tipo de Plano" value={shotType} onChange={(e) => setShotType(e.target.value)} options={shotTypes} pro disabled={!isPro} />
-          <ProSelect label="Estilo de Vestimenta" value={outfitStyle} onChange={(e) => setOutfitStyle(e.target.value)} options={outfitStyles} pro disabled={!isPro} />
+          <ProSelect
+            label="Entorno"
+            value={environment}
+            onChange={(e) => setEnvironment(e.target.value)}
+            options={environments}
+            pro
+            disabled={!isPro}
+          />
+          <ProSelect
+            label="Pose"
+            value={pose}
+            onChange={(e) => setPose(e.target.value)}
+            options={poseOptions}
+            pro
+            disabled={!isPro}
+          />
+          <ProSelect
+            label="Tipo de Plano"
+            value={shotType}
+            onChange={(e) => setShotType(e.target.value)}
+            options={shotTypes}
+            pro
+            disabled={!isPro}
+          />
+          <ProSelect
+            label="Estilo de Vestimenta"
+            value={outfitStyle}
+            onChange={(e) => setOutfitStyle(e.target.value)}
+            options={outfitStyles}
+            pro
+            disabled={!isPro}
+          />
           {filteredOutfits.length > 0 && (
             <ProSelect
               label="Vestimenta Específica"
