@@ -7,10 +7,9 @@
  * @param {object} dataObject - El objeto de datos (ej. `cameras`, `lenses`).
  * @param {function} setterFunction - La función de estado de React (ej. `setProcessedCameras`) para actualizar la lista.
  */
-export const processAndSetItems = (dataObject, setterFunction) => {
+export const processAndSetItems = (dataObject) => {
   if (!dataObject) {
-    setterFunction([]);
-    return;
+    return [];
   }
 
   const allItems = Object.values(dataObject)
@@ -20,5 +19,5 @@ export const processAndSetItems = (dataObject, setterFunction) => {
       name: item.name,
     }));
 
-  setterFunction(allItems);
+  return allItems;
 };
