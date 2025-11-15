@@ -1,11 +1,3 @@
-import { SHOT_TYPES, CAMERA_ANGLES } from "../data/shotTypesData";
-import { ENVIRONMENTS_ARRAY } from "../data/environmentsData";
-import { LIGHTING_SETUPS } from "../data/lightingData";
-import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
-import { POSES } from "../data/posesData";
-import Outfits_women from "../data/Outfits_women";
-import Outfits_men from "../data/Outfits_men";
-
 // ---------------------------------------------------------------------------
 // FUNCIÓN AUXILIAR PARA COMUNICARSE CON TU BACKEND (SERVERLESS)
 // ---------------------------------------------------------------------------
@@ -37,7 +29,7 @@ async function callServer(action, body) {
 export const generateProfessionalPrompt = async (options) => {
   // La lógica compleja ahora está en el backend.
   // El frontend solo pasa las opciones.
-  return await callServer("generateText", {
+  return await callServer("generate-text", {
     model: "gemini-2.5-flash-lite", // El backend podría incluso decidir el modelo
     ...options,
   });
@@ -58,7 +50,7 @@ export const summarizePromptForPlatforms = async (detailedPrompt) => {
 // 2. ANÁLISIS DE IMAGEN
 // ---------------------------------------------------------------------------
 export const analyzeImage = async (fileBase64, mimeType) => {
-  return await callServer("analyzeImage", {
+  return await callServer("analyze-image", {
     model: "gemini-2.5-flash",
     imageBase64: fileBase64,
     mimeType,

@@ -12,6 +12,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Wand2 } from "lucide-react";
 import { processAndSetItems } from "../utils/dataProcessor";
+import { generateProfessionalPrompt } from "../utils/apiService";
 
 // Importación de datos
 import { ENVIRONMENTS as environments } from "../data/environmentsData";
@@ -91,15 +92,18 @@ export default function PromptGenerator({ onPromptGenerated, onLoading }) {
   const [film, setFilm] = useState("automatico");
 
   useEffect(() => {
-    processAndSetItems(environments, setProcessedEnvironments);
-    processAndSetItems(poses, setProcessedPoses);
-    processAndSetItems(shotTypes, setProcessedShotTypes);
-    processAndSetItems(outfitStyles, setProcessedOutfitStyles);
-    processAndSetItems(lighting, setProcessedLighting);
-    processAndSetItems(colorGrading, setProcessedColorGrading);
-    processAndSetItems(cameras, setProcessedCameras);
-    processAndSetItems(lenses, setProcessedLenses);
-    processAndSetItems(filmEmulations, setProcessedFilmEmulations);
+    const processData = () => {
+      setProcessedEnvironments(processAndSetItems(environments));
+      setProcessedPoses(processAndSetItems(poses));
+      setProcessedShotTypes(processAndSetItems(shotTypes));
+      setProcessedOutfitStyles(processAndSetItems(outfitStyles));
+      setProcessedLighting(processAndSetItems(lighting));
+      setProcessedColorGrading(processAndSetItems(colorGrading));
+      setProcessedCameras(processAndSetItems(cameras));
+      setProcessedLenses(processAndSetItems(lenses));
+      setProcessedFilmEmulations(processAndSetItems(filmEmulations));
+    };
+    processData();
   }, []);
 
   const handleGenerate = async () => {
@@ -118,15 +122,8 @@ export default function PromptGenerator({ onPromptGenerated, onLoading }) {
         film,
       };
 
-      // Lógica para llamar al servicio de IA
-      // const response = await geminiService.generatePrompt(settings);
-      // onPromptGenerated(response.prompt);
-
-      // Placeholder para simular la generación
-      const generatedPrompt = `Generated prompt based on: ${JSON.stringify(
-        settings
-      )}`;
-      onPromptGenerated(generatedPrompt);
+      const response = await generateProfessionalPrompt(settings);
+      onPromptGenerated(response.text);
     } catch (error) {
       console.error("Error generating prompt:", error);
       // Manejar el error en la UI si es necesario
