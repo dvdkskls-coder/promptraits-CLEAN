@@ -195,7 +195,7 @@ async function generateExpertPromptAction(body) {
   const userPrompt = buildUserPrompt(body, dataKnowledge);
 
   const result = await callGoogleAI(
-    "gemini-1.5-flash-latest", // Usamos el modelo más reciente
+    "gemini-2.5-flash", // Usamos el modelo más reciente
     systemPrompt,
     userPrompt
   );
