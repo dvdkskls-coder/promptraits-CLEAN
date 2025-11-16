@@ -253,36 +253,66 @@ export default async function handler(req) {
         break;
       // Mantenemos analyze-image por si se usa en otro lado, aunque no es parte del lab.
       case "analyze-image":
-        // Esta función necesitaría una refactorización similar si se quisiera usar con el nuevo sistema.
-        // Por ahora, la dejamos como estaba o la marcamos como obsoleta.
-        // Para este caso, la dejaremos funcional pero separada.
-        const { imageBase64, prompt } = body;
+        const { imageBase64, mimeType } = body;
+        const analysisPrompt = `
+          Analiza esta imagen y genera un prompt de fotografía hiperrealista y profesional en el formato de 8 líneas que conoces. Extrae todos los detalles técnicos y artísticos posibles.
+
+          REGLAS:
+          1.  **FORMATO OBLIGATORIO DE 8 LÍNEAS:** Tu respuesta DEBE seguir esta estructura exacta.
+              (1) Scene:
+              (2) Camera:
+              (3) Composition:
+              (4) Subject:
+              (5) Filters & Effects:
+              (6) Lighting:
+              (7) Style & Mood:
+              (8) Film Emulation:
+          2.  **INFIERE LOS DETALLES:** Si un detalle no es obvio (ej. modelo de cámara exacto), infiere una opción profesional y coherente.
+          3.  **SÉ TÉCNICO:** Usa terminología fotográfica precisa.
+        `;
+
         const visionPayload = {
           contents: [
             {
               parts: [
-                { text: prompt },
-                { inline_data: { mime_type: "image/jpeg", data: imageBase64 } },
+                { text: analysisPrompt },
+                { inline_data: { mime_type: mimeType, data: imageBase64 } },
               ],
             },
           ],
         };
-        const visionModel = "gemini-pro-vision";
+        const visionModel = "gemini-pro-vision"; // El modelo correcto para análisis de imagen
         const visionUrl = `${BASE_URL}/models/${visionModel}:generateContent?key=${API_KEY}`;
+
         const visionResponse = await fetch(visionUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(visionPayload),
         });
-        if (!visionResponse.ok) throw new Error(await visionResponse.text());
+
+        if (!visionResponse.ok) {
+          const errorText = await visionResponse.text();
+          console.error(
+            `Google Vision API Error (${visionResponse.status}): ${errorText}`
+          );
+          throw new Error(`Error de la API de Google Vision: ${errorText}`);
+        }
+
         const visionResult = await visionResponse.json();
+
         if (
           visionResult.candidates &&
           visionResult.candidates[0].content.parts[0]
         ) {
-          result = { text: visionResult.candidates[0].content.parts[0].text };
+          const rawText = visionResult.candidates[0].content.parts[0].text;
+          const cleanText = rawText.replace(/```/g, "").trim();
+          result = { text: cleanText };
         } else {
-          throw new Error("Invalid response from vision API");
+          console.error(
+            "Invalid response structure from vision API:",
+            JSON.stringify(visionResult, null, 2)
+          );
+          throw new Error("Respuesta inválida de la API de Vision.");
         }
         break;
       default:

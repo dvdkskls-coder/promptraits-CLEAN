@@ -83,6 +83,7 @@ export default function PromptGenerator({
   onPromptGenerated,
   onLoading,
   initialIdea,
+  onIdeaChange,
 }) {
   const { user, profile, consumeCredits } = useAuth();
 
@@ -100,8 +101,7 @@ export default function PromptGenerator({
   const [dynamicOutfits, setDynamicOutfits] = useState([]);
 
   // Estados para los valores seleccionados
-  const [idea, setIdea] = useState("");
-  const [subjectType, setSubjectType] = useState("woman"); // Nuevo estado
+  const [subjectType, setSubjectType] = useState("woman");
   const [environment, setEnvironment] = useState("automatico");
   const [pose, setPose] = useState("automatico");
   const [shotType, setShotType] = useState("automatico");
@@ -114,10 +114,50 @@ export default function PromptGenerator({
 
   // Efecto para actualizar la idea desde el PromptLab
   useEffect(() => {
-    if (initialIdea) {
-      setIdea(initialIdea);
-    }
-  }, [initialIdea]);
+    const selections = [
+      environment,
+      pose,
+      shotType,
+      outfit,
+      lightingStyle,
+      color,
+      camera,
+      lens,
+      film,
+    ]
+      .filter((v) => v !== "automatico")
+      .map((v) => {
+        const allItems = [
+          ...processedEnvironments,
+          ...dynamicPoses,
+          ...processedShotTypes,
+          ...dynamicOutfits,
+          ...processedLighting,
+          ...processedColorGrading,
+          ...processedCameras,
+          ...processedLenses,
+          ...processedFilmEmulations,
+        ];
+        const item = allItems.find((i) => i.id === v);
+        return item ? item.name : "";
+      })
+      .filter(Boolean)
+      .join(", ");
+
+    onIdeaChange(
+      [initialIdea.split(" #")[0], selections].filter(Boolean).join(" # ")
+    );
+  }, [
+    environment,
+    pose,
+    shotType,
+    outfit,
+    lightingStyle,
+    color,
+    camera,
+    lens,
+    film,
+  ]);
 
   // Efecto para procesar datos estáticos (solo se ejecuta una vez)
   useEffect(() => {
@@ -158,8 +198,8 @@ export default function PromptGenerator({
         break;
     }
 
-    setDynamicPoses(posesData);
-    setDynamicOutfits(outfitsData);
+    setDynamicPoses(posesData.map((p) => ({ id: p, name: p })));
+    setDynamicOutfits(outfitsData.map((o) => ({ id: o.id, name: o.name })));
 
     // Resetear selección si ya no es válida
     setPose("automatico");
@@ -176,7 +216,7 @@ export default function PromptGenerator({
       }
 
       const settings = {
-        idea,
+        idea: initialIdea,
         subjectType,
         environment,
         pose,
@@ -220,8 +260,8 @@ export default function PromptGenerator({
       <Section title="Tu Idea Inicial">
         <Textarea
           placeholder="Describe la escena, el sujeto o la emoción que quieres capturar. Por ejemplo: 'Un retrato melancólico en un día lluvioso en la ciudad.'"
-          value={idea}
-          onChange={(e) => setIdea(e.target.value)}
+          value={initialIdea}
+          onChange={(e) => onIdeaChange(e.target.value)}
           className="min-h-[100px] bg-gray-800 border border-gray-700 text-white"
         />
       </Section>
@@ -303,6 +343,7 @@ PromptGenerator.propTypes = {
   onPromptGenerated: PropTypes.func.isRequired,
   onLoading: PropTypes.func.isRequired,
   initialIdea: PropTypes.string,
+  onIdeaChange: PropTypes.func.isRequired,
 };
 
 PromptGenerator.defaultProps = {

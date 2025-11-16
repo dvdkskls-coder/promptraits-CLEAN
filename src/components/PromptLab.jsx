@@ -25,10 +25,9 @@ const PresetPrompts = () => (
 );
 
 // Componente principal del laboratorio de Prompts
-export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
-  const { user, consumeCredits, savePromptToHistory } = useAuth(); // Obtener usuario y función de créditos
+export const PromptLab = ({ isPro }) => {
+  const { user, consumeCredits, savePromptToHistory } = useAuth();
   const [activeTab, setActiveTab] = useState("manual");
-  const [gender, setGender] = useState("masculine");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [selfieImage, setSelfieImage] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState("");
@@ -36,6 +35,8 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
   const [generatedImage, setGeneratedImage] = useState(null);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [error, setError] = useState("");
+  const [initialIdea, setInitialIdea] = useState("");
+  const [isLoadingPrompt, setIsLoadingPrompt] = useState(false);
 
   const tabs = [
     { id: "manual", label: "Manual", icon: Wand2 },
@@ -43,7 +44,7 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
     { id: "presets", label: "Presets", icon: Star },
   ];
 
-  const handlePromptReady = (prompt) => {
+  const handlePromptGenerated = (prompt) => {
     setGeneratedPrompt(prompt);
     setGeneratedImage(null); // Limpiar imagen anterior al generar nuevo prompt
   };
@@ -98,11 +99,7 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
         const image = data.images[0];
         const imageUrl = `data:${image.mimeType};base64,${image.base64}`;
         setGeneratedImage(imageUrl);
-        await savePromptToHistory(
-          generatedPrompt,
-          { gender, aspectRatio },
-          imageUrl
-        );
+        await savePromptToHistory(generatedPrompt, { aspectRatio }, imageUrl);
       } else {
         throw new Error(
           "La respuesta de la API no contiene una imagen válida."
@@ -116,49 +113,21 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
     }
   };
 
-  const handlePartClick = (partText) => {
-    if (onSelection) {
-      onSelection(partText);
-    }
-    // Opcional: feedback visual al hacer clic
-  };
-
-  const renderPromptPart = (line, index) => {
-    const parts = line.split(/(\[.*?\])/g).filter(Boolean);
-    return (
-      <div key={index} className="flex flex-wrap gap-2">
-        {parts.map((part, partIndex) => {
-          const isVariable = part.startsWith("[") && part.endsWith("]");
-          if (!isVariable) {
-            return <span key={partIndex}>{part}</span>;
-          }
-          return (
-            <span
-              key={partIndex}
-              className="bg-gray-700/50 px-2 py-1 rounded-md cursor-pointer hover:bg-blue-500/50 transition-colors"
-              onClick={() => handlePartClick(part.slice(1, -1))}
-            >
-              {part.slice(1, -1)}
-            </span>
-          );
-        })}
-      </div>
-    );
-  };
-
   const renderContent = () => {
     switch (activeTab) {
       case "manual":
         return (
           <PromptGenerator
-            onPromptReady={handlePromptReady}
+            onPromptGenerated={handlePromptGenerated}
+            onLoading={setIsLoadingPrompt}
             isPro={isPro}
-            gender={gender}
+            initialIdea={initialIdea}
+            onIdeaChange={setInitialIdea}
           />
         );
       case "analyzer":
         return (
-          <ImageAnalyzer onPromptReady={handlePromptReady} isPro={isPro} />
+          <ImageAnalyzer onPromptReady={handlePromptGenerated} isPro={isPro} />
         ); // Usar el componente real
       case "presets":
         return <PresetPrompts />;
@@ -172,36 +141,10 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Columna Izquierda: Generador y Controles */}
         <div className="bg-[#0A0A0A] rounded-xl p-6 border border-[#2D2D2D] space-y-6">
-          {/* Selector de Género/Tipo */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <span className="text-3xl mr-3">1</span>
-              Tipo de Sujeto
-            </h3>
-            <div className="flex gap-2">
-              {[
-                { value: "masculine", label: "Hombre" },
-                { value: "feminine", label: "Mujer" },
-              ].map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() => setGender(item.value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${
-                    gender === item.value
-                      ? "bg-[#D8C780] text-black border-[#D8C780]"
-                      : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Pestañas de Navegación */}
           <div>
             <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <span className="text-3xl mr-3">2</span>
+              <span className="text-3xl mr-3">1</span>
               Método de Creación
             </h3>
             <div className="flex border-b border-[#2D2D2D]">
@@ -240,7 +183,7 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
           {/* Controles de Imagen */}
           <div className="bg-[#0A0A0A] rounded-xl p-6 border border-[#2D2D2D]">
             <h3 className="text-lg font-semibold mb-4 flex items-center">
-              <span className="text-3xl mr-3">3</span>
+              <span className="text-3xl mr-3">2</span>
               Imagen de Referencia
             </h3>
 
@@ -328,7 +271,7 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
           {/* Imagen Generada */}
           <div className="bg-[#0A0A0A] rounded-xl p-6 border border-[#2D2D2D]">
             <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <span className="text-3xl mr-3">4</span>
+              <span className="text-3xl mr-3">3</span>
               Resultado Final
             </h3>
             <div className="aspect-w-3 aspect-h-4 bg-black/50 rounded-lg flex items-center justify-center relative group">
@@ -390,7 +333,6 @@ export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
 
 PromptLab.propTypes = {
   isPro: PropTypes.bool.isRequired,
-  initialPrompt: PropTypes.string.isRequired,
   onSelection: PropTypes.func,
 };
 
