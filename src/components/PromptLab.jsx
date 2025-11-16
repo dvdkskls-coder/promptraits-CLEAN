@@ -95,15 +95,21 @@ export const PromptLab = ({ isPro }) => {
 
       const data = await response.json();
 
-      if (data.success && data.images?.[0]) {
-        const image = data.images[0];
-        const imageUrl = `data:${image.mimeType};base64,${image.base64}`;
-        setGeneratedImage(imageUrl);
-        await savePromptToHistory(generatedPrompt, { aspectRatio }, imageUrl);
+      if (data.success && data.images && data.images.length > 0) {
+        // Buscar la parte que es una imagen
+        const imagePart = data.images.find((part) => part.base64);
+        if (imagePart) {
+          const imageUrl = `data:${imagePart.mimeType};base64,${imagePart.base64}`;
+          setGeneratedImage(imageUrl);
+          await savePromptToHistory(generatedPrompt, { aspectRatio }, imageUrl);
+        } else {
+          throw new Error(
+            "La respuesta de la API no contiene una imagen válida."
+          );
+        }
       } else {
-        throw new Error(
-          "La respuesta de la API no contiene una imagen válida."
-        );
+        console.error("Estructura de candidate:", data.candidate);
+        throw new Error("No se pudo extraer la imagen de la respuesta");
       }
     } catch (err) {
       setError(err.message);

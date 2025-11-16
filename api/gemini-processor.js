@@ -272,12 +272,16 @@ export default async function handler(req) {
           3.  **SÉ TÉCNICO:** Usa terminología fotográfica precisa.
         `;
 
+        const pureBase64 = imageBase64.replace(
+          /^data:image\/[a-zA-Z]+;base64,/,
+          ""
+        );
         const visionPayload = {
           contents: [
             {
               parts: [
                 { text: analysisPrompt },
-                { inline_data: { mime_type: mimeType, data: imageBase64 } },
+                { inline_data: { mime_type: mimeType, data: pureBase64 } },
               ],
             },
           ],
