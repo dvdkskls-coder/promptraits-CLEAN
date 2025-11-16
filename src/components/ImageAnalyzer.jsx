@@ -55,10 +55,8 @@ export const ImageAnalyzer = ({ onPromptReady, isPro }) => {
 
     try {
       const base64Image = await fileToBase64(imageFile);
-      const { prompt, subject } = await analyzeImage(
-        base64Image,
-        imageFile.type
-      );
+      const pureBase64Image = base64Image.replace(/^data:.+;base64,/, "");
+      const { prompt } = await analyzeImage(pureBase64Image, imageFile.type);
 
       // Pasamos el prompt generado al componente padre
       onPromptReady(prompt);

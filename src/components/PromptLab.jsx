@@ -25,7 +25,7 @@ const PresetPrompts = () => (
 );
 
 // Componente principal del laboratorio de Prompts
-export const PromptLab = ({ isPro }) => {
+export const PromptLab = ({ isPro, initialPrompt, onSelection }) => {
   const { user, consumeCredits, savePromptToHistory } = useAuth(); // Obtener usuario y función de créditos
   const [activeTab, setActiveTab] = useState("manual");
   const [gender, setGender] = useState("masculine");
@@ -114,6 +114,36 @@ export const PromptLab = ({ isPro }) => {
     } finally {
       setIsLoadingImage(false);
     }
+  };
+
+  const handlePartClick = (partText) => {
+    if (onSelection) {
+      onSelection(partText);
+    }
+    // Opcional: feedback visual al hacer clic
+  };
+
+  const renderPromptPart = (line, index) => {
+    const parts = line.split(/(\[.*?\])/g).filter(Boolean);
+    return (
+      <div key={index} className="flex flex-wrap gap-2">
+        {parts.map((part, partIndex) => {
+          const isVariable = part.startsWith("[") && part.endsWith("]");
+          if (!isVariable) {
+            return <span key={partIndex}>{part}</span>;
+          }
+          return (
+            <span
+              key={partIndex}
+              className="bg-gray-700/50 px-2 py-1 rounded-md cursor-pointer hover:bg-blue-500/50 transition-colors"
+              onClick={() => handlePartClick(part.slice(1, -1))}
+            >
+              {part.slice(1, -1)}
+            </span>
+          );
+        })}
+      </div>
+    );
   };
 
   const renderContent = () => {
@@ -360,4 +390,10 @@ export const PromptLab = ({ isPro }) => {
 
 PromptLab.propTypes = {
   isPro: PropTypes.bool.isRequired,
+  initialPrompt: PropTypes.string.isRequired,
+  onSelection: PropTypes.func,
+};
+
+PromptLab.defaultProps = {
+  onSelection: () => {},
 };

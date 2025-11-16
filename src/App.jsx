@@ -187,6 +187,9 @@ function AppContent() {
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showCopyNotification, setShowCopyNotification] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [idea, setIdea] = useState(""); // Estado para la idea inicial
 
   const isPro = profile?.plan === "pro" || profile?.plan === "premium";
 
@@ -265,6 +268,18 @@ function AppContent() {
       console.error("Error al copiar:", error);
       alert("Error al copiar el preset");
     }
+  };
+
+  const handlePromptGenerated = (prompt) => {
+    setGeneratedPrompt(prompt);
+    // Opcional: desplazar la vista hacia el prompt generado
+    // document.getElementById('prompt-lab').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleLabSelection = (selectionText) => {
+    setIdea((prevIdea) =>
+      prevIdea ? `${prevIdea}, ${selectionText}` : selectionText
+    );
   };
 
   const navItems = [

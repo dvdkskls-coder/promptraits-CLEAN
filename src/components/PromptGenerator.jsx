@@ -17,13 +17,13 @@ import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
 
 // Importación de datos
-import { ENVIRONMENTS as environments } from "../data/environmentsData";
+import { ENVIRONMENTS } from "../data/environmentsData";
 import { POSES } from "../data/posesData"; // Contiene todas las poses
-import { SHOT_TYPES as shotTypes } from "../data/shotTypesData";
+import { SHOT_TYPES } from "../data/shotTypesData";
 import { Outfits_men } from "../data/Outfits_men";
 import { Outfits_women } from "../data/Outfits_women";
-import { LIGHTING_SETUPS as lighting } from "../data/lightingData";
-import { COLOR_GRADING_FILTERS as colorGrading } from "../data/colorGradingData";
+import { LIGHTING_SETUPS } from "../data/lightingData";
+import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
 import { cameras } from "../data/camerasData";
 import { lenses } from "../data/lensesData";
 import { filmEmulations } from "../data/filmEmulationsData";
@@ -79,7 +79,11 @@ GeneratorSelector.propTypes = {
   items: PropTypes.array.isRequired,
 };
 
-export default function PromptGenerator({ onPromptGenerated, onLoading }) {
+export default function PromptGenerator({
+  onPromptGenerated,
+  onLoading,
+  initialIdea,
+}) {
   const { user, profile, consumeCredits } = useAuth();
 
   // Estados para selectores estáticos
@@ -108,13 +112,20 @@ export default function PromptGenerator({ onPromptGenerated, onLoading }) {
   const [lens, setLens] = useState("automatico");
   const [film, setFilm] = useState("automatico");
 
+  // Efecto para actualizar la idea desde el PromptLab
+  useEffect(() => {
+    if (initialIdea) {
+      setIdea(initialIdea);
+    }
+  }, [initialIdea]);
+
   // Efecto para procesar datos estáticos (solo se ejecuta una vez)
   useEffect(() => {
     const processStaticData = () => {
-      setProcessedEnvironments(processAndSetItems(environments));
-      setProcessedShotTypes(processAndSetItems(shotTypes));
-      setProcessedLighting(processAndSetItems(lighting));
-      setProcessedColorGrading(processAndSetItems(colorGrading));
+      setProcessedEnvironments(processAndSetItems(ENVIRONMENTS));
+      setProcessedShotTypes(processAndSetItems(SHOT_TYPES));
+      setProcessedLighting(processAndSetItems(LIGHTING_SETUPS));
+      setProcessedColorGrading(processAndSetItems(COLOR_GRADING_FILTERS));
       setProcessedCameras(processAndSetItems(cameras));
       setProcessedLenses(processAndSetItems(lenses));
       setProcessedFilmEmulations(processAndSetItems(filmEmulations));
@@ -291,4 +302,9 @@ export default function PromptGenerator({ onPromptGenerated, onLoading }) {
 PromptGenerator.propTypes = {
   onPromptGenerated: PropTypes.func.isRequired,
   onLoading: PropTypes.func.isRequired,
+  initialIdea: PropTypes.string,
+};
+
+PromptGenerator.defaultProps = {
+  initialIdea: "",
 };

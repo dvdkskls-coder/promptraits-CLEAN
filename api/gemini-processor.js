@@ -122,7 +122,6 @@ function buildUserPrompt(selections, dataKnowledge) {
 
     ---
     ESPECIFICACIONES DEL USUARIO:
-    - Tipo de Sujeto: ${selections.subjectType}
     - Género Fotográfico: ${selections.photoGenre}
     - Entorno: ${selections.environment}
     - Tipo de Plano: ${selections.shotType}
