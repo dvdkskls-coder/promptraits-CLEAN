@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Wand2 } from "lucide-react";
+import { Wand2, Loader2 } from "lucide-react";
 import { processAndSetItems } from "../utils/dataProcessor";
 import { generateProfessionalPrompt } from "../services/geminiService";
 import { useAuth } from "../contexts/AuthContext";
@@ -111,6 +111,7 @@ export default function PromptGenerator({
   const [camera, setCamera] = useState("automatico");
   const [lens, setLens] = useState("automatico");
   const [film, setFilm] = useState("automatico");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Efecto para actualizar la idea desde el PromptLab
   useEffect(() => {
@@ -144,9 +145,12 @@ export default function PromptGenerator({
       .filter(Boolean)
       .join(", ");
 
-    onIdeaChange(
-      [initialIdea.split(" #")[0], selections].filter(Boolean).join(" # ")
-    );
+    const baseIdea = initialIdea.split(" #")[0];
+    const newIdea = [baseIdea, selections].filter(Boolean).join(" # ");
+
+    if (newIdea !== initialIdea) {
+      onIdeaChange(newIdea);
+    }
   }, [
     environment,
     pose,
@@ -157,6 +161,17 @@ export default function PromptGenerator({
     camera,
     lens,
     film,
+    initialIdea,
+    onIdeaChange,
+    processedEnvironments,
+    dynamicPoses,
+    processedShotTypes,
+    dynamicOutfits,
+    processedLighting,
+    processedColorGrading,
+    processedCameras,
+    processedLenses,
+    processedFilmEmulations,
   ]);
 
   // Efecto para procesar datos estáticos (solo se ejecuta una vez)
@@ -215,6 +230,7 @@ export default function PromptGenerator({
   }, [subjectType]);
 
   const handleGenerate = async () => {
+    setIsLoading(true);
     onLoading(true);
     try {
       // 1. Verificar créditos antes de generar
@@ -259,6 +275,7 @@ export default function PromptGenerator({
       // Mostrar error al usuario (ej. créditos insuficientes)
       alert(`Error: ${error.message}`);
     } finally {
+      setIsLoading(false);
       onLoading(false);
     }
   };
@@ -338,9 +355,22 @@ export default function PromptGenerator({
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleGenerate} className="gap-2">
-          <Wand2 size={18} />
-          Generar Prompt
+        <Button
+          onClick={handleGenerate}
+          disabled={isLoading}
+          className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-all disabled:bg-gray-500 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin mr-2" size={18} />
+              Generando...
+            </>
+          ) : (
+            <>
+              <Wand2 size={18} />
+              Generar Prompt
+            </>
+          )}
         </Button>
       </div>
     </div>

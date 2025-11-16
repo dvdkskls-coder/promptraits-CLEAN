@@ -79,12 +79,6 @@ export function AuthProvider({ children }) {
       throw new Error("Usuario o Perfil no cargado");
     }
 
-    // ✅ CORRECCIÓN: Usar 'plan' (de tu código antiguo)
-    if (profile.plan === "premium") {
-      console.log("✅ consumeCredits: Usuario PREMIUM, no consume créditos.");
-      return { success: true, newBalance: "ilimitado" };
-    }
-
     const newCredits = profile.credits - amount;
     if (newCredits < 0) {
       throw new Error("Créditos insuficientes");
