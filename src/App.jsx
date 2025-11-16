@@ -26,22 +26,16 @@ import Checkout from "./components/Auth/Checkout.jsx";
 import Pricing from "./components/Pricing.jsx";
 
 import Gallery from "./components/Gallery.jsx";
-import AdvancedGenerator from "./components/AdvancedGenerator.jsx";
-import History from "./components/History.jsx";
-
+import { PromptLab } from "./components/PromptLab.jsx";
 import Footer from "./components/Footer.jsx";
 import CookieBanner from "./components/CookieBanner.jsx";
 import LegalPages from "./pages/LegalPages.jsx";
 import FAQ from "./pages/FAQ.jsx";
 import Contacto from "./pages/Contacto.jsx";
-
-// Páginas nuevas
 import GuiaUso from "./pages/GuiaUso.jsx";
 import Ejemplos from "./pages/Ejemplos.jsx";
 import PlanesPrecios from "./pages/PlanesPrecios.jsx";
 import Caracteristicas from "./pages/Caracteristicas.jsx";
-
-// prompts externos
 import { ALL_PROMPTS } from "./data/prompts.js";
 
 // --- DATOS ---
@@ -276,7 +270,7 @@ function AppContent() {
   const navItems = [
     { label: "Inicio", value: "home" },
     { label: "Galería", value: "gallery" },
-    { label: "Generador IA", value: "generator" },
+    { label: "Laboratorio IA", value: "generator" },
     { label: "Presets", value: "presets" },
     { label: "Planes", value: "pricing" },
   ];
@@ -447,26 +441,6 @@ function AppContent() {
                       {user.email?.split("@")[0]}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setView("profile");
-                      setShowMobileMenu(false);
-                    }}
-                    className="w-full py-2 px-4 text-left text-sm border border-[color:var(--border)] rounded-lg hover:bg-[color:var(--surface)] transition"
-                  >
-                    Mi Perfil
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setView("history");
-                      setShowMobileMenu(false);
-                    }}
-                    className="w-full py-2 px-4 text-left text-sm border border-[color:var(--border)] rounded-lg hover:bg-[color:var(--surface)] transition"
-                  >
-                    Historial
-                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -717,7 +691,11 @@ function AppContent() {
         {view === "gallery" && <Gallery />}
 
         {/* GENERADOR */}
-        {view === "generator" && <AdvancedGenerator />}
+        {view === "generator" && (
+          <div className="py-10">
+            <PromptLab isPro={isPro} />
+          </div>
+        )}
 
         {/* PRESETS - VISTA DEDICADA */}
         {view === "presets" && (
@@ -880,7 +858,7 @@ function AppContent() {
         )}
 
         {/* HISTORIAL */}
-        {view === "history" && <History />}
+        {/* {view === "history" && <History />} */}
       </main>
 
       {/* Auth Modal */}

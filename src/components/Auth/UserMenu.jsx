@@ -1,11 +1,12 @@
-import React from 'react';
-import { User, History, LogOut, Gift, Crown } from 'lucide-react';
+import React from "react";
+import PropTypes from "prop-types";
+import { User, LogOut, Gift, Crown } from "lucide-react";
 
 function UserMenu({ onLogout, profile, onNavigate }) {
   // Obtener plan y créditos del profile
-  const plan = profile?.plan || 'free';
+  const plan = profile?.plan || "free";
   const credits = profile?.credits ?? 0;
-  const isPro = plan === 'pro' || plan === 'enterprise';
+  const isPro = plan === "pro" || plan === "enterprise";
 
   return (
     <div className="absolute right-0 mt-2 w-64 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-xl shadow-2xl overflow-hidden z-50">
@@ -17,7 +18,7 @@ function UserMenu({ onLogout, profile, onNavigate }) {
               <>
                 <Crown className="w-5 h-5 text-[color:var(--primary)]" />
                 <span className="text-sm font-bold text-[color:var(--primary)] uppercase">
-                  {plan === 'enterprise' ? 'Enterprise' : 'Pro'}
+                  {plan === "enterprise" ? "Enterprise" : "Pro"}
                 </span>
               </>
             ) : (
@@ -27,7 +28,7 @@ function UserMenu({ onLogout, profile, onNavigate }) {
             )}
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between bg-[color:var(--bg)] rounded-lg px-3 py-2">
           <span className="text-sm text-muted">Créditos</span>
           <div className="flex items-center">
@@ -40,19 +41,11 @@ function UserMenu({ onLogout, profile, onNavigate }) {
       {/* Menu Items */}
       <div className="py-2">
         <button
-          onClick={() => onNavigate('profile')}
+          onClick={() => onNavigate("profile")}
           className="w-full px-4 py-2.5 flex items-center space-x-3 hover:bg-[color:var(--bg)] transition-colors text-left"
         >
           <User className="w-4 h-4 text-muted" />
           <span className="text-sm">Mi Perfil</span>
-        </button>
-
-        <button
-          onClick={() => onNavigate('history')}
-          className="w-full px-4 py-2.5 flex items-center space-x-3 hover:bg-[color:var(--bg)] transition-colors text-left"
-        >
-          <History className="w-4 h-4 text-muted" />
-          <span className="text-sm">Historial</span>
         </button>
 
         <div className="border-t border-[color:var(--border)] my-2"></div>
@@ -68,5 +61,14 @@ function UserMenu({ onLogout, profile, onNavigate }) {
     </div>
   );
 }
+
+UserMenu.propTypes = {
+  onLogout: PropTypes.func.isRequired,
+  profile: PropTypes.shape({
+    plan: PropTypes.string,
+    credits: PropTypes.number,
+  }),
+  onNavigate: PropTypes.func.isRequired,
+};
 
 export default UserMenu;
