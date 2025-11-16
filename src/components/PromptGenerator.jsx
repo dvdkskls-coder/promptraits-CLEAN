@@ -198,8 +198,16 @@ export default function PromptGenerator({
         break;
     }
 
-    setDynamicPoses(posesData.map((p) => ({ id: p, name: p })));
-    setDynamicOutfits(outfitsData.map((o) => ({ id: o.id, name: o.name })));
+    setDynamicPoses(
+      (posesData || []).map((p) =>
+        typeof p === "string" ? { id: p, name: p } : p
+      )
+    );
+    setDynamicOutfits(
+      (outfitsData || []).map((o) =>
+        typeof o === "string" ? { id: o, name: o } : o
+      )
+    );
 
     // Resetear selección si ya no es válida
     setPose("automatico");
