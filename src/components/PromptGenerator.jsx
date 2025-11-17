@@ -19,15 +19,15 @@ import { supabase } from "../lib/supabase";
 // Importación de datos
 import { ENVIRONMENTS } from "../data/environmentsData";
 import { POSES } from "../data/posesData"; // Contiene todas las poses
-import { SHOT_TYPES_DATA } from "../data/shotTypesData";
+import { SHOT_TYPES } from "../data/shotTypesData";
 import { Outfits_men } from "../data/Outfits_men";
 import { Outfits_women } from "../data/Outfits_women";
-import { LIGHTING_DATA } from "../data/lightingData";
+import { LIGHTING_SETUPS } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
-import { CAMERAS_DATA } from "../data/camerasData";
+import { cameras } from "../data/camerasData";
 import { lenses } from "../data/lensesData";
 import { filmEmulations } from "../data/filmEmulationsData";
-import { PHOTO_STYLES_DATA } from "../data/photoStylesData"; // Importar nuevos datos
+import { PHOTO_STYLES } from "../data/photoStylesData"; // Importar nuevos datos
 
 const subjectTypes = [
   { id: "woman", name: "Mujer" },
@@ -123,11 +123,11 @@ export default function PromptGenerator({
   useEffect(() => {
     const processStaticData = () => {
       setProcessedEnvironments(processAndSetItems(ENVIRONMENTS));
-      setProcessedShotTypes(processAndSetItems(SHOT_TYPES_DATA));
-      setProcessedPhotoStyles(processAndSetItems(PHOTO_STYLES_DATA)); // Procesar nuevos datos
-      setProcessedLighting(processAndSetItems(LIGHTING_DATA));
+      setProcessedShotTypes(processAndSetItems(SHOT_TYPES));
+      setProcessedPhotoStyles(processAndSetItems(PHOTO_STYLES)); // Procesar nuevos datos
+      setProcessedLighting(processAndSetItems(LIGHTING_SETUPS));
       setProcessedColorGrading(processAndSetItems(COLOR_GRADING_FILTERS));
-      setProcessedCameras(processAndSetItems(CAMERAS_DATA));
+      setProcessedCameras(processAndSetItems(cameras));
       setProcessedLenses(processAndSetItems(lenses));
       setProcessedFilmEmulations(processAndSetItems(filmEmulations));
     };
