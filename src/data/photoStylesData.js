@@ -1,6 +1,6 @@
 // src/data/photoStylesData.js
 
-export const PHOTO_STYLES_DATA = {
+export const PHOTO_STYLES = {
   "A. Professional Photographic Styles": [
     {
       id: "classic_portrait",
