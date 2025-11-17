@@ -1,6 +1,6 @@
 // src/data/camerasData.js
 
-export const CAMERAS_DATA = {
+export const cameras = {
   "A. Camera Types": [
     {
       id: "full_frame",
