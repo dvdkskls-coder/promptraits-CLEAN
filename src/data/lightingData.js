@@ -1,7 +1,7 @@
 // lightingData.js - Esquemas de iluminación profesional para fotografía de retrato
 // Basado en: Curso Completo de Iluminación en Fotografía de Retrato
 
-export const LIGHTING_DATA = {
+export const LIGHTING_SETUPS = {
   "A. Source & Type": [
     {
       id: "natural_light",
