@@ -1,6 +1,6 @@
 // src/data/lensesData.js
 
-export const LENSES_DATA = {
+export const lenses = {
   "1. By Focal Length": [
     {
       id: "ultra_wide_angle",
