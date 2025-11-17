@@ -5,7 +5,7 @@
 // TIPOS DE PLANO (SHOT TYPES)
 // ============================================================================
 
-export const SHOT_TYPES_DATA = {
+export const SHOT_TYPES = {
   "A. By Frame Size": [
     {
       id: "panoramic",
