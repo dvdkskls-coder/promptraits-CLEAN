@@ -5,284 +5,418 @@
 // TIPOS DE PLANO (SHOT TYPES)
 // ============================================================================
 
-export const SHOT_TYPES = [
-  {
-    id: "extreme-close-up",
-    name: "Extreme Close-Up",
-    nameES: "Primerísimo Primer Plano",
-    description: "Solo rostro, muy íntimo",
-    promptText:
-      "Extreme close-up shot focusing on facial details and expression, tight framing from forehead to chin creating intimate perspective, minimal background visible",
-    technical:
-      "Framing: Face only (forehead to chin), Distance: < 1m, FOV: Minimal, Background: None/Blurred",
-  },
-  {
-    id: "close-up",
-    name: "Close-Up",
-    nameES: "Primer Plano",
-    description: "Cabeza y hombros",
-    promptText:
-      "Close-up portrait shot from shoulders to top of head, standard professional headshot framing, intimate yet professional distance, focus on facial expression",
-    technical:
-      "Framing: Shoulders to head, Distance: 1-1.5m, FOV: 15-20°, Background: Minimal context",
-  },
-  {
-    id: "medium-close-up",
-    name: "Medium Close-Up",
-    nameES: "Plano Medio Corto",
-    description: "Desde pecho hasta cabeza",
-    promptText:
-      "Medium close-up shot from chest to head, balanced portrait framing showing upper body and torso context, professional interview style composition",
-    technical:
-      "Framing: Chest to head, Distance: 1.5-2m, FOV: 20-30°, Background: Some visible",
-  },
-  {
-    id: "medium-shot",
-    name: "Medium Shot",
-    nameES: "Plano Medio",
-    description: "Desde cintura hasta cabeza",
-    promptText:
-      "Medium shot from waist to head, classical portrait composition showing upper body and hands, balanced environmental context",
-    technical:
-      "Framing: Waist to head, Distance: 2-3m, FOV: 30-40°, Background: Contextual",
-  },
-  {
-    id: "american-shot",
-    name: "American Shot",
-    nameES: "Plano Americano",
-    description: "Desde rodillas hasta cabeza",
-    promptText:
-      "American shot from knees to head, Western film style framing showing three-quarters of body, dynamic action-ready composition",
-    technical:
-      "Framing: Knees to head, Distance: 2.5-3.5m, FOV: 35-45°, Background: Visible",
-  },
-  {
-    id: "full-body",
-    name: "Full Body Shot",
-    nameES: "Plano Entero",
-    description: "Cuerpo completo visible",
-    promptText:
-      "Full body shot showing entire figure from head to feet, complete environmental context, fashion editorial style framing with space above and below subject",
-    technical:
-      "Framing: Full body head to toe, Distance: 3-5m, FOV: 45-60°, Background: Full context",
-  },
-  {
-    id: "cowboy-shot",
-    name: "Cowboy Shot",
-    nameES: "Plano 3/4",
-    description: "Desde medio muslo",
-    promptText:
-      "Cowboy shot from mid-thigh to head, action cinema style framing showing most of body, dynamic composition with movement potential",
-    technical:
-      "Framing: Mid-thigh to head, Distance: 2-3.5m, FOV: 30-40°, Background: Contextual",
-  },
-  {
-    id: "two-shot",
-    name: "Two-Shot",
-    nameES: "Plano de Dos",
-    description: "Dos personas en cuadro",
-    promptText:
-      "Two-shot composition framing two subjects together, balanced dual portrait showing relationship and interaction between subjects",
-    technical:
-      "Framing: Two people visible, Distance: 2-4m, FOV: 40-50°, Background: Shared context",
-  },
-];
-
-// ============================================================================
-// ÁNGULOS DE CÁMARA (CAMERA ANGLES)
-// ============================================================================
-
-export const CAMERA_ANGLES = [
-  {
-    id: "eye-level",
-    name: "Eye Level",
-    nameES: "A Nivel de Ojos",
-    description: "Neutral, realista",
-    promptText:
-      "Camera at eye level creating neutral perspective, natural realistic viewpoint at subject's eye height, standard documentary style angle",
-    technical:
-      "Angle: 0°, Height: Subject's eyes, Effect: Neutral/Realistic, Feeling: Equal status",
-  },
-  {
-    id: "high-angle",
-    name: "High Angle",
-    nameES: "Picado",
-    description: "Cámara arriba mirando abajo",
-    promptText:
-      "High angle shot with camera positioned above subject looking down, creates vulnerable diminutive feeling, subject appears smaller and less powerful",
-    technical:
-      "Angle: 15-45° down, Height: Above subject, Effect: Diminishing, Feeling: Vulnerability/Weakness",
-  },
-  {
-    id: "low-angle",
-    name: "Low Angle",
-    nameES: "Contrapicado",
-    description: "Cámara abajo mirando arriba",
-    promptText:
-      "Low angle shot with camera positioned below subject looking up, creates powerful heroic feeling, subject appears larger and more imposing",
-    technical:
-      "Angle: 15-45° up, Height: Below subject, Effect: Empowering, Feeling: Power/Dominance",
-  },
-  {
-    id: "overhead",
-    name: "Overhead / Bird's Eye",
-    nameES: "Cenital",
-    description: "Vista desde arriba 90°",
-    promptText:
-      "Overhead shot from directly above, bird's eye view perspective with 90-degree downward angle, architectural geometric composition",
-    technical:
-      "Angle: 90° down, Height: Directly above, Effect: Detached/Abstract, Feeling: Omniscient view",
-  },
-  {
-    id: "worm-eye",
-    name: "Worm's Eye View",
-    nameES: "Nadir",
-    description: "Vista desde abajo 90°",
-    promptText:
-      "Worm's eye view from ground level looking straight up, extreme low angle with 90-degree upward perspective, dramatic towering effect",
-    technical:
-      "Angle: 90° up, Height: Ground level, Effect: Dramatic/Imposing, Feeling: Overwhelming scale",
-  },
-  {
-    id: "dutch-angle",
-    name: "Dutch Angle / Canted",
-    nameES: "Aberrante",
-    description: "Cámara inclinada",
-    promptText:
-      "Dutch angle with tilted horizon line, diagonal composition creating dynamic tension and unease, camera rolled 10-45 degrees",
-    technical:
-      "Angle: 10-45° tilt, Orientation: Diagonal, Effect: Disorienting, Feeling: Tension/Unease",
-  },
-  {
-    id: "over-shoulder",
-    name: "Over-the-Shoulder",
-    nameES: "Sobre el Hombro",
-    description: "Desde detrás del hombro",
-    promptText:
-      "Over-the-shoulder shot with camera positioned behind subject's shoulder, creates sense of perspective and relationship with what subject is viewing",
-    technical:
-      "Angle: Slight side, Height: Shoulder, Effect: Perspective, Feeling: Shared viewpoint",
-  },
-];
-
-// ============================================================================
-// COMPOSICIONES ESPECIALES (SPECIAL COMPOSITIONS)
-// ============================================================================
-
-export const SPECIAL_COMPOSITIONS = [
-  {
-    id: "rule-of-thirds",
-    name: "Rule of Thirds",
-    nameES: "Regla de Tercios",
-    description: "Sujeto en intersecciones",
-    promptText:
-      "Rule of thirds composition with subject positioned at intersection points, eyes on upper third line, balanced negative space",
-    technical: "Grid: 3x3, Position: Intersections, Balance: 1/3 - 2/3 ratio",
-  },
-  {
-    id: "centered",
-    name: "Centered / Symmetrical",
-    nameES: "Centrado Simétrico",
-    description: "Perfecto balance central",
-    promptText:
-      "Centered symmetrical composition with subject in exact center, balanced equal negative space on both sides, formal portrait style",
-    technical: "Position: Center, Balance: 50-50, Style: Formal/Symmetrical",
-  },
-  {
-    id: "golden-ratio",
-    name: "Golden Ratio",
-    nameES: "Proporción Áurea",
-    description: "Espiral de Fibonacci",
-    promptText:
-      "Golden ratio composition following Fibonacci spiral, subject positioned along phi grid lines, naturally pleasing proportions",
-    technical:
-      "Ratio: 1.618:1, Pattern: Fibonacci spiral, Balance: Natural/Organic",
-  },
-  {
-    id: "leading-lines",
-    name: "Leading Lines",
-    nameES: "Líneas Guía",
-    description: "Líneas hacia el sujeto",
-    promptText:
-      "Leading lines composition with environmental elements directing eye toward subject, creating depth and guiding viewer attention",
-    technical:
-      "Pattern: Converging lines, Purpose: Guide attention, Depth: Enhanced",
-  },
-  {
-    id: "negative-space",
-    name: "Negative Space",
-    nameES: "Espacio Negativo",
-    description: "Mucho espacio vacío",
-    promptText:
-      "Negative space composition with subject occupying small portion, extensive empty space creating minimalist artistic effect",
-    technical: "Subject: < 30%, Empty: > 70%, Style: Minimalist/Artistic",
-  },
-  {
-    id: "frame-within-frame",
-    name: "Frame Within Frame",
-    nameES: "Marco Dentro de Marco",
-    description: "Elementos enmarcan sujeto",
-    promptText:
-      "Frame within frame composition using environmental elements to create natural border around subject, adds depth and focus",
-    technical: "Layers: Multiple frames, Depth: Enhanced, Focus: Directed",
-  },
-];
-
-// ============================================================================
-// DEPTH OF FIELD (PROFUNDIDAD DE CAMPO)
-// ============================================================================
-
-export const DEPTH_OF_FIELD = [
-  {
-    id: "shallow-dof",
-    name: "Shallow DOF",
-    nameES: "Profundidad Reducida",
-    description: "Fondo muy desenfocado",
-    promptText:
-      "Shallow depth of field with extremely blurred background, creamy smooth bokeh, subject isolated with sharp focus, wide aperture f/1.2-f/2.8 effect",
-    technical:
-      "Aperture: f/1.2-f/2.8, Focus: Narrow plane, Bokeh: Pronounced, Background: Very blurred",
-  },
-  {
-    id: "medium-dof",
-    name: "Medium DOF",
-    nameES: "Profundidad Media",
-    description: "Fondo semi-desenfocado",
-    promptText:
-      "Medium depth of field with moderately blurred background, subject clearly separated but some context visible, balanced aperture f/4-f/5.6 effect",
-    technical:
-      "Aperture: f/4-f/5.6, Focus: Moderate plane, Bokeh: Subtle, Background: Soft",
-  },
-  {
-    id: "deep-dof",
-    name: "Deep DOF",
-    nameES: "Profundidad Amplia",
-    description: "Todo nítido",
-    promptText:
-      "Deep depth of field with sharp focus throughout entire scene, foreground to background all in focus, small aperture f/11-f/22 effect",
-    technical:
-      "Aperture: f/11-f/22, Focus: Wide plane, Bokeh: None, Background: Sharp",
-  },
-];
+export const SHOT_TYPES_DATA = {
+  "A. By Frame Size": [
+    {
+      id: "panoramic",
+      name: "Panoramic Shot",
+      description:
+        "Shows a very wide landscape or environment, the human subject is minimal or non-existent.",
+    },
+    {
+      id: "extreme_long_shot",
+      name: "Extreme Long Shot (ELS)",
+      description:
+        "Shows the subject completely within a very large environment, the setting dominates.",
+    },
+    {
+      id: "long_shot",
+      name: "Long Shot (LS)",
+      description:
+        "Shows the subject from head to toe, with surrounding space to show context.",
+    },
+    {
+      id: "group_shot",
+      name: "Group Shot",
+      description:
+        "Includes several full-body characters, showing their spatial relationship.",
+    },
+    {
+      id: "full_shot",
+      name: "Full Shot / Figure Shot",
+      description:
+        "Shows a single subject from head to toe, occupying most of the frame.",
+    },
+    {
+      id: "cowboy_shot",
+      name: "American Shot (Cowboy Shot)",
+      description: "Frames from the head to about the knees or thighs.",
+    },
+    {
+      id: "medium_long_shot",
+      name: "Medium Long Shot (MLS)",
+      description: "Frames from the head to just below the waist or thighs.",
+    },
+    {
+      id: "medium_shot",
+      name: "Medium Shot (MS)",
+      description:
+        "Frames from the head to the waist, common for conversational portraits.",
+    },
+    {
+      id: "medium_close_up",
+      name: "Medium Close-Up (MCU)",
+      description:
+        "Frames from the head to the chest, emphasizing facial expression.",
+    },
+    {
+      id: "close_up",
+      name: "Close-Up (CU)",
+      description:
+        "Frames the face, prioritizing emotion and eliminating the environment.",
+    },
+    {
+      id: "extreme_close_up",
+      name: "Extreme Close-Up (ECU)",
+      description:
+        "Shows only a part of the face or an object, like eyes or a mouth.",
+    },
+    {
+      id: "detail_shot",
+      name: "Detail Shot (Insert)",
+      description:
+        "A tight shot of a small detail with narrative intent (hands, a button).",
+    },
+    {
+      id: "texture_shot",
+      name: "Texture Shot / Macro Texture",
+      description:
+        "An extreme close-up on patterns, skin, or surfaces, becoming almost abstract.",
+    },
+    {
+      id: "master_shot",
+      name: "Master Shot",
+      description:
+        "A wide shot showing all the main action of a scene for spatial reference.",
+    },
+    {
+      id: "establishing_shot",
+      name: "Establishing Shot",
+      description:
+        "A wide shot at the beginning of a scene to establish location.",
+    },
+  ],
+  "B. By Number of Subjects": [
+    {
+      id: "one_shot",
+      name: "One-Shot",
+      description: "A single character in the frame.",
+    },
+    {
+      id: "two_shot",
+      name: "Two-Shot",
+      description:
+        "Two characters sharing the frame with compositional balance.",
+    },
+    {
+      id: "three_shot",
+      name: "Three-Shot",
+      description: "Three characters visible in the frame.",
+    },
+    {
+      id: "group_shot_multiple",
+      name: "Group Shot",
+      description:
+        "More than three characters, prioritizing their relationship in the space.",
+    },
+    {
+      id: "reaction_shot",
+      name: "Reaction Shot",
+      description:
+        "Shows a character's reaction to something happening off-screen or on-screen.",
+    },
+    {
+      id: "cutaway_shot",
+      name: "Cutaway Shot",
+      description:
+        "A brief shot of a secondary element used for editing or emphasis.",
+    },
+  ],
+  "C. Vertical Angulation": [
+    {
+      id: "eye_level",
+      name: "Eye-Level Shot",
+      description:
+        "Camera is at the subject's eye level, creating a neutral feel.",
+    },
+    {
+      id: "slight_high_angle",
+      name: "Slight High Angle",
+      description:
+        "Camera is slightly above the subject, suggesting a sense of inferiority.",
+    },
+    {
+      id: "high_angle",
+      name: "High Angle Shot",
+      description:
+        "Camera is clearly above the subject, making them appear smaller or weaker.",
+    },
+    {
+      id: "low_angle",
+      name: "Low Angle Shot",
+      description:
+        "Camera is below the subject, making them appear powerful or threatening.",
+    },
+    {
+      id: "slight_low_angle",
+      name: "Slight Low Angle",
+      description:
+        "A gentle low angle that gives the subject importance without exaggeration.",
+    },
+    {
+      id: "birds_eye_view",
+      name: "Bird's Eye View (Top-Down)",
+      description:
+        "Camera is directly above the subject, perpendicular to the ground.",
+    },
+    {
+      id: "worms_eye_view",
+      name: "Worm's Eye View (Nadir)",
+      description:
+        "Camera is directly below the subject looking up, creating a sense of monumentality.",
+    },
+  ],
+  "D. Horizontal Angulation": [
+    {
+      id: "front_angle",
+      name: "Frontal Shot",
+      description: "Camera is directly in front of the subject.",
+    },
+    {
+      id: "three_quarter_view",
+      name: "Three-Quarter (3/4) View",
+      description: "Subject is turned about 45° to the camera, showing volume.",
+    },
+    {
+      id: "profile_shot",
+      name: "Profile Shot",
+      description: "Camera shows the subject from the side.",
+    },
+    {
+      id: "from_behind_shot",
+      name: "From Behind Shot",
+      description: "Subject has their back to the camera, creating mystery.",
+    },
+    {
+      id: "over_the_shoulder",
+      name: "Over-the-Shoulder (OTS)",
+      description:
+        "Camera is behind one character, showing their shoulder, looking at another.",
+    },
+    {
+      id: "reverse_shot",
+      name: "Reverse Shot",
+      description: "The opposite shot from the previous one in a dialogue.",
+    },
+    {
+      id: "side_shot",
+      name: "Lateral Shot",
+      description: "Camera is perpendicular to the subject's movement.",
+    },
+    {
+      id: "foreshortening_shot",
+      name: "Foreshortening Shot",
+      description:
+        "Part of the body is closer to the camera, creating depth and dynamism.",
+    },
+  ],
+  "E. Special Angles & Composition": [
+    {
+      id: "dutch_angle",
+      name: "Dutch Angle / Canted Angle",
+      description:
+        "The camera is tilted relative to the horizon, creating tension or instability.",
+    },
+    {
+      id: "oblique_angle",
+      name: "Oblique Angle",
+      description:
+        "Similar to Dutch angle but with a gentler tilt, adding dynamism.",
+    },
+    {
+      id: "pov_shot",
+      name: "Point of View (POV) Shot",
+      description: "The camera shows exactly what a character would see.",
+    },
+    {
+      id: "objective_shot",
+      name: "Objective Shot",
+      description: "The camera remains a neutral observer.",
+    },
+    {
+      id: "semi_subjective_shot",
+      name: "Semi-Subjective Shot",
+      description:
+        "A mix of objective and subjective, showing part of the character's body.",
+    },
+    {
+      id: "mirror_shot",
+      name: "Mirror Shot",
+      description: "The subject is seen through their reflection in a mirror.",
+    },
+    {
+      id: "reflection_shot",
+      name: "Reflection Shot",
+      description:
+        "The main scene is viewed through reflections in water, glass, etc.",
+    },
+    {
+      id: "shot_through_object",
+      name: "Shot Through Obstacles",
+      description:
+        "Framing the subject through doorways, leaves, etc., to create layers.",
+    },
+    {
+      id: "natural_framing",
+      name: "Natural Framing",
+      description:
+        "Using environmental elements to frame the subject within the shot.",
+    },
+  ],
+  "F. By Movement & Duration": [
+    {
+      id: "static_shot",
+      name: "Static Shot",
+      description: "The camera remains completely still.",
+    },
+    {
+      id: "pan_shot",
+      name: "Pan Shot",
+      description: "The camera rotates on its horizontal axis.",
+    },
+    {
+      id: "tilt_shot",
+      name: "Tilt Shot",
+      description: "The camera rotates on its vertical axis (up or down).",
+    },
+    {
+      id: "tracking_shot",
+      name: "Tracking Shot (Dolly)",
+      description: "The camera physically moves through the space.",
+    },
+    {
+      id: "dolly_zoom",
+      name: "Dolly In / Dolly Out",
+      description: "The camera moves forward or backward.",
+    },
+    {
+      id: "zoom",
+      name: "Zoom In / Zoom Out",
+      description: "The focal length changes without physical camera movement.",
+    },
+    {
+      id: "sequence_shot",
+      name: "Sequence Shot (Long Take)",
+      description: "A long shot with no visible cuts.",
+    },
+    {
+      id: "handheld_shot",
+      name: "Handheld Shot",
+      description: "Camera is held by hand, creating a natural, urgent feel.",
+    },
+    {
+      id: "shaky_cam",
+      name: "Shaky Cam",
+      description: "Very agitated handheld to emphasize chaos or stress.",
+    },
+    {
+      id: "slow_motion",
+      name: "Slow Motion Shot",
+      description: "The action is recorded or played back at a slower speed.",
+    },
+    {
+      id: "time_lapse",
+      name: "Time-Lapse Shot",
+      description: "Condenses a long period of time into a few seconds.",
+    },
+  ],
+  "G. Macro & Proximity Shots": [
+    {
+      id: "macro_close_up",
+      name: "Macro Close-Up",
+      description:
+        "An extreme close-up of a small object, full of fine detail.",
+    },
+    {
+      id: "macro_1_1",
+      name: "1:1 Macro (Life-Size)",
+      description:
+        "The subject's size on the sensor equals its real-life size.",
+    },
+    {
+      id: "extreme_macro",
+      name: "Extreme Macro / Super Macro",
+      description:
+        "Magnification greater than 1:1, showing structures invisible to the naked eye.",
+    },
+    {
+      id: "macro_detail",
+      name: "Macro Detail Shot",
+      description:
+        "A macro shot focused on a specific detail like edges or fibers.",
+    },
+    {
+      id: "abstract_macro",
+      name: "Abstract Macro",
+      description:
+        "So close the subject becomes unrecognizable, prioritizing form and color.",
+    },
+    {
+      id: "close_up_lens_shot",
+      name: "Close-Up Lens Shot",
+      description:
+        "Macro achieved with a filter that reduces minimum focus distance.",
+    },
+    {
+      id: "split_diopter_shot",
+      name: "Split-Diopter Shot",
+      description:
+        "Half the frame is focused very close, the other half on the background.",
+    },
+  ],
+  "H. Contextual & Functional Shots": [
+    {
+      id: "insert_shot",
+      name: "Insert Shot",
+      description: "A very brief shot of a detail to be emphasized.",
+    },
+    {
+      id: "cutaway",
+      name: "Cutaway",
+      description:
+        "A shot inserted to cut away from the main action to show something related.",
+    },
+    {
+      id: "transition_shot",
+      name: "Transition Shot",
+      description:
+        "A shot used to move from one scene to another (sky, facade, etc.).",
+    },
+    {
+      id: "motivated_shot",
+      name: "Motivated Shot",
+      description:
+        "A shot whose angle or movement is justified by something in the scene.",
+    },
+    {
+      id: "follow_shot",
+      name: "Follow Shot",
+      description: "The camera follows a subject as it moves.",
+    },
+    {
+      id: "static_establishing",
+      name: "Static Establishing Shot",
+      description: "A motionless shot used only to establish the setting.",
+    },
+  ],
+};
 
 // ============================================================================
 // FUNCIONES HELPER
 // ============================================================================
 
 export const getShotTypeById = (id) => {
-  return SHOT_TYPES.find((shot) => shot.id === id) || null;
-};
-
-export const getCameraAngleById = (id) => {
-  return CAMERA_ANGLES.find((angle) => angle.id === id) || null;
-};
-
-export const getCompositionById = (id) => {
-  return SPECIAL_COMPOSITIONS.find((comp) => comp.id === id) || null;
-};
-
-export const getDOFById = (id) => {
-  return DEPTH_OF_FIELD.find((dof) => dof.id === id) || null;
+  return SHOT_TYPES_DATA.find((shot) => shot.id === id) || null;
 };
 
 // ============================================================================
@@ -290,12 +424,6 @@ export const getDOFById = (id) => {
 // ============================================================================
 
 export default {
-  SHOT_TYPES,
-  CAMERA_ANGLES,
-  SPECIAL_COMPOSITIONS,
-  DEPTH_OF_FIELD,
+  SHOT_TYPES_DATA,
   getShotTypeById,
-  getCameraAngleById,
-  getCompositionById,
-  getDOFById,
 };

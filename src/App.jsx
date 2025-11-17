@@ -285,7 +285,7 @@ function AppContent() {
   const navItems = [
     { label: "Inicio", value: "home" },
     { label: "Galería", value: "gallery" },
-    { label: "Laboratorio IA", value: "generator" },
+    { label: "Generador de PROMPTS", value: "generator" },
     { label: "Presets", value: "presets" },
     { label: "Planes", value: "pricing" },
   ];

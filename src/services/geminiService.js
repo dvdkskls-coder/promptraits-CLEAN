@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
 // FUNCIÓN AUXILIAR PARA COMUNICARSE CON TU BACKEND (SERVERLESS)
 // ---------------------------------------------------------------------------
-async function callServer(action, body) {
+async function callServer(endpoint, body) {
   try {
-    const response = await fetch("/api/gemini-processor", {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, ...body }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -18,39 +18,26 @@ async function callServer(action, body) {
 
     return await response.json();
   } catch (error) {
-    console.error(`Error in Gemini Service [${action}]:`, error);
+    console.error(`Error calling endpoint ${endpoint}:`, error);
     throw error;
   }
 }
 
 // ---------------------------------------------------------------------------
-// 1. GENERACIÓN DE PROMPTS DE TEXTO
+// 1. GENERACIÓN DE PROMPTS JSON ESTRUCTURADOS
 // ---------------------------------------------------------------------------
 export const generateProfessionalPrompt = async (options) => {
-  // La lógica compleja ahora está en el backend.
-  // El frontend solo pasa las opciones.
-  return await callServer("generate-text", {
-    model: "gemini-2.5-flash-lite", // El backend podría incluso decidir el modelo
-    ...options,
-  });
-};
-
-export const summarizePromptForPlatforms = async (detailedPrompt) => {
-  const systemInstruction = `You are an expert prompt engineer specializing in AI image generation platforms. Your task is to convert the following detailed, photographic brief into a compact, single-paragraph, comma-separated prompt in English. Synthesize all key creative elements. Crucially, if you see references like "@img1" or "@img2", you must preserve them exactly as they are at the beginning of the prompt. The final output must be a single block of text, without any headings or introductory phrases.`;
-
-  const response = await callServer("generateText", {
-    model: "gemini-2.5-flash",
-    prompt: `Here is the detailed brief to convert:\n\n${detailedPrompt}`,
-    systemInstruction,
-  });
-  return response.text;
+  // Llama al endpoint que ahora solo genera JSON.
+  return await callServer("/api/gemini-processor", options);
 };
 
 // ---------------------------------------------------------------------------
-// 2. ANÁLISIS DE IMAGEN
+// 2. ANÁLISIS DE IMAGEN (Image-to-Prompt)
 // ---------------------------------------------------------------------------
 export const analyzeImage = async (fileBase64, mimeType) => {
-  return await callServer("analyze-image", {
+  // Llama a un endpoint específico para el análisis de imagen.
+  // Asumimos que la lógica se moverá a su propio archivo/endpoint.
+  return await callServer("/api/gemini-analyzer", {
     model: "gemini-2.5-flash",
     imageBase64: fileBase64,
     mimeType,
@@ -61,34 +48,29 @@ export const analyzeImage = async (fileBase64, mimeType) => {
 // 3. GENERACIÓN DE IMAGEN
 // ---------------------------------------------------------------------------
 export const generateImageNano = async (prompt, faceImages) => {
-  return await callServer("generateImageNano", {
-    model: "gemini-2.5-flash-image",
-    prompt,
-    faceImages,
+  // Este endpoint maneja Form-Data, por lo que necesita su propio fetch.
+  const formData = new FormData();
+  formData.append("prompt", prompt);
+  if (faceImages) {
+    faceImages.forEach((img) => {
+      formData.append("faceImages", img);
+    });
+  }
+
+  const response = await fetch("/api/generate-image", {
+    method: "POST",
+    body: formData,
   });
+
+  if (!response.ok) {
+    const errorJson = await response
+      .json()
+      .catch(() => ({ error: "Server error with no JSON response" }));
+    throw new Error(errorJson.error || `Server error (${response.status})`);
+  }
+
+  return await response.json();
 };
 
-// ============================================================================
-// 4. NUEVAS FUNCIONES (AÚN NO IMPLEMENTADAS EN BACKEND)
-// ============================================================================
-
-export const editImage = async (base64ImageData, mimeType, prompt) => {
-  // Esta función llamará a una nueva acción 'editImage' en el backend.
-  // Implementaremos la lógica del backend en el siguiente paso.
-  return await callServer("editImage", {
-    model: "gemini-2.5-flash-image",
-    base64ImageData,
-    mimeType,
-    prompt,
-  });
-};
-
-export const generateImageImagen = async (prompt, aspectRatio) => {
-  // Esta función llamará a una nueva acción 'generateImageImagen' en el backend.
-  // Implementaremos la lógica del backend en el siguiente paso.
-  return await callServer("generateImageImagen", {
-    model: "imagen-4.0-generate-001",
-    prompt,
-    aspectRatio,
-  });
-};
+// Funciones que antes estaban aquí (summarize, edit, etc.) se eliminan por claridad
+// ya que no son parte del flujo principal actual.

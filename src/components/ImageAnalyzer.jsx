@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { analyzeImage } from "../services/geminiService";
+import { useAuth } from "../contexts/AuthContext"; // Importar useAuth
 
 const fileToBase64 = (file) => {
   return new Promise((resolve, reject) => {
@@ -18,7 +19,8 @@ const fileToBase64 = (file) => {
   });
 };
 
-export const ImageAnalyzer = ({ onPromptReady, isPro }) => {
+export const ImageAnalyzer = ({ onPromptReady }) => {
+  const { user, consumeCredits } = useAuth(); // Usar el hook de autenticación
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -45,20 +47,19 @@ export const ImageAnalyzer = ({ onPromptReady, isPro }) => {
       setError("Por favor, sube una imagen para analizar.");
       return;
     }
-    if (!isPro) {
-      setError("Esta es una función PRO. Por favor, actualiza tu plan.");
-      return;
-    }
 
     setIsLoading(true);
     setError("");
 
     try {
-      const base64Image = await fileToBase64(imageFile);
-      const { prompt } = await analyzeImage(base64Image, imageFile.type);
+      // Consumir crédito antes de realizar la acción
+      await consumeCredits(1);
 
-      // Pasamos el prompt generado al componente padre
-      onPromptReady(prompt);
+      const base64Image = await fileToBase64(imageFile);
+      const fullJson = await analyzeImage(base64Image, imageFile.type);
+
+      // Pasamos el JSON completo al componente padre
+      onPromptReady(fullJson);
     } catch (err) {
       console.error("Error en el análisis de imagen:", err);
       setError(err.message || "Ocurrió un error al analizar la imagen.");
@@ -72,19 +73,6 @@ export const ImageAnalyzer = ({ onPromptReady, isPro }) => {
     setImagePreview("");
     setError("");
   };
-
-  if (!isPro) {
-    return (
-      <div className="p-6 text-center text-yellow-400 bg-yellow-900/30 rounded-lg border border-yellow-600/50">
-        <Sparkles className="mx-auto w-8 h-8 mb-2" />
-        <h3 className="font-bold">Función PRO</h3>
-        <p className="text-sm text-yellow-200/80">
-          El analizador de imágenes es una herramienta exclusiva para usuarios
-          PRO. ¡Actualiza tu plan para desbloquearla!
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 p-4 bg-black/20 rounded-lg">
@@ -143,5 +131,4 @@ export const ImageAnalyzer = ({ onPromptReady, isPro }) => {
 
 ImageAnalyzer.propTypes = {
   onPromptReady: PropTypes.func.isRequired,
-  isPro: PropTypes.bool.isRequired,
 };

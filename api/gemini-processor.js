@@ -5,23 +5,15 @@ export const config = {
 // =================================================================
 // 📚 IMPORTACIÓN DE CONOCIMIENTO (DATA)
 // =================================================================
-// Estos son los datos que el generador usará para el modo "Automático".
-import { Outfits_men } from "../src/data/Outfits_men.js";
-import { Outfits_women } from "../src/data/Outfits_women.js";
-import { POSES } from "../src/data/posesData.js";
-import { OUTFIT_STYLES } from "../src/data/outfitStylesData.js";
-import { LIGHTING_SETUPS } from "../src/data/lightingData.js";
-import {
-  SHOT_TYPES,
-  CAMERA_ANGLES,
-  SPECIAL_COMPOSITIONS,
-  DEPTH_OF_FIELD,
-} from "../src/data/shotTypesData.js";
-import { ENVIRONMENTS } from "../src/data/environmentsData.js";
-import { COLOR_GRADING_FILTERS } from "../src/data/colorGradingData.js";
-import { cameras } from "../src/data/camerasData.js";
-import { lenses } from "../src/data/lensesData.js";
-import { filmEmulations } from "../src/data/filmEmulationsData.js";
+import { PHOTO_STYLES } from "../src/data/photoStylesData";
+import { LIGHTING_SETUPS } from "../src/data/lightingData";
+import { SHOT_TYPES } from "../src/data/shotTypesData";
+import { ENVIRONMENTS } from "../src/data/environmentsData";
+import { cameras } from "../src/data/camerasData";
+import { lenses } from "../src/data/lensesData";
+import { POSES } from "../src/data/posesData";
+import { Outfits_men } from "../src/data/Outfits_men";
+import { Outfits_women } from "../src/data/Outfits_women";
 
 // =================================================================
 // ⚙️ CONFIGURACIÓN Y LLAMADA A LA API DE GOOGLE
@@ -31,21 +23,14 @@ const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 async function callGoogleAI(model, systemPrompt, userPrompt) {
   const url = `${BASE_URL}/models/${model}:generateContent?key=${API_KEY}`;
-
   const payload = {
-    systemInstruction: {
-      parts: [{ text: systemPrompt }],
-    },
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: userPrompt }],
-      },
-    ],
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
     generationConfig: {
-      // temperature: 0.8, // Un poco más creativo
-      // topP: 0.9,
-      // maxOutputTokens: 1024,
+      responseMimeType: "application/json", // ¡Clave para obtener JSON!
+      temperature: 0.8,
+      topP: 0.9,
+      maxOutputTokens: 2048,
     },
   };
 
@@ -64,163 +49,122 @@ async function callGoogleAI(model, systemPrompt, userPrompt) {
 }
 
 // =================================================================
-// 🧠 ACCIONES DE IA (LÓGICA DE NEGOCIO)
+// 🧠 LÓGICA DE IA: GENERACIÓN DE PROMPT JSON
 // =================================================================
 
-/**
- * Construye el "System Prompt" maestro para el generador de prompts de fotografía.
- * Este prompt instruye a la IA sobre su rol, el formato de salida y el conocimiento experto que debe usar.
- */
-function buildSystemPrompt() {
-  // Aquí se condensa todo el conocimiento de los 4 documentos.
+function buildJsonSystemPrompt() {
   return `
-    Eres "Prompt-Genius", un director de fotografía y fotógrafo experto de renombre mundial. Tu única misión es generar un prompt de fotografía hiperrealista y profesional basado en las especificaciones del usuario.
+    Eres "Prompt-Architect", un director de fotografía de élite y experto en IA generativa. Tu única misión es traducir las ideas de un usuario en un objeto JSON estructurado y ultra-detallado que servirá como la base para generar una fotografía hiperrealista.
 
     REGLAS ESTRICTAS:
-    1.  **IDIOMA INGLÉS:** El prompt de 8 líneas DEBE estar completamente en inglés.
-    2.  **FORMATO OBLIGATORIO DE 8 LÍNEAS:** Tu respuesta DEBE seguir esta estructura exacta, sin excepciones, sin explicaciones adicionales, solo el prompt.
-        (1) Scene: [Tipo de Fotografía], [Entorno/Localización], [Concepto General]
-        (2) Camera: [Modelo de Cámara], [Ajustes: Lente, Apertura, Velocidad, ISO]
-        (3) Composition: [Tipo de Plano], [Ángulo de Cámara], [Regla de Composición]
-        (4) Subject: [Descripción del Sujeto], [Pose/Acción], [Estilo de Vestuario]
-        (5) Filters & Effects: [Filtro Físico y su efecto], [Efectos de Post-producción]
-        (6) Lighting: [Esquema de Iluminación], [Calidad de la Luz], [Modificadores]
-        (7) Style & Mood: [Estilo Visual], [Paleta de Colores], [Emoción/Sentimiento]
-        (8) Film Emulation: [Emulación de Película], [Nivel de Grano]
+    1.  **SALIDA JSON VÁLIDA:** Tu respuesta DEBE ser un objeto JSON válido, sin texto adicional, explicaciones o markdown.
+    2.  **ESTRUCTURA JSON OBLIGATORIA:** El JSON debe seguir esta estructura exacta. Rellena cada campo con un detalle exquisito y profesional.
+        {
+          "narrative": "Un resumen cinematográfico de una línea que captura la esencia de la imagen.",
+          "subject": {
+            "face_preservation": "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.",
+            "description": "Descripción detallada del sujeto (género, edad aparente, etnia, características clave).",
+            "accessories": { "eyewear": "...", "jewelry": ["...", "..."] },
+            "body": { "build": "...", "visible_tattoos": "..." },
+            "wardrobe": { "top_layer": "...", "inner_layer": "...", "bottom": "...", "footwear": "...", "style_tags": ["...", "..."] }
+          },
+          "pose_and_expression": {
+            "body_orientation": "...", "head_orientation": "...", "gaze": "...", "hands": "...", "expression": "...", "overall_vibe": "..."
+          },
+          "environment": {
+            "location_type": "...", "description": "...", "background_elements": ["...", "..."], "depth_of_field": "...", "weather": "...", "time_of_day": "..."
+          },
+          "lighting": {
+            "type": "...", "quality": "...", "direction": "...", "contrast": "...", "highlights_and_shadows": { "highlights": "...", "shadows": "..." }, "extras": ["...", "..."], "white_balance": "..."
+          },
+          "camera": {
+            "format": "full-frame digital camera",
+            "lens": { "focal_length_mm": 85, "type": "..." },
+            "settings": { "aperture": "f/1.8", "shutter_speed": "1/250 s", "iso": 200 },
+            "perspective": { "camera_angle": "...", "distance_to_subject": "...", "field_of_view": "..." },
+            "focus": { "focus_point": "...", "bokeh_description": "..." },
+            "framing": { "orientation": "vertical", "aspect_ratio": "2:3", "cropping": "..." }
+          },
+          "composition": {
+            "framing_style": "...", "leading_lines": "...", "balance": "...", "negative_space": "...", "rule_of_thirds": "...", "depth": "..."
+          },
+          "color_grading": {
+            "palette": "...", "tones": { "shadows": "...", "midtones": "...", "highlights": "..." }, "contrast": "...", "saturation": "...", "look": ["...", "..."]
+          },
+          "postproduction": {
+            "sharpness": "...", "texture": "...", "grain": "...", "vignette": "...", "skin_retouching": "minimal, keep natural texture", "cleanup": ["...", "..."]
+          },
+          "parameters": {
+            "style": "ultra-realistic cinematic street portrait photography",
+            "quality": "very high",
+            "render_detail": "high frequency details",
+            "negative_prompt": ["cartoonish", "over-smoothed skin", "distorted features", "low-resolution"]
+          }
+        }
+    3.  **LÓGICA "AUTOMÁTICO":** Si el usuario elige "automatico", es tu deber como experto tomar la mejor decisión creativa y técnica para ese campo, basándote en la "Idea Inicial" y las otras selecciones.
+    4.  **COHERENCIA TOTAL:** Todos los campos deben estar interconectados. Un "Retrato melancólico" debe reflejarse en la pose, la iluminación, el color y el entorno.
+    5.  **FACE PRESERVATION:** El campo "face_preservation" en "subject" es INALTERABLE. Siempre debe contener "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.".
+    6.  **NARRATIVE CONCATENADA:** El campo "narrative" debe ser un string que resuma la escena de forma atractiva y cinematográfica.
 
-    3.  **TERMINOLOGÍA PROFESIONAL:** DEBES usar la terminología técnica y artística de los documentos de conocimiento. Sé específico. No digas "luz suave", di "Luz suave y difusa de un softbox octogonal grande". No digas "fondo desenfocado", di "Profundidad de campo reducida (f/1.4) creando un bokeh cremoso".
-
-    4.  **LÓGICA "AUTOMÁTICO":** Si el usuario especifica "Automático" para un campo, DEBES elegir una opción apropiada y coherente del CONOCIMIENTO DE DATOS JSON proporcionado. Tus elecciones deben funcionar en armonía para crear una imagen cohesiva y de alta calidad.
-
-    5.  **COHERENCIA TOTAL:** Todas las líneas deben estar interconectadas. Si la escena es "Retrato de moda edgy", la iluminación podría ser "Split lighting con luz dura", la composición un "Plano Americano en ángulo contrapicado" y el estilo "Alto contraste vibrante".
-
-    CONOCIMIENTO CLAVE (Extraído de tus guías expertas):
-
-    *   **Iluminación:** Usa esquemas como Rembrandt, Butterfly, Loop, Split. Describe la calidad (dura, suave) y la dirección (lateral, contraluz). Menciona modificadores (softbox, beauty dish, reflector). La luz crea emoción: la luz suave es calma, la luz dura es drama.
-    *   **Composición:** Usa planos (Close-up, Full Body), ángulos (High Angle, Low Angle, Dutch Angle) y reglas (Regla de Tercios, Espacio Negativo).
-    *   **Filtros:** Son cruciales. Menciona filtros físicos y su efecto.
-        *   **Tiffen Black Pro-Mist (1/8, 1/4):** Para un look cinematográfico, crea un halo suave (halation/bloom) en las luces altas y reduce la nitidez digital. ESENCIAL para el look "de película".
-        *   **Polarizador (CPL):** Para intensificar cielos azules, reducir reflejos en agua/cristal y saturar vegetación.
-        *   **ND (ND8, ND1000):** Para usar aperturas amplias a pleno sol (f/1.8) o para largas exposiciones diurnas (efecto seda en agua).
-        *   **GND (Graduado):** Para equilibrar cielos brillantes con paisajes oscuros.
-    *   **Color y Estilo (Grading):** Describe la paleta de colores. Usa estilos como "Teal & Orange", "Vintage Film Look con negros desvanecidos (matte)", "Alto contraste con colores vibrantes", "Blanco y negro con grano de película".
-    *   **Cámara y Lente:** Sé específico. Un "Sony FE 85mm f/1.4 GM" es ideal para retratos con bokeh. Un "Canon RF 24-70mm f/2.8L" es versátil.
-    *   **Emulación de Película:** Menciona stocks específicos como "Kodak Portra 400" (tonos de piel suaves), "CineStill 800T" (look cinematográfico nocturno con halos rojos), o "Fujifilm Velvia 50" (paisajes saturados).
-
-    Tu objetivo es la excelencia. Cada prompt debe ser una receta precisa para una fotografía galardonada.
-    `;
-}
-
-/**
- * Construye el prompt para el usuario que se enviará a la IA.
- * @param {object} selections - Las selecciones del usuario desde el frontend.
- * @param {object} dataKnowledge - El conocimiento de los archivos de datos.
- * @returns {string}
- */
-function buildUserPrompt(selections, dataKnowledge) {
-  return `
-    Genera un prompt de fotografía profesional basado en las siguientes especificaciones del usuario y tu conocimiento experto.
-
-    ---
-    ESPECIFICACIONES DEL USUARIO:
-    - Género Fotográfico: ${selections.photoGenre}
-    - Entorno: ${selections.environment}
-    - Tipo de Plano: ${selections.shotType}
-    - Ángulo de Cámara: ${selections.cameraAngle}
-    - Composición: ${selections.composition}
-    - Pose/Acción: ${selections.pose}
-    - Estilo de Vestuario: ${selections.outfitStyle}
-    - Vestuario Específico: ${selections.outfit}
-    - Cámara: ${selections.camera}
-    - Lente: ${selections.lens}
-    - Profundidad de Campo: ${selections.dof}
-    - Esquema de Iluminación: ${selections.lighting}
-    - Filtros y Efectos: ${selections.filters}
-    - Estilo de Color: ${selections.colorGrading}
-    - Emulación de Película: ${selections.filmEmulation}
-    ---
-
-    ---
-    CONOCIMIENTO DE DATOS JSON (Para usar en modo "Automático"):
-    - Entornos Disponibles: ${JSON.stringify(dataKnowledge.environments)}
-    - Tipos de Plano Disponibles: ${JSON.stringify(dataKnowledge.shotTypes)}
-    - Ángulos de Cámara Disponibles: ${JSON.stringify(
-      dataKnowledge.cameraAngles
-    )}
-    - Composiciones Disponibles: ${JSON.stringify(dataKnowledge.compositions)}
-    - Poses Masculinas: ${JSON.stringify(dataKnowledge.poses.masculine)}
-    - Poses Femeninas: ${JSON.stringify(dataKnowledge.poses.feminine)}
-    - Poses de Pareja: ${JSON.stringify(dataKnowledge.poses.couple)}
-    - Estilos de Vestuario Disponibles: ${JSON.stringify(
-      dataKnowledge.outfitStyles
-    )}
-    - Ropa Masculina Específica: ${JSON.stringify(dataKnowledge.outfits_men)}
-    - Ropa Femenina Específica: ${JSON.stringify(dataKnowledge.outfits_women)}
-    - Cámaras Disponibles: ${JSON.stringify(dataKnowledge.cameras)}
-    - Lentes Disponibles: ${JSON.stringify(dataKnowledge.lenses)}
-    - Profundidades de Campo: ${JSON.stringify(dataKnowledge.dof)}
-    - Esquemas de Iluminación: ${JSON.stringify(dataKnowledge.lightingSetups)}
-    - Filtros y Estilos de Color: ${JSON.stringify(dataKnowledge.colorGrading)}
-    - Emulaciones de Película: ${JSON.stringify(dataKnowledge.filmEmulations)}
-    ---
-
-    Ahora, genera el prompt de 8 líneas.
+    CONOCIMIENTO DE DATOS (Para tus decisiones en modo "Automático"):
+    - Estilos Fotográficos: ${JSON.stringify(PHOTO_STYLES.map((i) => i.name))}
+    - Iluminación: ${JSON.stringify(LIGHTING_SETUPS.map((i) => i.name))}
+    - Tipos de Plano: ${JSON.stringify(SHOT_TYPES.map((i) => i.name))}
+    - Entornos: ${JSON.stringify(ENVIRONMENTS.map((i) => i.name))}
+    - Cámaras: ${JSON.stringify(cameras.map((i) => i.name))}
+    - Lentes: ${JSON.stringify(lenses.map((i) => i.name))}
+    - Poses (por género): ${JSON.stringify(POSES)}
+    - Vestuarios (por género): ${JSON.stringify({
+      men: Outfits_men.map((i) => i.name),
+      women: Outfits_women.map((i) => i.name),
+    })}
   `;
 }
 
-/**
- * Genera un prompt de fotografía experto basado en las selecciones del usuario.
- * @param {object} body - Las selecciones del usuario.
- * @returns {Promise<{ text: string }>}
- */
-async function generateExpertPromptAction(body) {
-  const systemPrompt = buildSystemPrompt();
+function buildJsonUserPrompt(selections) {
+  return `
+    Genera el objeto JSON ultra-detallado para una fotografía profesional basado en estas especificaciones de alto nivel. Rellena todos los campos como un experto director de fotografía.
 
-  const dataKnowledge = {
-    environments: ENVIRONMENTS,
-    shotTypes: SHOT_TYPES,
-    cameraAngles: CAMERA_ANGLES,
-    compositions: SPECIAL_COMPOSITIONS,
-    poses: POSES,
-    outfitStyles: OUTFIT_STYLES,
-    outfits_men: Outfits_men,
-    outfits_women: Outfits_women,
-    cameras: cameras,
-    lenses: lenses,
-    dof: DEPTH_OF_FIELD,
-    lightingSetups: LIGHTING_SETUPS,
-    colorGrading: COLOR_GRADING_FILTERS,
-    filmEmulations: filmEmulations,
-  };
+    ESPECIFICACIONES DEL USUARIO:
+    - Idea Inicial: "${selections.idea}"
+    - Tipo de Sujeto: ${selections.subjectType}
+    - Estilo de Fotografía: ${selections.photoStyle}
+    - Tipo de Plano: ${selections.shotType}
+    - Entorno: ${selections.environment}
+    - Pose/Acción: ${selections.pose}
+    - Estilo de Vestuario: ${selections.outfit}
+    - Estilo de Iluminación: ${selections.lightingStyle}
+    - Cámara: ${selections.camera}
+    - Lente: ${selections.lens}
+  `;
+}
 
-  const userPrompt = buildUserPrompt(body, dataKnowledge);
+async function generateJsonPromptAction(body) {
+  const systemPrompt = buildJsonSystemPrompt();
+  const userPrompt = buildJsonUserPrompt(body);
 
   const result = await callGoogleAI(
-    "gemini-2.5-flash", // Usamos el modelo más reciente
+    "gemini-2.5-flash-lite", // Modelo correcto para la generación de JSON
     systemPrompt,
     userPrompt
   );
 
-  if (
-    result.candidates &&
-    result.candidates[0] &&
-    result.candidates[0].content &&
-    result.candidates[0].content.parts &&
-    result.candidates[0].content.parts[0]
-  ) {
-    // Limpieza final para asegurar que solo devolvemos el prompt
-    const rawText = result.candidates[0].content.parts[0].text;
-    // A veces la IA puede añadir ``` o markdown, lo limpiamos.
-    const cleanText = rawText.replace(/```/g, "").trim();
-    return { text: cleanText };
+  if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+    // La API devuelve el JSON como un string, lo parseamos.
+    const jsonText = result.candidates[0].content.parts[0].text;
+    try {
+      const parsedJson = JSON.parse(jsonText);
+      return parsedJson; // Devolvemos el objeto JSON parseado
+    } catch {
+      console.error("Error parsing JSON from AI response:", jsonText);
+      throw new Error("La IA no devolvió un JSON válido.");
+    }
   } else {
     console.error(
-      "Unexpected response structure from generateExpertPromptAction:",
+      "Unexpected response structure from generateJsonPromptAction:",
       JSON.stringify(result, null, 2)
     );
-    throw new Error(
-      "No se pudo generar el prompt. La respuesta de la API no tiene el formato esperado."
-    );
+    throw new Error("Respuesta inesperada de la API de IA.");
   }
 }
 
@@ -237,95 +181,11 @@ export default async function handler(req) {
   }
 
   try {
-    const { action, ...body } = await req.json();
+    // El cuerpo de la solicitud ahora contiene directamente las selecciones.
+    const body = await req.json();
 
-    if (!action) {
-      return new Response(JSON.stringify({ error: "Action is required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    let result;
-    switch (action) {
-      // La acción 'generate-text' ahora usa el generador experto.
-      case "generate-text":
-        result = await generateExpertPromptAction(body);
-        break;
-      // Mantenemos analyze-image por si se usa en otro lado, aunque no es parte del lab.
-      case "analyze-image":
-        const { imageBase64, mimeType } = body;
-        const analysisPrompt = `
-          Analiza esta imagen y genera un prompt de fotografía hiperrealista y profesional en el formato de 8 líneas que conoces. Extrae todos los detalles técnicos y artísticos posibles.
-
-          REGLAS:
-          1.  **FORMATO OBLIGATORIO DE 8 LÍNEAS:** Tu respuesta DEBE seguir esta estructura exacta.
-              (1) Scene:
-              (2) Camera:
-              (3) Composition:
-              (4) Subject:
-              (5) Filters & Effects:
-              (6) Lighting:
-              (7) Style & Mood:
-              (8) Film Emulation:
-          2.  **INFIERE LOS DETALLES:** Si un detalle no es obvio (ej. modelo de cámara exacto), infiere una opción profesional y coherente.
-          3.  **SÉ TÉCNICO:** Usa terminología fotográfica precisa.
-        `;
-
-        const pureBase64 = imageBase64.replace(
-          /^data:image\/[a-zA-Z]+;base64,/,
-          ""
-        );
-        const visionPayload = {
-          contents: [
-            {
-              parts: [
-                { text: analysisPrompt },
-                { inline_data: { mime_type: mimeType, data: pureBase64 } },
-              ],
-            },
-          ],
-        };
-        const visionModel = "gemini-pro-vision"; // El modelo correcto para análisis de imagen
-        const visionUrl = `${BASE_URL}/models/${visionModel}:generateContent?key=${API_KEY}`;
-
-        const visionResponse = await fetch(visionUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(visionPayload),
-        });
-
-        if (!visionResponse.ok) {
-          const errorText = await visionResponse.text();
-          console.error(
-            `Google Vision API Error (${visionResponse.status}): ${errorText}`
-          );
-          throw new Error(`Error de la API de Google Vision: ${errorText}`);
-        }
-
-        const visionResult = await visionResponse.json();
-
-        if (
-          visionResult.candidates &&
-          visionResult.candidates[0].content.parts[0]
-        ) {
-          const rawText = visionResult.candidates[0].content.parts[0].text;
-          const cleanText = rawText.replace(/```/g, "").trim();
-          result = { text: cleanText };
-        } else {
-          console.error(
-            "Invalid response structure from vision API:",
-            JSON.stringify(visionResult, null, 2)
-          );
-          throw new Error("Respuesta inválida de la API de Vision.");
-        }
-        break;
-      default:
-        return new Response(JSON.stringify({ error: "Invalid action" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        });
-    }
+    // La única acción es generar el prompt JSON.
+    const result = await generateJsonPromptAction(body);
 
     return new Response(JSON.stringify(result), {
       status: 200,

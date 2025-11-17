@@ -9,6 +9,8 @@ import {
   Upload,
   Download,
   Share2,
+  Copy,
+  Check,
 } from "lucide-react";
 import PromptGenerator from "./PromptGenerator";
 import { ImageAnalyzer } from "./ImageAnalyzer";
@@ -27,8 +29,10 @@ const PresetPrompts = () => (
 // Componente principal del laboratorio de Prompts
 export const PromptLab = ({ isPro }) => {
   const { user, consumeCredits, savePromptToHistory } = useAuth();
-  const [activeTab, setActiveTab] = useState("manual");
+  const [activeTab, setActiveTab] = useState("generator");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
+  const [generatedJson, setGeneratedJson] = useState(null); // Nuevo estado para el JSON
+  const [isCopied, setIsCopied] = useState(false);
   const [selfieImage, setSelfieImage] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState("");
   const [aspectRatio, setAspectRatio] = useState("3:4");
@@ -39,14 +43,30 @@ export const PromptLab = ({ isPro }) => {
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(false);
 
   const tabs = [
-    { id: "manual", label: "Manual", icon: Wand2 },
-    { id: "analyzer", label: "Analizador", icon: FileSearch },
+    { id: "generator", label: "Generador", icon: Wand2 },
+    { id: "image_to_image", label: "Image to Image", icon: FileSearch },
     { id: "presets", label: "Presets", icon: Star },
   ];
 
-  const handlePromptGenerated = (prompt) => {
-    setGeneratedPrompt(prompt);
-    setGeneratedImage(null); // Limpiar imagen anterior al generar nuevo prompt
+  const handlePromptGenerated = (promptData) => {
+    // Ahora esperamos un objeto JSON
+    if (typeof promptData === "object" && promptData !== null) {
+      setGeneratedJson(promptData);
+      setGeneratedPrompt(promptData.final_prompt_string || ""); // Mostramos el string final
+    } else if (typeof promptData === "string") {
+      // Fallback por si algo sigue devolviendo string
+      setGeneratedPrompt(promptData);
+      setGeneratedJson({ final_prompt_string: promptData });
+    }
+    setGeneratedImage(null); // Limpiar imagen anterior
+  };
+
+  const handleCopy = () => {
+    if (generatedPrompt) {
+      navigator.clipboard.writeText(generatedPrompt);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   };
 
   const handleSelfieChange = (e) => {
@@ -121,7 +141,7 @@ export const PromptLab = ({ isPro }) => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "manual":
+      case "generator":
         return (
           <PromptGenerator
             onPromptGenerated={handlePromptGenerated}
@@ -131,10 +151,8 @@ export const PromptLab = ({ isPro }) => {
             onIdeaChange={setInitialIdea}
           />
         );
-      case "analyzer":
-        return (
-          <ImageAnalyzer onPromptReady={handlePromptGenerated} isPro={isPro} />
-        ); // Usar el componente real
+      case "image_to_image":
+        return <ImageAnalyzer onPromptReady={handlePromptGenerated} />; // Usar el componente real
       case "presets":
         return <PresetPrompts />;
       default:
@@ -174,13 +192,41 @@ export const PromptLab = ({ isPro }) => {
 
           {/* Prompt Generado */}
           <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <Sparkles className="w-5 h-5 mr-2 text-[#D8C780]" />
-              Prompt Generado
-            </h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Sparkles className="w-5 h-5 mr-2 text-[#D8C780]" />
+                Prompt Generado
+              </h3>
+              {generatedPrompt && (
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-2 text-sm text-gray-400 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-500" />
+                      Copiado
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copiar
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
             <div className="bg-black/50 rounded-lg p-4 min-h-[120px] text-gray-300 text-sm whitespace-pre-wrap font-mono">
               {generatedPrompt || "Aquí aparecerá tu prompt experto..."}
             </div>
+            {generatedJson && (
+              <details className="mt-2 text-xs text-gray-500">
+                <summary>Ver JSON completo</summary>
+                <pre className="mt-2 p-2 bg-black rounded-md text-gray-400 whitespace-pre-wrap">
+                  {JSON.stringify(generatedJson, null, 2)}
+                </pre>
+              </details>
+            )}
           </div>
         </div>
 

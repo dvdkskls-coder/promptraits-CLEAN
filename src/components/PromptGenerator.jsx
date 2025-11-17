@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Wand2, Loader2 } from "lucide-react";
+import { Wand2, Loader2, ChevronDown } from "lucide-react";
 import { processAndSetItems } from "../utils/dataProcessor";
 import { generateProfessionalPrompt } from "../services/geminiService";
 import { useAuth } from "../contexts/AuthContext";
@@ -19,14 +19,15 @@ import { supabase } from "../lib/supabase";
 // Importación de datos
 import { ENVIRONMENTS } from "../data/environmentsData";
 import { POSES } from "../data/posesData"; // Contiene todas las poses
-import { SHOT_TYPES } from "../data/shotTypesData";
+import { SHOT_TYPES_DATA } from "../data/shotTypesData";
 import { Outfits_men } from "../data/Outfits_men";
 import { Outfits_women } from "../data/Outfits_women";
-import { LIGHTING_SETUPS } from "../data/lightingData";
+import { LIGHTING_DATA } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
-import { cameras } from "../data/camerasData";
-import { lenses } from "../data/lensesData";
+import { CAMERAS_DATA } from "../data/camerasData";
+import { LENSES_DATA } from "../data/lensesData";
 import { filmEmulations } from "../data/filmEmulationsData";
+import { PHOTO_STYLES_DATA } from "../data/photoStylesData"; // Importar nuevos datos
 
 const subjectTypes = [
   { id: "woman", name: "Mujer" },
@@ -85,11 +86,15 @@ export default function PromptGenerator({
   initialIdea,
   onIdeaChange,
 }) {
-  const { user, profile, consumeCredits } = useAuth();
+  const { user, consumeCredits } = useAuth();
+
+  // Estado para la sección PRO
+  const [proToolsOpen, setProToolsOpen] = useState(false);
 
   // Estados para selectores estáticos
   const [processedEnvironments, setProcessedEnvironments] = useState([]);
   const [processedShotTypes, setProcessedShotTypes] = useState([]);
+  const [processedPhotoStyles, setProcessedPhotoStyles] = useState([]); // Nuevo estado
   const [processedLighting, setProcessedLighting] = useState([]);
   const [processedColorGrading, setProcessedColorGrading] = useState([]);
   const [processedCameras, setProcessedCameras] = useState([]);
@@ -105,6 +110,7 @@ export default function PromptGenerator({
   const [environment, setEnvironment] = useState("automatico");
   const [pose, setPose] = useState("automatico");
   const [shotType, setShotType] = useState("automatico");
+  const [photoStyle, setPhotoStyle] = useState("automatico"); // Nuevo estado
   const [outfit, setOutfit] = useState("automatico");
   const [lightingStyle, setLightingStyle] = useState("automatico");
   const [color, setColor] = useState("automatico");
@@ -113,76 +119,16 @@ export default function PromptGenerator({
   const [film, setFilm] = useState("automatico");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Efecto para actualizar la idea desde el PromptLab
-  useEffect(() => {
-    const selections = [
-      environment,
-      pose,
-      shotType,
-      outfit,
-      lightingStyle,
-      color,
-      camera,
-      lens,
-      film,
-    ]
-      .filter((v) => v !== "automatico")
-      .map((v) => {
-        const allItems = [
-          ...processedEnvironments,
-          ...dynamicPoses,
-          ...processedShotTypes,
-          ...dynamicOutfits,
-          ...processedLighting,
-          ...processedColorGrading,
-          ...processedCameras,
-          ...processedLenses,
-          ...processedFilmEmulations,
-        ];
-        const item = allItems.find((i) => i.id === v);
-        return item ? item.name : "";
-      })
-      .filter(Boolean)
-      .join(", ");
-
-    const baseIdea = initialIdea.split(" #")[0];
-    const newIdea = [baseIdea, selections].filter(Boolean).join(" # ");
-
-    if (newIdea !== initialIdea) {
-      onIdeaChange(newIdea);
-    }
-  }, [
-    environment,
-    pose,
-    shotType,
-    outfit,
-    lightingStyle,
-    color,
-    camera,
-    lens,
-    film,
-    initialIdea,
-    onIdeaChange,
-    processedEnvironments,
-    dynamicPoses,
-    processedShotTypes,
-    dynamicOutfits,
-    processedLighting,
-    processedColorGrading,
-    processedCameras,
-    processedLenses,
-    processedFilmEmulations,
-  ]);
-
   // Efecto para procesar datos estáticos (solo se ejecuta una vez)
   useEffect(() => {
     const processStaticData = () => {
       setProcessedEnvironments(processAndSetItems(ENVIRONMENTS));
-      setProcessedShotTypes(processAndSetItems(SHOT_TYPES));
-      setProcessedLighting(processAndSetItems(LIGHTING_SETUPS));
+      setProcessedShotTypes(processAndSetItems(SHOT_TYPES_DATA));
+      setProcessedPhotoStyles(processAndSetItems(PHOTO_STYLES_DATA)); // Procesar nuevos datos
+      setProcessedLighting(processAndSetItems(LIGHTING_DATA));
       setProcessedColorGrading(processAndSetItems(COLOR_GRADING_FILTERS));
-      setProcessedCameras(processAndSetItems(cameras));
-      setProcessedLenses(processAndSetItems(lenses));
+      setProcessedCameras(processAndSetItems(CAMERAS_DATA));
+      setProcessedLenses(processAndSetItems(LENSES_DATA));
       setProcessedFilmEmulations(processAndSetItems(filmEmulations));
     };
     processStaticData();
@@ -245,6 +191,7 @@ export default function PromptGenerator({
         environment,
         pose,
         shotType,
+        photoStyle, // Incluir en settings
         outfit,
         lightingStyle,
         color,
@@ -254,16 +201,17 @@ export default function PromptGenerator({
       };
 
       const response = await generateProfessionalPrompt(settings);
-      onPromptGenerated(response.text);
+      onPromptGenerated(response); // Ahora se espera un JSON
 
       // 2. Guardar en el historial (la deducción de crédito ya se hizo)
-      if (user && response.text) {
+      if (user && response.final_prompt_string) {
         const { error: historyError } = await supabase
           .from("prompt_history")
           .insert({
             user_id: user.id,
-            prompt_text: response.text,
-            options: settings,
+            prompt_text: response.final_prompt_string, // Guardamos el string
+            options: settings, // Guardamos las selecciones
+            full_prompt_json: response, // Guardamos el JSON completo
           });
 
         if (historyError) {
@@ -291,74 +239,104 @@ export default function PromptGenerator({
         />
       </Section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <GeneratorSelector
-          label="Tipo de Sujeto"
-          value={subjectType}
-          onChange={setSubjectType}
-          items={subjectTypes}
-        />
-        <GeneratorSelector
-          label="Entorno"
-          value={environment}
-          onChange={setEnvironment}
-          items={processedEnvironments}
-        />
-        <GeneratorSelector
-          label="Pose/Acción"
-          value={pose}
-          onChange={setPose}
-          items={dynamicPoses} // Usa la lista dinámica
-        />
-        <GeneratorSelector
-          label="Tipo de Plano"
-          value={shotType}
-          onChange={setShotType}
-          items={processedShotTypes}
-        />
-        <GeneratorSelector
-          label="Estilo de Vestuario"
-          value={outfit}
-          onChange={setOutfit}
-          items={dynamicOutfits} // Usa la lista dinámica
-        />
-        <GeneratorSelector
-          label="Estilo de Iluminación"
-          value={lightingStyle}
-          onChange={setLightingStyle}
-          items={processedLighting}
-        />
-        <GeneratorSelector
-          label="Grado de Color"
-          value={color}
-          onChange={setColor}
-          items={processedColorGrading}
-        />
-        <GeneratorSelector
-          label="Cámara"
-          value={camera}
-          onChange={setCamera}
-          items={processedCameras}
-        />
-        <GeneratorSelector
-          label="Lente"
-          value={lens}
-          onChange={setLens}
-          items={processedLenses}
-        />
-        <GeneratorSelector
-          label="Emulación de Película"
-          value={film}
-          onChange={setFilm}
-          items={processedFilmEmulations}
-        />
-      </div>
+      {/* MODO RÁPIDO */}
+      <Section title="Modo Rápido">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <GeneratorSelector
+            label="Tipo de Plano"
+            value={shotType}
+            onChange={setShotType}
+            items={processedShotTypes}
+          />
+          <GeneratorSelector
+            label="Estilo de Fotografía"
+            value={photoStyle}
+            onChange={setPhotoStyle}
+            items={processedPhotoStyles}
+          />
+        </div>
+      </Section>
+
+      {/* HERRAMIENTAS PRO (COLAPSABLE) */}
+      {user && ["pro", "premium"].includes(user.role) && (
+        <div>
+          <Button
+            onClick={() => setProToolsOpen(!proToolsOpen)}
+            variant="link"
+            className="text-indigo-400 hover:text-indigo-300 text-lg font-semibold mb-4 px-0"
+          >
+            {proToolsOpen
+              ? "Ocultar Herramientas PRO"
+              : "Mostrar Herramientas PRO"}
+            <ChevronDown
+              className={`ml-2 h-5 w-5 transition-transform ${
+                proToolsOpen ? "rotate-180" : ""
+              }`}
+            />
+          </Button>
+
+          {proToolsOpen && (
+            <Section title="Herramientas PRO">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <GeneratorSelector
+                  label="Entorno"
+                  value={environment}
+                  onChange={setEnvironment}
+                  items={processedEnvironments}
+                />
+                <GeneratorSelector
+                  label="Pose/Acción"
+                  value={pose}
+                  onChange={setPose}
+                  items={dynamicPoses}
+                />
+                <GeneratorSelector
+                  label="Estilo de Vestuario"
+                  value={outfit}
+                  onChange={setOutfit}
+                  items={dynamicOutfits}
+                />
+                <GeneratorSelector
+                  label="Estilo de Iluminación"
+                  value={lightingStyle}
+                  onChange={setLightingStyle}
+                  items={processedLighting}
+                />
+                <GeneratorSelector
+                  label="Grado de Color"
+                  value={color}
+                  onChange={setColor}
+                  items={processedColorGrading}
+                />
+                <GeneratorSelector
+                  label="Cámara"
+                  value={camera}
+                  onChange={setCamera}
+                  items={processedCameras}
+                />
+                <GeneratorSelector
+                  label="Lente"
+                  value={lens}
+                  onChange={setLens}
+                  items={processedLenses}
+                />
+                <GeneratorSelector
+                  label="Emulación de Película"
+                  value={film}
+                  onChange={setFilm}
+                  items={processedFilmEmulations}
+                />
+              </div>
+            </Section>
+          )}
+        </div>
+      )}
 
       <div className="flex justify-end">
         <Button
           onClick={handleGenerate}
           disabled={isLoading}
-          className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-all disabled:bg-gray-500 disabled:cursor-not-allowed"
+          className="w-full md:w-auto gap-2 bg-[#D8C780] text-black font-bold py-3 px-6 rounded-lg flex items-center justify-center transition-all disabled:bg-gray-600 disabled:cursor-not-allowed hover:bg-yellow-300"
         >
           {isLoading ? (
             <>
