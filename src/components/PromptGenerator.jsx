@@ -25,7 +25,7 @@ import { Outfits_women } from "../data/Outfits_women";
 import { LIGHTING_DATA } from "../data/lightingData";
 import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
 import { CAMERAS_DATA } from "../data/camerasData";
-import { LENSES_DATA } from "../data/lensesData";
+import { lenses } from "../data/lensesData";
 import { filmEmulations } from "../data/filmEmulationsData";
 import { PHOTO_STYLES_DATA } from "../data/photoStylesData"; // Importar nuevos datos
 
@@ -128,7 +128,7 @@ export default function PromptGenerator({
       setProcessedLighting(processAndSetItems(LIGHTING_DATA));
       setProcessedColorGrading(processAndSetItems(COLOR_GRADING_FILTERS));
       setProcessedCameras(processAndSetItems(CAMERAS_DATA));
-      setProcessedLenses(processAndSetItems(LENSES_DATA));
+      setProcessedLenses(processAndSetItems(lenses));
       setProcessedFilmEmulations(processAndSetItems(filmEmulations));
     };
     processStaticData();
