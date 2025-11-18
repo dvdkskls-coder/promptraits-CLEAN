@@ -9,7 +9,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 async function callGoogleVisionAPI(systemPrompt, imageBase64, mimeType) {
-  const model = "gemini-1.5-flash-latest"; // Usamos el último modelo flash
+  const model = "gemini-2.5-flash"; // Usamos el último modelo flash
   const url = `${BASE_URL}/models/${model}:generateContent?key=${API_KEY}`;
 
   const pureBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
