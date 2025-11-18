@@ -17,8 +17,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
 
 // Importación de datos
-import { ENVIRONMENTS } from "../data/environmentsData";
-import { POSES } from "../data/posesData"; // Contiene todas las poses
+import { ENVIRONMENTS_ARRAY as ENVIRONMENTS } from "../data/environmentsData"; // Importamos el Array aplanado
+import { POSES } from "../data/posesData";
 import { SHOT_TYPES } from "../data/shotTypesData";
 import { Outfits_men } from "../data/Outfits_men";
 import { Outfits_women } from "../data/Outfits_women";
@@ -27,7 +27,21 @@ import { COLOR_GRADING_FILTERS } from "../data/colorGradingData";
 import { cameras } from "../data/camerasData";
 import { lenses } from "../data/lensesData";
 import { filmEmulations } from "../data/filmEmulationsData";
-import { PHOTO_STYLES } from "../data/photoStylesData"; // Importar nuevos datos
+import { PHOTO_STYLES } from "../data/photoStylesData";
+
+// ----- INICIO DE LA CORRECCIÓN "a prueba de balas" -----
+// Esta función auxiliar se asegura de que los datos de los selectores
+// sean siempre un array, incluso si los archivos de datos están mal.
+const safeProcessItems = (data) => {
+  if (Array.isArray(data)) {
+    return processAndSetItems(data);
+  }
+  if (typeof data === "object" && data !== null) {
+    return processAndSetItems(Object.values(data));
+  }
+  return []; // Devuelve array vacío si el dato es incorrecto
+};
+// ----- FIN DE LA CORRECCIÓN -----
 
 const subjectTypes = [
   { id: "woman", name: "Mujer" },
@@ -88,29 +102,25 @@ export default function PromptGenerator({
 }) {
   const { user, consumeCredits } = useAuth();
 
-  // Estado para la sección PRO
   const [proToolsOpen, setProToolsOpen] = useState(false);
 
-  // Estados para selectores estáticos
   const [processedEnvironments, setProcessedEnvironments] = useState([]);
   const [processedShotTypes, setProcessedShotTypes] = useState([]);
-  const [processedPhotoStyles, setProcessedPhotoStyles] = useState([]); // Nuevo estado
+  const [processedPhotoStyles, setProcessedPhotoStyles] = useState([]);
   const [processedLighting, setProcessedLighting] = useState([]);
   const [processedColorGrading, setProcessedColorGrading] = useState([]);
   const [processedCameras, setProcessedCameras] = useState([]);
   const [processedLenses, setProcessedLenses] = useState([]);
   const [processedFilmEmulations, setProcessedFilmEmulations] = useState([]);
 
-  // Estados para selectores dinámicos
   const [dynamicPoses, setDynamicPoses] = useState([]);
   const [dynamicOutfits, setDynamicOutfits] = useState([]);
 
-  // Estados para los valores seleccionados
   const [subjectType, setSubjectType] = useState("woman");
   const [environment, setEnvironment] = useState("automatico");
   const [pose, setPose] = useState("automatico");
   const [shotType, setShotType] = useState("automatico");
-  const [photoStyle, setPhotoStyle] = useState("automatico"); // Nuevo estado
+  const [photoStyle, setPhotoStyle] = useState("automatico");
   const [outfit, setOutfit] = useState("automatico");
   const [lightingStyle, setLightingStyle] = useState("automatico");
   const [color, setColor] = useState("automatico");
@@ -119,41 +129,39 @@ export default function PromptGenerator({
   const [film, setFilm] = useState("automatico");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Efecto para procesar datos estáticos (solo se ejecuta una vez)
   useEffect(() => {
     const processStaticData = () => {
-      setProcessedEnvironments(processAndSetItems(ENVIRONMENTS));
-      setProcessedShotTypes(processAndSetItems(SHOT_TYPES));
-      setProcessedPhotoStyles(processAndSetItems(PHOTO_STYLES)); // Procesar nuevos datos
-      setProcessedLighting(processAndSetItems(LIGHTING_SETUPS));
-      setProcessedColorGrading(processAndSetItems(COLOR_GRADING_FILTERS));
-      setProcessedCameras(processAndSetItems(cameras));
-      setProcessedLenses(processAndSetItems(lenses));
-      setProcessedFilmEmulations(processAndSetItems(filmEmulations));
+      // Usamos la nueva función "safeProcessItems" para evitar errores
+      setProcessedEnvironments(safeProcessItems(ENVIRONMENTS));
+      setProcessedShotTypes(safeProcessItems(SHOT_TYPES));
+      setProcessedPhotoStyles(safeProcessItems(PHOTO_STYLES));
+      setProcessedLighting(safeProcessItems(LIGHTING_SETUPS));
+      setProcessedColorGrading(safeProcessItems(COLOR_GRADING_FILTERS));
+      setProcessedCameras(safeProcessItems(cameras));
+      setProcessedLenses(safeProcessItems(lenses));
+      setProcessedFilmEmulations(safeProcessItems(filmEmulations));
     };
     processStaticData();
   }, []);
 
-  // Efecto para actualizar poses y vestuarios cuando cambia el tipo de sujeto
   useEffect(() => {
     let posesData = [];
     let outfitsData = [];
 
+    // Usamos Object.values() para asegurarnos de que mapeamos un array
     switch (subjectType) {
       case "woman":
         posesData = POSES.feminine || [];
-        outfitsData = Outfits_women || [];
+        outfitsData = Object.values(Outfits_women || {});
         break;
       case "man":
         posesData = POSES.masculine || [];
-        outfitsData = Outfits_men || [];
+        outfitsData = Object.values(Outfits_men || {});
         break;
       case "couple":
         posesData = POSES.couple || [];
-        // No hay outfits específicos para pareja, se usará 'automatico'
         break;
       case "animal":
-        // No hay poses ni outfits específicos para animales
         break;
       default:
         break;
@@ -170,18 +178,17 @@ export default function PromptGenerator({
       )
     );
 
-    // Resetear selección si ya no es válida
     setPose("automatico");
     setOutfit("automatico");
   }, [subjectType]);
 
+  // -------- INICIO DE LA CORRECCIÓN "handleGenerate" --------
+  // Esta función ha sido actualizada para manejar la respuesta JSON
   const handleGenerate = async () => {
     setIsLoading(true);
     onLoading(true);
     try {
-      // 1. Verificar créditos antes de generar
       if (user) {
-        // consumeCredits ya maneja el caso 'premium' y lanza error si no hay créditos.
         await consumeCredits(1);
       }
 
@@ -191,7 +198,7 @@ export default function PromptGenerator({
         environment,
         pose,
         shotType,
-        photoStyle, // Incluir en settings
+        photoStyle,
         outfit,
         lightingStyle,
         color,
@@ -200,18 +207,28 @@ export default function PromptGenerator({
         film,
       };
 
-      const response = await generateProfessionalPrompt(settings);
-      onPromptGenerated(response); // Ahora se espera un JSON
+      // 1. La API ahora devuelve el JSON completo
+      const responseJson = await generateProfessionalPrompt(settings);
 
-      // 2. Guardar en el historial (la deducción de crédito ya se hizo)
-      if (user && response.final_prompt_string) {
+      // 2. Extraemos el texto "narrative" para mostrarlo en la caja
+      //    y pasamos el JSON completo al componente padre (si es necesario)
+      const promptTextToShow =
+        responseJson.narrative || "Error: No narrative found";
+
+      // 'onPromptGenerated' debe estar preparado para recibir el JSON completo
+      // o solo el texto. Asumiremos que el padre ahora recibe el JSON.
+      // Para la caja de texto "Prompt Generado", el padre debe usar 'responseJson.narrative'.
+      onPromptGenerated(responseJson);
+
+      // 3. Guardamos en Supabase usando las claves correctas del JSON
+      if (user && responseJson.narrative) {
         const { error: historyError } = await supabase
           .from("prompt_history")
           .insert({
             user_id: user.id,
-            prompt_text: response.final_prompt_string, // Guardamos el string
+            prompt_text: responseJson.narrative, // Guardamos la narrativa como texto principal
             options: settings, // Guardamos las selecciones
-            full_prompt_json: response, // Guardamos el JSON completo
+            full_prompt_json: responseJson, // Guardamos el JSON completo
           });
 
         if (historyError) {
@@ -220,13 +237,13 @@ export default function PromptGenerator({
       }
     } catch (error) {
       console.error("Error in generation process:", error);
-      // Mostrar error al usuario (ej. créditos insuficientes)
       alert(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
       onLoading(false);
     }
   };
+  // -------- FIN DE LA CORRECCIÓN "handleGenerate" --------
 
   return (
     <div className="space-y-6">
@@ -239,7 +256,6 @@ export default function PromptGenerator({
         />
       </Section>
 
-      {/* MODO RÁPIDO */}
       <Section title="Modo Rápido">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GeneratorSelector
@@ -257,7 +273,9 @@ export default function PromptGenerator({
         </div>
       </Section>
 
-      {/* HERRAMIENTAS PRO (COLAPSABLE) */}
+      {/* ¡OJO! Esto sigue aquí. Si no ves las herramientas,
+        es 100% seguro que tu 'role' en Supabase no es 'pro' o 'premium'.
+      */}
       {user && ["pro", "premium"].includes(user.role) && (
         <div>
           <Button

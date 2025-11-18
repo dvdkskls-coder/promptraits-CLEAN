@@ -27,10 +27,10 @@ async function callGoogleAI(model, systemPrompt, userPrompt) {
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents: [{ role: "user", parts: [{ text: userPrompt }] }],
     generationConfig: {
-      responseMimeType: "application/json", // ¡Clave para obtener JSON!
+      responseMimeType: "application/json",
       temperature: 0.8,
       topP: 0.9,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 4096, // Aumentado para el JSON detallado
     },
   };
 
@@ -52,100 +52,84 @@ async function callGoogleAI(model, systemPrompt, userPrompt) {
 // 🧠 LÓGICA DE IA: GENERACIÓN DE PROMPT JSON
 // =================================================================
 
+// -------- INICIO DE LA CORRECCIÓN "s.map is not a function" --------
+const getNames = (data) => {
+  if (Array.isArray(data)) {
+    return data.map((i) => i.name);
+  }
+  if (typeof data === "object" && data !== null) {
+    return Object.values(data).map((i) => i.name);
+  }
+  return [];
+};
+// -------- FIN DE LA CORRECCIÓN --------
+
+// -------- INICIO DE LA CORRECCIÓN "System Prompt" --------
+// Reemplazado con tu estructura JSON de ejemplo e instrucciones de privacidad
 function buildJsonSystemPrompt() {
-  const getNames = (data) => {
-    if (Array.isArray(data)) {
-      return data.map((i) => i.name); // Ya es un array
-    }
-    if (typeof data === "object" && data !== null) {
-      return Object.values(data).map((i) => i.name); // Es un objeto, lo convertimos
-    }
-    return []; // No es un formato esperado
-  };
+  const dataKnowledge = `
+    DATA KNOWLEDGE (Use for 'automatico' mode):
+    - Photographic Styles: ${JSON.stringify(getNames(PHOTO_STYLES))}
+    - Lighting Setups: ${JSON.stringify(getNames(LIGHTING_SETUPS))}
+    - Shot Types: ${JSON.stringify(getNames(SHOT_TYPES))}
+    - Environments: ${JSON.stringify(getNames(ENVIRONMENTS))}
+    - Cameras: ${JSON.stringify(getNames(cameras))}
+    - Lenses: ${JSON.stringify(getNames(lenses))}
+    - Poses (by gender): ${JSON.stringify(POSES)}
+    - Outfits (by gender): ${JSON.stringify({
+      men: getNames(Outfits_men),
+      women: getNames(Outfits_women),
+    })}
+  `;
 
   return `
-    Eres "Prompt-Architect", un director de fotografía de élite y experto en IA generativa. Tu única misión es traducir las ideas de un usuario en un objeto JSON estructurado y ultra-detallado que servirá como la base para generar una fotografía hiperrealista.
+    You are "Prompt-Architect", an elite AI photography director. Your sole mission is to translate a user's idea into an ultra-detailed JSON object to generate a hyper-realistic photograph.
+    You MUST respond ONLY in English.
 
-    REGLAS ESTRICTAS:
-    1.  **SALIDA JSON VÁLIDA:** Tu respuesta DEBE ser un objeto JSON válido, sin texto adicional, explicaciones o markdown.
-    2.  **ESTRUCTURA JSON OBLIGATORIA:** El JSON debe seguir esta estructura exacta. Rellena cada campo con un detalle exquisito y profesional.
+    STRICT RULES:
+    1.  **VALID JSON OUTPUT:** Your response MUST be a valid JSON object, with no additional text, explanations, or markdown.
+    2.  **JSON STRUCTURE:** You must follow this exact JSON structure:
         {
-          "narrative": "Un resumen cinematográfico de una línea que captura la esencia de la imagen.",
+          "narrative": "A one-line cinematic summary that captures the essence of the image.",
           "subject": {
             "face_preservation": "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.",
-            "description": "Descripción detallada del sujeto (género, edad aparente, etnia, características clave).",
+            "description": "A description of the subject's outfit, pose, and facial expression. **DO NOT describe the person's physical appearance (age, gender, ethnicity, hair, features).**",
             "accessories": { "eyewear": "...", "jewelry": ["...", "..."] },
             "body": { "build": "...", "visible_tattoos": "..." },
             "wardrobe": { "top_layer": "...", "inner_layer": "...", "bottom": "...", "footwear": "...", "style_tags": ["...", "..."] }
           },
-          "pose_and_expression": {
-            "body_orientation": "...", "head_orientation": "...", "gaze": "...", "hands": "...", "expression": "...", "overall_vibe": "..."
-          },
-          "environment": {
-            "location_type": "...", "description": "...", "background_elements": ["...", "..."], "depth_of_field": "...", "weather": "...", "time_of_day": "..."
-          },
-          "lighting": {
-            "type": "...", "quality": "...", "direction": "...", "contrast": "...", "highlights_and_shadows": { "highlights": "...", "shadows": "..." }, "extras": ["...", "..."], "white_balance": "..."
-          },
-          "camera": {
-            "format": "full-frame digital camera",
-            "lens": { "focal_length_mm": 85, "type": "..." },
-            "settings": { "aperture": "f/1.8", "shutter_speed": "1/250 s", "iso": 200 },
-            "perspective": { "camera_angle": "...", "distance_to_subject": "...", "field_of_view": "..." },
-            "focus": { "focus_point": "...", "bokeh_description": "..." },
-            "framing": { "orientation": "vertical", "aspect_ratio": "2:3", "cropping": "..." }
-          },
-          "composition": {
-            "framing_style": "...", "leading_lines": "...", "balance": "...", "negative_space": "...", "rule_of_thirds": "...", "depth": "..."
-          },
-          "color_grading": {
-            "palette": "...", "tones": { "shadows": "...", "midtones": "...", "highlights": "..." }, "contrast": "...", "saturation": "...", "look": ["...", "..."]
-          },
-          "postproduction": {
-            "sharpness": "...", "texture": "...", "grain": "...", "vignette": "...", "skin_retouching": "minimal, keep natural texture", "cleanup": ["...", "..."]
-          },
-          "parameters": {
-            "style": "ultra-realistic cinematic street portrait photography",
-            "quality": "very high",
-            "render_detail": "high frequency details",
-            "negative_prompt": ["cartoonish", "over-smoothed skin", "distorted features", "low-resolution"]
-          }
+          "pose_and_expression": { "body_orientation": "...", "head_orientation": "...", "gaze": "...", "hands": "...", "expression": "...", "overall_vibe": "..." },
+          "environment": { "location_type": "...", "description": "...", "background_elements": ["...", "..."], "depth_of_field": "...", "weather": "...", "time_of_day": "..." },
+          "lighting": { "type": "...", "quality": "...", "direction": "...", "contrast": "...", "highlights_and_shadows": { "highlights": "...", "shadows": "..." }, "extras": ["...", "..."], "white_balance": "..." },
+          "camera": { "format": "full-frame digital camera", "lens": { "focal_length_mm": 85, "type": "..." }, "settings": { "aperture": "f/1.8", "shutter_speed": "1/250 s", "iso": 200 }, "perspective": { ... }, "focus": { ... }, "framing": { ... } },
+          "composition": { "framing_style": "...", "leading_lines": "...", "balance": "...", "negative_space": "...", "rule_of_thirds": "...", "depth": "..." },
+          "color_grading": { "palette": "...", "tones": { ... }, "contrast": "...", "saturation": "...", "look": ["...", "..."] },
+          "postproduction": { "sharpness": "...", "texture": "...", "grain": "...", "vignette": "...", "skin_retouching": "minimal, keep natural texture", "cleanup": ["...", "..."] },
+          "parameters": { "style": "ultra-realistic cinematic street portrait photography", "quality": "very high", "render_detail": "high frequency details", "negative_prompt": ["cartoonish", "over-smoothed skin", "distorted features", "low-resolution"] }
         }
-    3.  **LÓGICA "AUTOMÁTICO":** Si el usuario elige "automatico", es tu deber como experto tomar la mejor decisión creativa y técnica para ese campo, basándote en la "Idea Inicial" y las otras selecciones.
-    4.  **COHERENCIA TOTAL:** Todos los campos deben estar interconectados. Un "Retrato melancólico" debe reflejarse en la pose, la iluminación, el color y el entorno.
-    5.  **FACE PRESERVATION:** El campo "face_preservation" en "subject" es INALTERABLE. Siempre debe contener "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.".
-    6.  **NARRATIVE CONCATENADA:** El campo "narrative" debe ser un string que resuma la escena de forma atractiva y cinematográfica.
-
-    CONOCIMIENTO DE DATOS (Para tus decisiones en modo "Automático"):
-    - Estilos Fotográficos: ${JSON.stringify(PHOTO_STYLES.map((i) => i.name))}
-    - Iluminación: ${JSON.stringify(LIGHTING_SETUPS.map((i) => i.name))}
-    - Tipos de Plano: ${JSON.stringify(SHOT_TYPES.map((i) => i.name))}
-    - Entornos: ${JSON.stringify(ENVIRONMENTS.map((i) => i.name))}
-    - Cámaras: ${JSON.stringify(cameras.map((i) => i.name))}
-    - Lentes: ${JSON.stringify(lenses.map((i) => i.name))}
-    - Poses (por género): ${JSON.stringify(POSES)}
-    - Vestuarios (por género): ${JSON.stringify({
-      men: Outfits_men.map((i) => i.name),
-      women: Outfits_women.map((i) => i.name),
-    })}
+    3.  **PRIVACY:** In the "subject.description" field, describe ONLY the outfit, pose, and expression. **DO NOT mention gender, age, ethnicity, or physical features.**
+    4.  **FACE PRESERVATION:** The "face_preservation" field is NON-NEGOTIABLE.
+    5.  **AUTOMATICO LOGIC:** If a user selection is "automatico", you must expertly fill that field based on the "Initial Idea" and other selections. Use your Data Knowledge.
+    6.  **DATA KNOWLEDGE:** ${dataKnowledge}
   `;
 }
+// -------- FIN DE LA CORRECCIÓN "System Prompt" --------
 
 function buildJsonUserPrompt(selections) {
   return `
-    Genera el objeto JSON ultra-detallado para una fotografía profesional basado en estas especificaciones de alto nivel. Rellena todos los campos como un experto director de fotografía.
+    Generate the ultra-detailed JSON object based on these user specifications. Fill in all fields expertly.
 
-    ESPECIFICACIONES DEL USUARIO:
-    - Idea Inicial: "${selections.idea}"
-    - Tipo de Sujeto: ${selections.subjectType}
-    - Estilo de Fotografía: ${selections.photoStyle}
-    - Tipo de Plano: ${selections.shotType}
-    - Entorno: ${selections.environment}
-    - Pose/Acción: ${selections.pose}
-    - Estilo de Vestuario: ${selections.outfit}
-    - Estilo de Iluminación: ${selections.lightingStyle}
-    - Cámara: ${selections.camera}
-    - Lente: ${selections.lens}
+    USER SPECIFICATIONS:
+    - Initial Idea: "${selections.idea}"
+    - Subject Type: ${selections.subjectType}
+    - Photographic Style: ${selections.photoStyle}
+    - Shot Type: ${selections.shotType}
+    - Environment: ${selections.environment}
+    - Pose/Action: ${selections.pose}
+    - Outfit Style: ${selections.outfit}
+    - Lighting Style: ${selections.lightingStyle}
+    - Camera: ${selections.camera}
+    - Lens: ${selections.lens}
   `;
 }
 
@@ -154,13 +138,12 @@ async function generateJsonPromptAction(body) {
   const userPrompt = buildJsonUserPrompt(body);
 
   const result = await callGoogleAI(
-    "gemini-2.5-flash-lite", // Modelo correcto para la generación de JSON
+    "gemini-1.5-flash-latest", // Usando 1.5-flash. Cambia a "gemini-2.5-flash" si estás seguro de que tienes acceso
     systemPrompt,
     userPrompt
   );
 
   if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-    // La API devuelve el JSON como un string, lo parseamos.
     const jsonText = result.candidates[0].content.parts[0].text;
     try {
       const parsedJson = JSON.parse(jsonText);
@@ -191,10 +174,7 @@ export default async function handler(req) {
   }
 
   try {
-    // El cuerpo de la solicitud ahora contiene directamente las selecciones.
     const body = await req.json();
-
-    // La única acción es generar el prompt JSON.
     const result = await generateJsonPromptAction(body);
 
     return new Response(JSON.stringify(result), {
