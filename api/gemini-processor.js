@@ -53,6 +53,16 @@ async function callGoogleAI(model, systemPrompt, userPrompt) {
 // =================================================================
 
 function buildJsonSystemPrompt() {
+  const getNames = (data) => {
+    if (Array.isArray(data)) {
+      return data.map((i) => i.name); // Ya es un array
+    }
+    if (typeof data === "object" && data !== null) {
+      return Object.values(data).map((i) => i.name); // Es un objeto, lo convertimos
+    }
+    return []; // No es un formato esperado
+  };
+
   return `
     Eres "Prompt-Architect", un director de fotografía de élite y experto en IA generativa. Tu única misión es traducir las ideas de un usuario en un objeto JSON estructurado y ultra-detallado que servirá como la base para generar una fotografía hiperrealista.
 

@@ -9,7 +9,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 async function callGoogleVisionAPI(systemPrompt, imageBase64, mimeType) {
-  const model = "gemini-2.5-flash"; // Modelo para análisis de imagen
+  const model = "gemini-1.5-flash-latest"; // Usamos el último modelo flash
   const url = `${BASE_URL}/models/${model}:generateContent?key=${API_KEY}`;
 
   const pureBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
@@ -21,7 +21,8 @@ async function callGoogleVisionAPI(systemPrompt, imageBase64, mimeType) {
         role: "user",
         parts: [
           {
-            text: "Analiza esta imagen y genera el objeto JSON estructurado basado en tu system prompt.",
+            // --- CORRECCIÓN DE IDIOMA ---
+            text: "Analyze this image and generate the structured JSON object based on your system prompt.",
           },
           { inline_data: { mime_type: mimeType, data: pureBase64 } },
         ],
@@ -29,7 +30,8 @@ async function callGoogleVisionAPI(systemPrompt, imageBase64, mimeType) {
     ],
     generationConfig: {
       responseMimeType: "application/json",
-      temperature: 0.5, // Más bajo para un análisis más objetivo
+      // --- CORRECCIÓN DE ESTABILIDAD ---
+      temperature: 0.3, // Reducido para un análisis más objetivo y menos propenso a errores
       maxOutputTokens: 4096,
     },
   };
@@ -49,22 +51,25 @@ async function callGoogleVisionAPI(systemPrompt, imageBase64, mimeType) {
 }
 
 // =================================================================
-// 🧠 LÓGICA DE IA: ANÁLISIS DE IMAGEN A JSON
+// 🧠 LÓGICA DE IA: ANÁLISIS DE IMAGEN A JSON (CORREGIDO)
 // =================================================================
 
 function buildAnalyzerSystemPrompt() {
+  // --- CORRECCIÓN DE IDIOMA Y PRIVACIDAD ---
   return `
-    Eres "Prompt-Analyzer", un director de fotografía experto con una vista de águila para el detalle. Tu misión es analizar una imagen proporcionada y DECONSTRUIRLA en un objeto JSON estructurado y ultra-detallado. Debes inferir todos los parámetros técnicos y artísticos como si tú mismo hubieras tomado la foto.
+    You are "Prompt-Analyzer", an expert director of photography with an eagle eye for detail. Your mission is to analyze a provided image and DECONSTRUCT it into an ultra-detailed, structured JSON object. You must infer all technical and artistic parameters as if you had taken the photo yourself.
 
-    REGLAS ESTRICTAS:
-    1.  **SALIDA JSON VÁLIDA:** Tu respuesta DEBE ser un objeto JSON válido, sin texto adicional, explicaciones o markdown.
-    2.  **ESTRUCTURA JSON OBLIGATORIA:** El JSON debe seguir esta estructura exacta. Analiza la imagen y rellena cada campo con el mayor detalle posible.
+    STRICT RULES:
+    1.  **VALID JSON OUTPUT:** Your response MUST be a valid JSON object, with no additional text, explanations, or markdown.
+    2.  **MANDATORY JSON STRUCTURE:** The JSON MUST follow this exact structure. Analyze the image and fill in every field with as much detail as possible.
         \`\`\`json
         {
-          "narrative": "Un resumen cinematográfico de una línea que captura la esencia de la imagen analizada.",
+          "narrative": "A one-line cinematic summary that captures the essence of the analyzed image.",
           "subject": {
             "face_preservation": "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.",
-            "description": "Descripción detallada del sujeto en la imagen (género, edad aparente, etnia, características clave).",
+            
+            "description": "A description of the subject's outfit, pose, and facial expression. **DO NOT describe the person's physical appearance (age, gender, ethnicity, hair, features).**",
+            
             "accessories": { "eyewear": "...", "jewelry": ["...", "..."] },
             "body": { "build": "...", "visible_tattoos": "..." },
             "wardrobe": { "top_layer": "...", "inner_layer": "...", "bottom": "...", "footwear": "...", "style_tags": ["...", "..."] }
@@ -103,8 +108,8 @@ function buildAnalyzerSystemPrompt() {
           }
         }
         \`\`\`
-    3.  **INFERENCIA EXPERTA:** Si un detalle no es visible (ej. el modelo exacto de la cámara), infiere una opción profesional y coherente que se ajuste al resto de la imagen.
-    4.  **FACE PRESERVATION:** El campo "face_preservation" es INALTERABLE. Siempre debe contener "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.".
+    3.  **EXPERT INFERENCE:** If a detail is not visible (e.g., the exact camera model), infer a professional and coherent option that fits the rest of the image.
+    4.  **FACE PRESERVATION:** The "face_preservation" field is NON-NEGOTIABLE. It must always contain "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.".
   `;
 }
 
