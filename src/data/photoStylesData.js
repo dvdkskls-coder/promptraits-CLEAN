@@ -121,14 +121,12 @@ export const PHOTO_STYLES = [
   {
     id: "chiaroscuro_portrait",
     name: "Retrato Closcuro (Chiaroscuro)",
-    description:
-      "Caravaggio style; extreme contrast between light and shadow.",
+    description: "Caravaggio style; extreme contrast between light and shadow.",
   },
   {
     id: "color_gel_portrait",
     name: "Retrato con Geles de Color",
-    description:
-      "Creative, impactful colors; modern and design-oriented look.",
+    description: "Creative, impactful colors; modern and design-oriented look.",
   },
   {
     id: "backlit_portrait",
@@ -139,8 +137,7 @@ export const PHOTO_STYLES = [
   {
     id: "glamour_portrait",
     name: 'Retrato "Glamour"',
-    description:
-      "Strong makeup, glowing skin, elegant poses; luxurious look.",
+    description: "Strong makeup, glowing skin, elegant poses; luxurious look.",
   },
   {
     id: "haute_couture_portrait",
@@ -199,7 +196,7 @@ export const PHOTO_STYLES = [
     description: "Clean background, few elements, absolute simplicity.",
   },
   {
-    id:s: "geometric_portrait",
+    id: "geometric_portrait",
     name: "Retrato Geométrico",
     description: "Composition based on shapes, lines, and patterns.",
   },
