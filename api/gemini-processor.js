@@ -138,7 +138,7 @@ async function generateJsonPromptAction(body) {
   const userPrompt = buildJsonUserPrompt(body);
 
   const result = await callGoogleAI(
-    "gemini-1.5-flash-latest", // Usando 1.5-flash. Cambia a "gemini-2.5-flash" si estás seguro de que tienes acceso
+    "gemini-2.5-flash-lite",
     systemPrompt,
     userPrompt
   );
