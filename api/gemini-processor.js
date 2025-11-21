@@ -1,192 +1,140 @@
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+
 export const config = {
   runtime: "edge",
 };
 
 // =================================================================
-// 📚 IMPORTACIÓN DE CONOCIMIENTO (DATA)
+// 1. EL CEREBRO FOTOGRÁFICO (Extracción de tus manuales)
 // =================================================================
-import { PHOTO_STYLES } from "../src/data/photoStylesData";
-import { LIGHTING_SETUPS } from "../src/data/lightingData";
-import { SHOT_TYPES } from "../src/data/shotTypesData";
-import { ENVIRONMENTS } from "../src/data/environmentsData";
-import { cameras } from "../src/data/camerasData";
-import { lenses } from "../src/data/lensesData";
-import { POSES } from "../src/data/posesData";
-import { Outfits_men } from "../src/data/Outfits_men";
-import { Outfits_women } from "../src/data/Outfits_women";
+// Esto reemplaza a tus archivos físicos. Gemini consultará esto instantáneamente.
+const KNOWLEDGE_BASE = `
+  [STYLES]: Cinematic, Editorial, Vogue, Film Noir, Cyberpunk, High-Fashion, Corporate Headshot, Street Photography, Baroque, Renaissance, Wes Anderson style.
+  [LIGHTING]: Rembrandt (45° + reflector), Butterfly (Paramount), Split Lighting (Dramático), Loop Lighting, Clam Shell (Beauty), Rim Light (Contraluz), Softbox, Octabox, Golden Hour, Blue Hour, Neon Practical.
+  [CAMERAS]: Sony A7R IV, Canon EOS R5, Hasselblad, Leica M11, Arri Alexa (Cine).
+  [LENSES]: 85mm f/1.2 (Retrato ideal), 50mm f/1.4 (Natural), 35mm f/1.4 (Contexto), 24-70mm, 135mm (Compresión), Anamorphic (Cine).
+  [FILTERS]: Pro-Mist (1/8, 1/4 for halation), Polarizer (Cut glare), ND Graduated, Star Filter, Streak Filter (Anamorphic flare), Prism.
+  [FILM STOCKS]: Kodak Portra 400, Cinestill 800T, Ilford HP5 (B&W), Fujifilm Pro 400H.
+  [COMPOSITION]: Rule of Thirds, Center, Negative Space, Leading Lines, Dutch Angle, Low Angle (Power), High Angle (Vulnerability).
+`;
 
 // =================================================================
-// ⚙️ CONFIGURACIÓN Y LLAMADA A LA API DE GOOGLE
+// 2. SYSTEM PROMPT MAESTRO (Tu GPT replicado)
 // =================================================================
-const API_KEY = process.env.GEMINI_API_KEY;
-const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+const SYSTEM_INSTRUCTION = `
+Eres **Promptraits**, especialista en la creación de prompts profesionales para imágenes ultra detalladas y realistas.
+Has incorporado los conocimientos técnicos de Capture One Pro, iluminación de estudio y filtros cinematográficos.
 
-async function callGoogleAI(model, systemPrompt, userPrompt) {
-  const url = `${BASE_URL}/models/${model}:generateContent?key=${API_KEY}`;
-  const payload = {
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-    generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.8,
-      topP: 0.9,
-      maxOutputTokens: 4096, // Aumentado para el JSON detallado
+TU OBJETIVO:
+Generar un objeto JSON donde el campo "prompt_text" siga ESTRICTAMENTE el siguiente formato de 8 líneas para máxima calidad.
+
+FORMATO OBLIGATORIO DEL CAMPO 'prompt_text' (8 líneas exactas):
+Línea 1: Escena/ambiente/género visual (1–2 frases).
+Línea 2: "Using the exact face from the provided selfie — no editing, no retouching, no smoothing." (SIEMPRE INCLUIR ESTO SI HAY SUJETO HUMANO).
+Línea 3: Pose y expresión (Orientación, mirada, manos).
+Línea 4: Ropa y accesorios (Prendas, materiales, colores).
+Línea 5: Iluminación al detalle (Rig, posiciones, ratios, geles, atmósfera).
+Línea 6: Composición de cámara (Cámara, focal, f/, ISO, obturación, perfil color).
+Línea 7: Estilo y mood final (Gradación, grano, filtros, SIN beauty retouching).
+Línea 8: Keywords (10–18, separadas por comas).
+
+REGLAS TÉCNICAS:
+- No improvises. Usa la [BASE DE CONOCIMIENTO] para elegir cámaras y luces reales.
+- Si el usuario pide "JSON Mode" explícitamente, estructura la respuesta técnica. Si pide "Retrato", prioriza la estética en el prompt.
+- DETALLE: Toda descripción debe transmitir profundidad visual, textura y atmósfera cinematográfica.
+- FACE PRESERVATION: La línea 2 es sagrada. No la traduzcas.
+
+BASE DE CONOCIMIENTO INTERNA:
+${KNOWLEDGE_BASE}
+`;
+
+// =================================================================
+// 3. SCHEMA (La estructura JSON que recibe tu App)
+// =================================================================
+const responseSchema = {
+  description: "Respuesta estructurada de Promptraits",
+  type: SchemaType.OBJECT,
+  properties: {
+    // Análisis de la idea (Chain of Thought interno)
+    analysis: {
+      type: SchemaType.OBJECT,
+      properties: {
+        style_detected: { type: SchemaType.STRING },
+        lighting_strategy: { type: SchemaType.STRING },
+        lens_choice: { type: SchemaType.STRING },
+      },
     },
-  };
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`Google API Error (${response.status}): ${errorText}`);
-    throw new Error(`Error de la API de Google: ${errorText}`);
-  }
-  return response.json();
-}
-
-// =================================================================
-// 🧠 LÓGICA DE IA: GENERACIÓN DE PROMPT JSON
-// =================================================================
-
-// -------- INICIO DE LA CORRECCIÓN "s.map is not a function" --------
-const getNames = (data) => {
-  if (Array.isArray(data)) {
-    return data.map((i) => i.name);
-  }
-  if (typeof data === "object" && data !== null) {
-    return Object.values(data).map((i) => i.name);
-  }
-  return [];
+    // El prompt final formateado en 8 líneas
+    prompt_text: {
+      type: SchemaType.STRING,
+      description:
+        "El prompt final siguiendo el formato obligatorio de 8 líneas.",
+    },
+    // Parámetros técnicos separados (para uso en UI si se necesita)
+    technical_params: {
+      type: SchemaType.OBJECT,
+      properties: {
+        aspect_ratio: { type: SchemaType.STRING },
+        negative_prompt: { type: SchemaType.STRING },
+      },
+    },
+  },
+  required: ["prompt_text", "technical_params"],
 };
-// -------- FIN DE LA CORRECCIÓN --------
-
-// -------- INICIO DE LA CORRECCIÓN "System Prompt" --------
-// Reemplazado con tu estructura JSON de ejemplo e instrucciones de privacidad
-function buildJsonSystemPrompt() {
-  const dataKnowledge = `
-    DATA KNOWLEDGE (Use for 'automatico' mode):
-    - Photographic Styles: ${JSON.stringify(getNames(PHOTO_STYLES))}
-    - Lighting Setups: ${JSON.stringify(getNames(LIGHTING_SETUPS))}
-    - Shot Types: ${JSON.stringify(getNames(SHOT_TYPES))}
-    - Environments: ${JSON.stringify(getNames(ENVIRONMENTS))}
-    - Cameras: ${JSON.stringify(getNames(cameras))}
-    - Lenses: ${JSON.stringify(getNames(lenses))}
-    - Poses (by gender): ${JSON.stringify(POSES)}
-    - Outfits (by gender): ${JSON.stringify({
-      men: getNames(Outfits_men),
-      women: getNames(Outfits_women),
-    })}
-  `;
-
-  return `
-    You are "Prompt-Architect", an elite AI photography director. Your sole mission is to translate a user's idea into an ultra-detailed JSON object to generate a hyper-realistic photograph.
-    You MUST respond ONLY in English.
-
-    STRICT RULES:
-    1.  **VALID JSON OUTPUT:** Your response MUST be a valid JSON object, with no additional text, explanations, or markdown.
-    2.  **JSON STRUCTURE:** You must follow this exact JSON structure:
-        {
-          "narrative": "A one-line cinematic summary that captures the essence of the image.",
-          "subject": {
-            "face_preservation": "Using the exact face from the provided selfie — no editing, no retouching, no smoothing.",
-            "description": "A description of the subject's outfit, pose, and facial expression. **DO NOT describe the person's physical appearance (age, gender, ethnicity, hair, features).**",
-            "accessories": { "eyewear": "...", "jewelry": ["...", "..."] },
-            "body": { "build": "...", "visible_tattoos": "..." },
-            "wardrobe": { "top_layer": "...", "inner_layer": "...", "bottom": "...", "footwear": "...", "style_tags": ["...", "..."] }
-          },
-          "pose_and_expression": { "body_orientation": "...", "head_orientation": "...", "gaze": "...", "hands": "...", "expression": "...", "overall_vibe": "..." },
-          "environment": { "location_type": "...", "description": "...", "background_elements": ["...", "..."], "depth_of_field": "...", "weather": "...", "time_of_day": "..." },
-          "lighting": { "type": "...", "quality": "...", "direction": "...", "contrast": "...", "highlights_and_shadows": { "highlights": "...", "shadows": "..." }, "extras": ["...", "..."], "white_balance": "..." },
-          "camera": { "format": "full-frame digital camera", "lens": { "focal_length_mm": 85, "type": "..." }, "settings": { "aperture": "f/1.8", "shutter_speed": "1/250 s", "iso": 200 }, "perspective": { ... }, "focus": { ... }, "framing": { ... } },
-          "composition": { "framing_style": "...", "leading_lines": "...", "balance": "...", "negative_space": "...", "rule_of_thirds": "...", "depth": "..." },
-          "color_grading": { "palette": "...", "tones": { ... }, "contrast": "...", "saturation": "...", "look": ["...", "..."] },
-          "postproduction": { "sharpness": "...", "texture": "...", "grain": "...", "vignette": "...", "skin_retouching": "minimal, keep natural texture", "cleanup": ["...", "..."] },
-          "parameters": { "style": "ultra-realistic cinematic street portrait photography", "quality": "very high", "render_detail": "high frequency details", "negative_prompt": ["cartoonish", "over-smoothed skin", "distorted features", "low-resolution"] }
-        }
-    3.  **PRIVACY:** In the "subject.description" field, describe ONLY the outfit, pose, and expression. **DO NOT mention gender, age, ethnicity, or physical features.**
-    4.  **FACE PRESERVATION:** The "face_preservation" field is NON-NEGOTIABLE.
-    5.  **AUTOMATICO LOGIC:** If a user selection is "automatico", you must expertly fill that field based on the "Initial Idea" and other selections. Use your Data Knowledge.
-    6.  **DATA KNOWLEDGE:** ${dataKnowledge}
-  `;
-}
-// -------- FIN DE LA CORRECCIÓN "System Prompt" --------
-
-function buildJsonUserPrompt(selections) {
-  return `
-    Generate the ultra-detailed JSON object based on these user specifications. Fill in all fields expertly.
-
-    USER SPECIFICATIONS:
-    - Initial Idea: "${selections.idea}"
-    - Subject Type: ${selections.subjectType}
-    - Photographic Style: ${selections.photoStyle}
-    - Shot Type: ${selections.shotType}
-    - Environment: ${selections.environment}
-    - Pose/Action: ${selections.pose}
-    - Outfit Style: ${selections.outfit}
-    - Lighting Style: ${selections.lightingStyle}
-    - Camera: ${selections.camera}
-    - Lens: ${selections.lens}
-  `;
-}
-
-async function generateJsonPromptAction(body) {
-  const systemPrompt = buildJsonSystemPrompt();
-  const userPrompt = buildJsonUserPrompt(body);
-
-  const result = await callGoogleAI(
-    "gemini-2.5-flash-lite",
-    systemPrompt,
-    userPrompt
-  );
-
-  if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-    const jsonText = result.candidates[0].content.parts[0].text;
-    try {
-      const parsedJson = JSON.parse(jsonText);
-      return parsedJson; // Devolvemos el objeto JSON parseado
-    } catch {
-      console.error("Error parsing JSON from AI response:", jsonText);
-      throw new Error("La IA no devolvió un JSON válido.");
-    }
-  } else {
-    console.error(
-      "Unexpected response structure from generateJsonPromptAction:",
-      JSON.stringify(result, null, 2)
-    );
-    throw new Error("Respuesta inesperada de la API de IA.");
-  }
-}
 
 // =================================================================
-// 🚀 PUNTO DE ENTRADA PRINCIPAL (HANDLER)
+// 4. HANDLER PRINCIPAL
 // =================================================================
-
 export default async function handler(req) {
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  if (req.method !== "POST")
+    return new Response("Method not allowed", { status: 405 });
 
   try {
     const body = await req.json();
-    const result = await generateJsonPromptAction(body);
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    return new Response(JSON.stringify(result), {
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    // Usamos Gemini 2.5 Flash (el modelo rápido y potente)
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+        temperature: 0.75, // Un toque de creatividad para el estilo
+      },
+    });
+
+    // Construimos el mensaje del usuario
+    const userMessage = `
+      USUARIO: "${body.idea || "Retrato profesional"}"
+      CONTEXTO ADICIONAL:
+      - Estilo: ${body.photoStyle || "Cinemático"}
+      - Iluminación: ${body.lightingStyle || "Auto"}
+      - Cámara preferida: ${body.camera || "Auto"}
+      
+      INSTRUCCIÓN: Genera el JSON. Asegúrate de que 'prompt_text' siga el formato de 8 líneas con la frase de preservación facial.
+    `;
+
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: SYSTEM_INSTRUCTION + "\n\n" + userMessage }],
+        },
+      ],
+    });
+
+    const data = JSON.parse(result.response.text());
+
+    return new Response(JSON.stringify(data), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error in handler:", error);
-    const errorMessage = error.message || "An internal server error occurred.";
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    console.error("❌ Error Promptraits:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
     });
   }
 }
