@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Sparkles, Camera, Aperture } from "lucide-react";
 import { generatePrompt } from "../services/geminiService";
 
-// Opciones recuperadas
 const SHOT_TYPES = [
   "Automático",
   "Extreme Close-Up",
@@ -31,7 +30,6 @@ const PromptGenerator = () => {
   const [generatedPrompt, setGeneratedPrompt] = useState("");
   const [error, setError] = useState(null);
 
-  // Estados para los selectores
   const [selectedShot, setSelectedShot] = useState("Automático");
   const [selectedStyle, setSelectedStyle] = useState("Automático");
 
@@ -56,7 +54,6 @@ const PromptGenerator = () => {
       }
     } catch (err) {
       console.error("Error generando prompt:", err);
-      // Mostramos el mensaje limpio que viene del backend
       setError(err.message || "Error al generar el prompt.");
     } finally {
       setLoading(false);
@@ -65,7 +62,6 @@ const PromptGenerator = () => {
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {/* INPUT IDEA */}
       <div className="bg-[#1A1D21] border border-gray-800 rounded-xl p-6 shadow-lg">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-5 h-5 text-yellow-500" />
@@ -80,7 +76,6 @@ const PromptGenerator = () => {
         />
       </div>
 
-      {/* MODO RÁPIDO (SELECTORES) */}
       <div className="bg-[#1A1D21] border border-gray-800 rounded-xl p-6 shadow-lg">
         <div className="flex items-center gap-2 mb-4">
           <Camera className="w-5 h-5 text-blue-400" />
@@ -124,7 +119,6 @@ const PromptGenerator = () => {
         </div>
       </div>
 
-      {/* BOTÓN */}
       <div className="flex justify-end">
         <button
           onClick={handleGeneratePrompt}
@@ -142,14 +136,12 @@ const PromptGenerator = () => {
         </button>
       </div>
 
-      {/* ERROR (Muestra aviso de cuota si salta) */}
       {error && (
         <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 rounded-lg text-sm">
           🚨 {error}
         </div>
       )}
 
-      {/* RESULTADO */}
       <div className="bg-black border border-gray-800 rounded-xl p-6 min-h-[120px] relative group">
         <div className="flex items-center gap-2 mb-2 text-gray-500">
           <Aperture className="w-4 h-4" />
