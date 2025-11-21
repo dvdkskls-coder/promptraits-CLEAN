@@ -4,8 +4,9 @@ export const config = {
   runtime: "edge",
 };
 
-// ✅ TU MODELO OBLIGATORIO
-const MODEL_NAME = "gemini-2.5-flash";
+// CONFIGURACIÓN DE MODELOS
+const MODEL_PRIMARY = "gemini-2.5-flash"; // El que tú quieres
+const MODEL_BACKUP = "gemini-1.5-flash"; // El salvavidas
 
 const KNOWLEDGE_BASE = `
   [STYLES]: Cinematic, Editorial, Vogue, Film Noir, Cyberpunk, High-Fashion, Corporate Headshot, Street Photography, Baroque, Renaissance, Wes Anderson style.
@@ -54,6 +55,30 @@ const responseSchema = {
   required: ["prompt_text"],
 };
 
+const cache = new Map();
+
+// FUNCIÓN AUXILIAR PARA LLAMAR A GEMINI
+async function callGemini(modelName, apiKey, userMessage) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: responseSchema,
+      temperature: 0.75,
+    },
+  });
+
+  return await model.generateContent({
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: SYSTEM_INSTRUCTION + "\n\n" + userMessage }],
+      },
+    ],
+  });
+}
+
 export default async function handler(req) {
   if (req.method !== "POST")
     return new Response("Method not allowed", { status: 405 });
@@ -62,61 +87,63 @@ export default async function handler(req) {
     const body = await req.json();
     const apiKey = process.env.GEMINI_API_KEY;
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Configuración EXACTA para gemini-2.5-flash
-    const model = genAI.getGenerativeModel({
-      model: MODEL_NAME,
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-        temperature: 0.75,
-      },
-    });
+    // 1. CACHÉ: Si ya lo preguntaste, te lo damos gratis
+    const cacheKey = `${body.idea}-${body.photoStyle}-${body.camera}`;
+    if (cache.has(cacheKey)) {
+      return new Response(JSON.stringify(cache.get(cacheKey)), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     const userMessage = `
       IDEA: "${body.idea || "Retrato profesional"}"
       ESTILO: ${body.photoStyle || "Cinemático"}
       CÁMARA/PLANO: ${body.camera || "Automático"}
-      
       Genera el prompt experto en JSON.
     `;
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: SYSTEM_INSTRUCTION + "\n\n" + userMessage }],
-        },
-      ],
-    });
+    let result;
+    let usedModel = MODEL_PRIMARY;
+
+    try {
+      // 2. INTENTO PRINCIPAL: GEMINI 2.5
+      console.log(`Intentando con ${MODEL_PRIMARY}...`);
+      result = await callGemini(MODEL_PRIMARY, apiKey, userMessage);
+    } catch (primaryError) {
+      // 3. SI FALLA POR LÍMITE (429), ACTIVAMOS EL PLAN B
+      if (
+        primaryError.message.includes("429") ||
+        primaryError.message.includes("Too Many Requests")
+      ) {
+        console.warn(
+          `⚠️ ${MODEL_PRIMARY} saturado. Activando PLAN B: ${MODEL_BACKUP}`
+        );
+        usedModel = MODEL_BACKUP;
+        result = await callGemini(MODEL_BACKUP, apiKey, userMessage);
+      } else {
+        throw primaryError; // Si es otro error, que falle normal
+      }
+    }
 
     const responseText = result.response.text();
     const data = JSON.parse(responseText);
+
+    // Añadimos info extra para que sepas qué modelo se usó (solo para debug)
+    data.debug_model_used = usedModel;
+
+    // 4. Guardamos en caché
+    cache.set(cacheKey, data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("❌ Error Promptraits Backend:", error);
-
-    // Manejo específico del error 429 para que sepas qué pasa
-    if (
-      error.message.includes("429") ||
-      error.message.includes("Too Many Requests")
-    ) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "⚠️ Límite de velocidad de Google (3 peticiones/min). Espera 30 segundos.",
-        }),
-        { status: 429 }
-      );
-    }
-
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-    });
+    console.error("❌ Error Fatal:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Error generando prompt" }),
+      { status: 500 }
+    );
   }
 }
