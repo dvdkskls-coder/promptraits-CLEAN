@@ -1,10 +1,10 @@
-// api/gemini-processor.js
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 export const config = {
   runtime: "edge",
 };
 
+// ✅ TU MODELO OBLIGATORIO
 const MODEL_NAME = "gemini-2.5-flash";
 
 const KNOWLEDGE_BASE = `
@@ -64,6 +64,7 @@ export default async function handler(req) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
+    // Configuración EXACTA para gemini-2.5-flash
     const model = genAI.getGenerativeModel({
       model: MODEL_NAME,
       generationConfig: {
@@ -73,11 +74,11 @@ export default async function handler(req) {
       },
     });
 
-    // AQUÍ ESTÁ LA CLAVE DEL AHORRO DE CRÉDITOS:
-    // Solo enviamos texto. NO enviamos la imagen base64 aquí.
     const userMessage = `
       IDEA: "${body.idea || "Retrato profesional"}"
       ESTILO: ${body.photoStyle || "Cinemático"}
+      CÁMARA/PLANO: ${body.camera || "Automático"}
+      
       Genera el prompt experto en JSON.
     `;
 
@@ -98,7 +99,22 @@ export default async function handler(req) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("❌ Error Promptraits:", error);
+    console.error("❌ Error Promptraits Backend:", error);
+
+    // Manejo específico del error 429 para que sepas qué pasa
+    if (
+      error.message.includes("429") ||
+      error.message.includes("Too Many Requests")
+    ) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "⚠️ Límite de velocidad de Google (3 peticiones/min). Espera 30 segundos.",
+        }),
+        { status: 429 }
+      );
+    }
+
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
     });
