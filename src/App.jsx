@@ -1,984 +1,743 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import {
-  Camera,
-  Check,
-  Menu,
-  X,
-  Download,
-  Copy,
-  Gift,
-  Crown,
-  Lock,
-  Sparkles,
-} from "lucide-react";
+// src/App.jsx - PARTE 1: IMPORTS Y SETUP
 
-import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
-import { supabase } from "./lib/supabase.js";
+import { useState, useEffect } from "react";
+import { supabase } from "./lib/supabase";
+import { useAuth } from "./contexts/AuthContext";
+import PromptGeneratorV2App from "./components/PromptGeneratorV2/PromptGeneratorV2App";
 
-import AnimatedSection from "./components/AnimatedSection.jsx";
-
-import Login from "./components/Auth/Login.jsx";
-import Register from "./components/Auth/Register.jsx";
-import UserMenu from "./components/Auth/UserMenu.jsx";
-import Profile from "./components/Auth/Profile.jsx";
-import Checkout from "./components/Auth/Checkout.jsx";
-import Pricing from "./components/Pricing.jsx";
-
-import Gallery from "./components/Gallery.jsx";
-import { PromptLab } from "./components/PromptLab.jsx";
-import Footer from "./components/Footer.jsx";
-import CookieBanner from "./components/CookieBanner.jsx";
-import LegalPages from "./pages/LegalPages.jsx";
-import FAQ from "./pages/FAQ.jsx";
-import Contacto from "./pages/Contacto.jsx";
-import GuiaUso from "./pages/GuiaUso.jsx";
-import Ejemplos from "./pages/Ejemplos.jsx";
-import PlanesPrecios from "./pages/PlanesPrecios.jsx";
-import Caracteristicas from "./pages/Caracteristicas.jsx";
-import { ALL_PROMPTS } from "./data/prompts.js";
-
-// --- DATOS ---
-const CATEGORIES = [
-  { id: "todos", name: "Todos" },
-  { id: "hombre", name: "Hombre" },
-  { id: "mujer", name: "Mujer" },
-  { id: "mascotas", name: "Mascotas" },
-  { id: "halloween", name: "Halloween" },
-  { id: "pareja", name: "Parejas" },
-];
-
-const PRESETS = [
-  {
-    id: 1,
-    name: "Cinematográfico Editorial",
-    subtitle: "Low-Key Rembrandt",
-    free: true,
-    promptBlock:
-      "Ultra-realistic editorial portrait with dramatic Rembrandt lighting setup. Key light at 45° creating signature triangle on shadow side cheek. 85mm f/1.4 lens on full-frame sensor, aperture at f/1.8 for shallow depth of field. ISO 400, shutter 1/160s, tungsten white balance 3200K. Dark moody background with subtle rim light separating subject. Low-key exposure with preserved detail in shadows. Cinematic color grading with crushed blacks and warm skin tones.",
-  },
-  {
-    id: 2,
-    name: "Golden Hour Lifestyle",
-    subtitle: "Cálido atardecer",
-    free: true,
-    promptBlock:
-      "Natural lifestyle portrait during golden hour sunset. Soft warm backlight from sun creating natural rim light and hair highlights. 50mm f/1.8 lens at f/2.2 for dreamy background separation. Subject positioned with sun behind creating warm atmospheric glow. Reflector providing subtle fill from camera direction. Warm color temperature 5500K emphasizing golden tones. Lifestyle candid pose with natural expression.",
-  },
-  {
-    id: 3,
-    name: "Corporate Clean",
-    subtitle: "High-Key profesional",
-    free: true,
-    promptBlock:
-      "High-key professional corporate headshot. Butterfly lighting setup with main light directly above camera creating subtle nose shadow. Bright even illumination, minimal shadows. Clean white or light gray background. 85mm lens at f/4 for optimal sharpness across face. Confident professional expression with direct eye contact. Smart business attire. High-key exposure maintaining detail in highlights. Clean modern professional aesthetic.",
-  },
-  {
-    id: 4,
-    name: "Environmental Portrait",
-    subtitle: "Sujeto en su entorno",
-    free: false,
-    promptBlock:
-      "Environmental portrait showing subject in meaningful location context. Wide aperture 35mm lens at f/2.8 balancing subject sharpness with contextual background. Natural available light supplemented with off-camera flash for subject illumination. Subject positioned using rule of thirds. Environmental elements telling story about subject's work or passion. Authentic candid interaction with environment.",
-  },
-  {
-    id: 5,
-    name: "Beauty Soft Front",
-    subtitle: "Beauty homogéneo",
-    free: false,
-    promptBlock:
-      "High-end beauty portrait with soft butterfly lighting. Large octabox directly in front and above creating wraparound illumination. Minimal shadows, even skin tone rendering. Beauty dish or ring light for catchlights. 85mm-100mm lens at f/4-f/5.6 for optimal sharpness. Neutral background. Focus on skin texture, makeup, and facial details. Clean professional beauty aesthetic.",
-  },
-  {
-    id: 6,
-    name: "B/N Clásico Film",
-    subtitle: "Monocromo atemporal",
-    free: false,
-    promptBlock:
-      "Classic black and white portrait with timeless film aesthetic. Modified Rembrandt or loop lighting for dimensional modeling. High contrast with preserved shadow detail. Grain structure mimicking Tri-X 400 film. Strong tonal separation. Dramatic side lighting emphasizing texture and form. Monochrome conversion optimized for skin tones. Timeless compositional approach.",
-  },
-  {
-    id: 7,
-    name: "Fotografía Urbana Street",
-    subtitle: "Energía callejera",
-    free: false,
-    promptBlock:
-      "Urban street photography portrait in authentic city environment. Natural available light, possibly neon or artificial street lighting. 35mm-50mm lens capturing environmental context. Subject interacting naturally with urban setting. Candid or semi-posed moment. Street fashion aesthetic. Gritty urban textures and architectural elements. Documentary storytelling approach.",
-  },
-  {
-    id: 8,
-    name: "Ensueño Vintage 70s",
-    subtitle: "Nostálgico y cálido",
-    free: false,
-    promptBlock:
-      "Dreamy 1970s vintage aesthetic portrait. Soft focus lens or diffusion filter creating ethereal quality. Warm peachy skin tones, muted pastels. Sun flare and light leaks reminiscent of vintage film. 70s fashion and styling elements. Nostalgic color palette with reduced contrast. Romantic soft lighting. Retro vignetting and grain structure.",
-  },
-  {
-    id: 9,
-    name: "Film Noir Clásico",
-    subtitle: "Drama B/N años 40-50",
-    free: false,
-    promptBlock:
-      "Classic film noir dramatic portrait. Hard side lighting at 90° creating deep shadows and high contrast. Strong directional light source. Mystery and drama emphasized through lighting. Venetian blind shadow patterns or environmental shadows. Low-key exposure. Black and white with rich blacks. 1940s-50s styling and composition. Dramatic mysterious mood.",
-  },
-  {
-    id: 10,
-    name: "Neón Cyberpunk",
-    subtitle: "Futurista urbano nocturno",
-    free: false,
-    promptBlock:
-      "Futuristic cyberpunk portrait with neon lighting. Vibrant colored neon lights (cyan, magenta, purple) as key light sources. Urban night environment with neon signs. Shallow depth of field isolating subject from background bokeh of city lights. Cinematic color grading with teal and orange tones. Rain or wet surfaces reflecting neon. Futuristic fashion aesthetic. High contrast with bold colors.",
-  },
-  {
-    id: 11,
-    name: "Retrato íntimo Ventana",
-    subtitle: "Luz natural pensativa",
-    free: false,
-    promptBlock:
-      "Intimate window light portrait with contemplative mood. Large window as single soft light source from side. Subject positioned near window for soft wraparound illumination. Gentle falloff creating dimensional form. Natural contemplative pose, possibly looking toward or away from window. Interior setting with subtle environmental context. Soft natural color palette. Quiet introspective atmosphere.",
-  },
-  {
-    id: 12,
-    name: "Acción Deportiva Congelado",
-    subtitle: "Movimiento nítido",
-    free: false,
-    promptBlock:
-      "Dynamic sports action portrait with frozen motion. Fast shutter speed 1/1000s or higher freezing peak action moment. Powerful off-camera flash synchronizing with action. Wide aperture maintaining subject isolation. Decisive moment capturing athletic intensity. Sweat, determination visible. Dramatic lighting emphasizing muscular form. Dynamic composition with tension and energy.",
-  },
-  {
-    id: 13,
-    name: "Producto Minimalista Lujo",
-    subtitle: "Elegante y limpio",
-    free: false,
-    promptBlock:
-      "Minimalist luxury product photography aesthetic applied to portrait. Clean backgrounds, typically white or neutral. Precise controlled lighting with gradients. Emphasis on clean lines and sophisticated styling. Fashion-forward luxury brand aesthetic. Minimal but considered styling. High-end retouching maintaining natural texture. Sophisticated color palette. Editorial luxury magazine quality.",
-  },
-  {
-    id: 14,
-    name: "Fantasía Surrealista Etéreo",
-    subtitle: "Onírico y de otro mundo",
-    free: false,
-    promptBlock:
-      "Surreal ethereal fantasy portrait with dreamlike quality. Multiple exposures or composite lighting for otherworldly effect. Unusual color grading - perhaps cool tones or unexpected color shifts. Atmospheric fog or haze. Fantastical or flowing wardrobe. Mysterious surreal props or environmental elements. Dreamy soft focus areas. Imaginative conceptual approach transcending reality.",
-  },
-  {
-    id: 15,
-    name: "Editorial Fashion",
-    subtitle: "Alta moda dramática",
-    free: false,
-    promptBlock:
-      "High-fashion editorial portrait with dramatic styling. Bold dramatic lighting, possibly with hard light sources. Strong fashion-forward wardrobe and styling. Creative use of color or monochrome. Dynamic pose with strong lines. High contrast and bold compositional choices. Magazine editorial quality. Avant-garde creative direction. Professional hair, makeup, and wardrobe styling.",
-  },
-];
-
-// ============================================================================
-// COMPONENTE AppContent
-// ============================================================================
-function AppContent() {
-  const { user, profile, refreshProfile } = useAuth();
-
-  const [view, setView] = useState("home");
-  const [showAuth, setShowAuth] = useState(false);
+function App() {
+  const { user, profile, loading: authLoading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState("login");
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-  const [showCopyNotification, setShowCopyNotification] = useState(false);
-  const [generatedPrompt, setGeneratedPrompt] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [idea, setIdea] = useState(""); // Estado para la idea inicial
-
-  const isPro = profile?.plan === "pro" || profile?.plan === "premium";
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authLoading2, setAuthLoading2] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // ============================================================================
-  // LÓGICA DE PAGO
+  // FUNCIONES DE AUTENTICACIÓN
   // ============================================================================
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("payment") === "success") {
-      const handlePaymentSuccess = async () => {
-        console.log("Pago exitoso detectado, refrescando perfil...");
-        setShowPaymentSuccess(true);
 
-        try {
-          await refreshProfile(); // FORZAR LA ACTUALIZACIÓN DEL PERFIL
-          console.log(
-            "Perfil refrescado. El plan y los créditos están al día."
-          );
-        } catch (error) {
-          console.error(
-            "Error al refrescar el perfil después del pago:",
-            error
-          );
-          // Aquí podrías mostrar una notificación de error al usuario
-        }
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthLoading2(true);
 
-        window.history.replaceState(null, "", window.location.pathname);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        setTimeout(() => {
-          setShowPaymentSuccess(false);
-        }, 4000);
-      };
+      if (error) throw error;
 
-      handlePaymentSuccess();
+      setShowAuthModal(false);
+      setEmail("");
+      setPassword("");
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading2(false);
     }
-  }, [refreshProfile]);
+  };
 
-  // Refrescar si el usuario está logueado
-  useEffect(() => {
-    if (user) {
-      refreshProfile();
-    }
-  }, [user]);
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthLoading2(true);
 
-  const handlePlanSelection = async (plan) => {
-    if (!user) {
-      setShowAuth(true);
-      setAuthMode("login");
+    if (password !== confirmPassword) {
+      setAuthError("Las contraseñas no coinciden");
+      setAuthLoading2(false);
       return;
     }
-    if (plan.name === "FREE") {
+
+    if (password.length < 6) {
+      setAuthError("La contraseña debe tener al menos 6 caracteres");
+      setAuthLoading2(false);
       return;
     }
-    setSelectedPlan(plan);
-    setShowCheckout(true);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (error) throw error;
+
+      setSuccessMessage(
+        "¡Cuenta creada! Revisa tu email para confirmar tu cuenta."
+      );
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+
+      setTimeout(() => {
+        setShowAuthModal(false);
+        setSuccessMessage("");
+      }, 3000);
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading2(false);
+    }
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setShowUserMenu(false);
-    setView("home");
   };
 
-  const handleCopyPreset = async (preset) => {
-    if (!preset.free && !isPro) {
-      setView("pricing");
+  const openAuthModal = (mode) => {
+    setAuthMode(mode);
+    setShowAuthModal(true);
+    setAuthError("");
+    setSuccessMessage("");
+  };
+
+  const handleCheckout = async (planId) => {
+    if (!user) {
+      openAuthModal("login");
       return;
     }
+
     try {
-      await navigator.clipboard.writeText(preset.promptBlock);
-      setShowCopyNotification(true);
-      setTimeout(() => {
-        setShowCopyNotification(false);
-      }, 2000);
+      const response = await fetch("/api/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId,
+          userId: user.id,
+          userEmail: user.email,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Error al crear la sesión de pago");
+      }
     } catch (error) {
-      console.error("Error al copiar:", error);
-      alert("Error al copiar el preset");
+      console.error("Error:", error);
+      alert("Error al procesar el pago");
     }
   };
+  // ============================================================================
+  // DATOS DE PRESETS (mismo que antes)
+  // ============================================================================
 
-  const handlePromptGenerated = (prompt) => {
-    setGeneratedPrompt(prompt);
-    // Opcional: desplazar la vista hacia el prompt generado
-    // document.getElementById('prompt-lab').scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleLabSelection = (selectionText) => {
-    setIdea((prevIdea) =>
-      prevIdea ? `${prevIdea}, ${selectionText}` : selectionText
-    );
-  };
-
-  const navItems = [
-    { label: "Inicio", value: "home" },
-    { label: "Galería", value: "gallery" },
-    { label: "Generador de PROMPTS", value: "generator" },
-    { label: "Presets", value: "presets" },
-    { label: "Planes", value: "pricing" },
+  const presets = [
+    {
+      id: 1,
+      name: "Retrato Cinematográfico",
+      subtitle: "Estilo película, dramático y profesional",
+      promptBlock:
+        "Professional cinematic portrait, dramatic lighting, shallow depth of field, shot on Arri Alexa with anamorphic lens, film grain texture, moody atmosphere, color graded like a Hollywood movie, 4K resolution, professional makeup and styling",
+      isPro: false,
+    },
+    {
+      id: 2,
+      name: "Editorial de Moda",
+      subtitle: "Alta costura, limpio y elegante",
+      promptBlock:
+        "High fashion editorial portrait, studio lighting setup, clean white background, sharp focus, shot on Hasselblad H6D-100c with 80mm lens, professional makeup, vogue magazine style, high-end retouching, ultra detailed, 8K quality",
+      isPro: false,
+    },
+    {
+      id: 3,
+      name: "Luz Natural Dorada",
+      subtitle: "Cálido, suave y orgánico",
+      promptBlock:
+        "Natural light portrait, golden hour photography, soft warm tones, bokeh background, shot on Canon EOS R5 with 85mm f/1.2 lens, shallow depth of field, film-like color grading, organic and authentic feel, professional color correction",
+      isPro: false,
+    },
+    {
+      id: 4,
+      name: "Street Style Urbano",
+      subtitle: "Moderno, fresco y auténtico",
+      promptBlock:
+        "Urban street style portrait, natural city lighting, graffiti background, candid pose, shot on Sony A7 III with 35mm lens, vibrant colors, documentary photography style, authentic urban environment, professional editing",
+      isPro: true,
+    },
+    {
+      id: 5,
+      name: "Film Noir Clásico",
+      subtitle: "Alto contraste, misterioso",
+      promptBlock:
+        "Film noir style portrait, dramatic shadows, high contrast black and white, venetian blind shadows, moody atmosphere, shot on vintage film camera, 1940s aesthetic, dramatic lighting setup, mystery and intrigue",
+      isPro: true,
+    },
+    {
+      id: 6,
+      name: "Estudio Minimalista",
+      subtitle: "Limpio, profesional, corporativo",
+      promptBlock:
+        "Minimalist studio portrait, even lighting, solid color background, clean and professional, shot on Phase One XF with 80mm lens, perfect exposure, corporate headshot style, neutral expression, high resolution",
+      isPro: true,
+    },
+    {
+      id: 7,
+      name: "Retro Vintage",
+      subtitle: "Nostálgico, colores desvanecidos",
+      promptBlock:
+        "Vintage film photography aesthetic, grainy texture, faded colors, shot on Kodak Portra 400, medium format camera, nostalgic 70s vibe, soft focus, warm color palette, analog photography feel",
+      isPro: true,
+    },
+    {
+      id: 8,
+      name: "Cyberpunk Futurista",
+      subtitle: "Neón, tecnológico, blade runner",
+      promptBlock:
+        "Cyberpunk style portrait, neon lighting, futuristic city background, rain and reflections, blue and pink color scheme, blade runner aesthetic, high contrast, cinematic color grading, sci-fi atmosphere",
+      isPro: true,
+    },
+    {
+      id: 9,
+      name: "Fotografía de Revista",
+      subtitle: "Glamour, portada de revista",
+      promptBlock:
+        "Magazine cover portrait, professional lighting, confident pose, bold colors, sharp details, shot on Hasselblad, fashion forward styling, celebrity photographer style, high-end production quality",
+      isPro: true,
+    },
+    {
+      id: 10,
+      name: "Naturaleza Orgánica",
+      subtitle: "Exterior, luz natural, bohemio",
+      promptBlock:
+        "Outdoor natural portrait, forest or field location, soft natural light, organic environment, earthy tones, shot on Canon EOS R with 50mm lens, shallow depth of field, bohemian aesthetic, connection with nature",
+      isPro: true,
+    },
+    {
+      id: 11,
+      name: "Contraluz Dramático",
+      subtitle: "Silueta, bordes iluminados",
+      promptBlock:
+        "Backlit portrait, rim lighting, dramatic silhouette, lens flare, golden hour backlighting, shot on Sony A7R IV with 85mm lens, ethereal atmosphere, glowing edges, professional color grading",
+      isPro: true,
+    },
+    {
+      id: 12,
+      name: "Retrato Artístico",
+      subtitle: "Conceptual, expresivo, único",
+      promptBlock:
+        "Artistic conceptual portrait, creative lighting, unique composition, fine art photography, shot on medium format camera, museum quality, expressive and emotional, avant-garde style, gallery-worthy",
+      isPro: true,
+    },
   ];
 
-  return (
-    <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--fg)]">
-      {/* HEADER */}
-      <header className="sticky top-0 z-40 bg-black/60 backdrop-blur-xl border-b border-[color:var(--border)]">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setView("home")}
-            className="flex items-center"
-          >
-            <img src="/logo.svg" alt="Logo" className="w-40 h-auto" />
-          </button>
+  const isPro =
+    profile?.plan === "pro" ||
+    profile?.plan === "premium" ||
+    profile?.subscription_status === "active";
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center space-x-6">
-            {navItems.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                onClick={() => setView(item.value)}
-                className={`text-sm font-medium transition ${
-                  view === item.value
-                    ? "text-[color:var(--primary)]"
-                    : "text-muted hover:text-[color:var(--fg)]"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+  const handleCopyPreset = (promptBlock) => {
+    navigator.clipboard.writeText(promptBlock);
+    alert("✅ Prompt copiado al portapapeles!");
+  };
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="text-white text-xl">Cargando...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-white">
+      {/* ============================================================ */}
+      {/* HEADER / NAVEGACIÓN */}
+      {/* ============================================================ */}
+      <header className="fixed top-0 w-full bg-black/90 backdrop-blur-md border-b border-[#D4AF37]/20 z-50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📸</span>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
+              Promptraits
+            </h1>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-6">
+            <a href="#hero" className="hover:text-[#D4AF37] transition">
+              Inicio
+            </a>
+            <a href="#generator" className="hover:text-[#D4AF37] transition">
+              Generador
+            </a>
+            <a href="#gallery" className="hover:text-[#D4AF37] transition">
+              Galería
+            </a>
+            <a href="#presets" className="hover:text-[#D4AF37] transition">
+              Presets
+            </a>
+            <a href="#pricing" className="hover:text-[#D4AF37] transition">
+              Planes
+            </a>
           </nav>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
-            {user && (
-              <div className="hidden lg:flex items-center px-3 py-1.5 bg-[color:var(--surface)] rounded-full border border-[color:var(--border)]">
-                <Gift className="w-4 h-4 text-[color:var(--primary)] mr-1.5" />
-                <span className="text-sm font-semibold">
-                  {profile?.credits ?? 0}
-                </span>
-              </div>
-            )}
-
+          <div className="flex items-center gap-4">
             {user ? (
-              <div className="relative">
+              <>
+                <div className="text-sm">
+                  <p className="text-zinc-400">{user.email}</p>
+                  <p className="text-[#D4AF37] font-semibold">
+                    Plan: {profile?.plan || "Free"} | Créditos:{" "}
+                    {profile?.credits || 0}
+                  </p>
+                </div>
                 <button
-                  type="button"
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="hidden lg:flex items-center space-x-2 px-4 py-2 bg-[color:var(--primary)] text-black rounded-full font-bold hover:opacity-90 transition"
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
                 >
-                  {isPro && <Crown className="w-4 h-4" />}
-                  <span>{user.email?.split("@")[0]}</span>
+                  Cerrar Sesión
                 </button>
-                {showUserMenu && (
-                  <UserMenu
-                    onLogout={handleLogout}
-                    profile={profile}
-                    onNavigate={(viewName) => {
-                      setView(viewName);
-                      setShowUserMenu(false);
-                    }}
-                  />
-                )}
-              </div>
+              </>
             ) : (
               <>
                 <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode("login");
-                    setShowAuth(true);
-                  }}
-                  className="hidden lg:block px-4 py-2 text-sm font-medium text-muted hover:text-[color:var(--fg)] transition"
+                  onClick={() => openAuthModal("login")}
+                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
                 >
                   Iniciar Sesión
                 </button>
                 <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode("register");
-                    setShowAuth(true);
-                  }}
-                  className="hidden lg:block px-6 py-2 bg-[color:var(--primary)] text-black rounded-full font-bold hover:opacity-90 transition"
+                  onClick={() => openAuthModal("signup")}
+                  className="px-4 py-2 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-semibold rounded-lg transition"
                 >
                   Registrarse
                 </button>
               </>
             )}
-
-            <button
-              type="button"
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="lg:hidden p-2 rounded-lg hover:bg-[color:var(--surface)] transition"
-            >
-              {showMobileMenu ? <X /> : <Menu />}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {showMobileMenu && (
-          <div className="lg:hidden border-t border-[color:var(--border)] bg-black/95 backdrop-blur-xl">
-            <nav className="container mx-auto px-4 py-4 flex flex-col space-y-3">
-              {navItems.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => {
-                    setView(item.value);
-                    setShowMobileMenu(false);
-                  }}
-                  className={`text-left py-2 px-3 rounded-lg transition ${
-                    view === item.value
-                      ? "bg-[color:var(--primary)]/10 text-[color:var(--primary)]"
-                      : "text-muted hover:bg-[color:var(--surface)]"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-
-              {!user && (
-                <div className="pt-3 border-t border-[color:var(--border)] flex flex-col space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("login");
-                      setShowAuth(true);
-                      setShowMobileMenu(false);
-                    }}
-                    className="py-2 px-4 text-center border border-[color:var(--border)] rounded-lg hover:bg-[color:var(--surface)] transition"
-                  >
-                    Iniciar Sesión
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("register");
-                      setShowAuth(true);
-                      setShowMobileMenu(false);
-                    }}
-                    className="py-2 px-4 text-center bg-[color:var(--primary)] text-black rounded-lg font-bold hover:opacity-90 transition"
-                  >
-                    Registrarse
-                  </button>
-                </div>
-              )}
-
-              {user && (
-                <div className="pt-3 border-t border-[color:var(--border)] space-y-2">
-                  <div className="flex items-center justify-between px-3 py-2 bg-[color:var(--surface)] rounded-lg">
-                    <span className="text-sm text-muted">Créditos</span>
-                    <div className="flex items-center">
-                      <Gift className="w-4 h-4 text-[color:var(--primary)] mr-1.5" />
-                      <span className="text-sm font-semibold">
-                        {profile?.credits ?? 0}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center px-3 py-2 bg-[color:var(--surface)] rounded-lg">
-                    {isPro && (
-                      <Crown className="w-4 h-4 text-[color:var(--primary)] mr-2" />
-                    )}
-                    <span className="text-sm font-medium">
-                      {user.email?.split("@")[0]}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleLogout();
-                      setShowMobileMenu(false);
-                    }}
-                    className="w-full py-2 px-4 text-left text-sm bg-red-500/10 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition"
-                  >
-                    Cerrar Sesión
-                  </button>
-                </div>
-              )}
-            </nav>
-          </div>
-        )}
       </header>
-
-      {/* NOTIFICACIÓN DE COPIA */}
-      {showCopyNotification && (
-        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
-          <div className="bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center space-x-2">
-            <Check className="w-5 h-5" />
-            <span className="font-semibold">Preset copiado</span>
-          </div>
-        </div>
-      )}
-
-      {/* MAIN CONTENT */}
-      <main>
-        {/* HOME */}
-        {view === "home" && (
-          <>
-            {/* HERO */}
-            <section className="relative overflow-hidden py-20 px-4">
-              <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--primary)]/5 to-transparent pointer-events-none"></div>
-              <div className="container mx-auto max-w-6xl relative z-10">
-                <div className="text-center mb-12">
-                  <div className="inline-flex items-center px-4 py-2 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-full text-sm mb-6">
-                    <Sparkles className="w-4 h-4 mr-2 text-[color:var(--primary)]" />
-                    <span className="text-muted">
-                      Prompts profesionales para IA
-                    </span>
-                  </div>
-                  <h1 className="text-5xl md:text-7xl font-heading font-black mb-6 bg-gradient-to-r from-white via-white to-[color:var(--primary)] bg-clip-text text-transparent">
-                    Retratos profesionales con IA
-                  </h1>
-                  <p className="text-xl text-muted max-w-2xl mx-auto mb-8">
-                    Genera prompts cinematográficos y profesionales para crear
-                    retratos de calidad editorial con IA.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button
-                      type="button"
-                      onClick={() => setView("generator")}
-                      className="px-8 py-4 bg-[color:var(--primary)] text-black rounded-full font-bold text-lg hover:shadow-lg transition-all inline-flex items-center justify-center"
-                    >
-                      <Camera className="w-5 h-5 mr-2" />
-                      Empezar ahora
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setView("gallery")}
-                      className="px-8 py-4 bg-[color:var(--surface)] border border-[color:var(--border)] rounded-full font-bold text-lg hover:bg-[color:var(--surface)]/80 transition"
-                    >
-                      Ver ejemplos
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* GALERÍA DESTACADA */}
-            <AnimatedSection className="py-20 px-4 bg-black/20">
-              <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold mb-4">
-                    Galería de Retratos
-                  </h2>
-                  <p className="text-muted text-lg">
-                    Explora nuestros mejores prompts generados
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  {ALL_PROMPTS.slice(0, 4).map((prompt) => (
-                    <div
-                      key={prompt.id}
-                      onClick={() => setView("gallery")}
-                      className="cursor-pointer group relative overflow-hidden rounded-2xl transform hover:-translate-y-2 transition-transform duration-300 aspect-[4/5]"
-                    >
-                      <img
-                        src={prompt.image}
-                        alt={prompt.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src =
-                            "https://via.placeholder.com/400x500?text=No+disponible";
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
-                    </div>
-                  ))}
-                </div>
-                <div className="text-center">
-                  <button
-                    onClick={() => setView("gallery")}
-                    className="px-8 py-3 bg-[color:var(--primary)] text-black font-bold rounded-lg hover:opacity-90 transition"
-                  >
-                    Ver Galería Completa
-                  </button>
-                </div>
-              </div>
-            </AnimatedSection>
-
-            {/* PLANES */}
-            <div className="py-20 px-4">
-              <Pricing
-                onSelectPlan={handlePlanSelection}
-                currentPlan={profile?.plan || "free"}
-              />
-            </div>
-
-            {/* Presets Preview en Home */}
-            <AnimatedSection className="py-20 px-4">
-              <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold mb-4">
-                    Presets Profesionales
-                  </h2>
-                  <p className="text-muted text-lg">
-                    Click para copiar al portapapeles
-                  </p>
-                </div>
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
-                  {PRESETS.slice(0, 6).map((preset) => {
-                    const canView = preset.free || isPro;
-                    return (
-                      <div
-                        key={preset.id}
-                        onClick={() => handleCopyPreset(preset)}
-                        className={`bg-[color:var(--surface)] rounded-xl p-6 border border-[color:var(--border)] hover:border-[color:var(--primary)] transition-all relative group ${
-                          canView ? "cursor-pointer" : "cursor-pointer"
-                        }`}
-                      >
-                        {!preset.free && (
-                          <div className="absolute top-4 right-4">
-                            <Crown className="w-4 h-4 text-[color:var(--primary)]" />
-                          </div>
-                        )}
-                        <div
-                          className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
-                            preset.free
-                              ? "bg-green-500/20"
-                              : "bg-[color:var(--primary)]/20"
-                          }`}
-                        >
-                          <Sparkles
-                            className={`w-6 h-6 ${
-                              preset.free
-                                ? "text-green-500"
-                                : "text-[color:var(--primary)]"
-                            }`}
-                          />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">
-                          {preset.name}
-                        </h3>
-                        <p className="text-sm text-[color:var(--primary)] mb-3">
-                          {preset.subtitle}
-                        </p>
-                        <div className="mb-4 min-h-[60px]">
-                          {canView ? (
-                            <p className="text-xs text-muted line-clamp-3">
-                              {preset.promptBlock}
-                            </p>
-                          ) : (
-                            <div className="flex flex-col items-center justify-center py-4 px-3 bg-black/20 rounded-lg border border-[color:var(--primary)]/30">
-                              <Lock className="w-8 h-8 text-[color:var(--primary)] mb-2" />
-                              <p className="text-xs text-center text-muted">
-                                Contenido exclusivo
-                              </p>
-                              <p className="text-xs text-center text-[color:var(--primary)] font-semibold">
-                                Plan PRO
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                        {canView ? (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
-                            <Copy className="w-3 h-3 mr-1" />
-                            Click para copiar
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-xs text-muted justify-center">
-                            <span>Click para desbloquear</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {!isPro && (
-                  <div className="mt-12 text-center bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl p-8">
-                    <Crown className="w-16 h-16 text-[color:var(--primary)] mx-auto mb-4" />
-                    <h3 className="text-2xl font-bold mb-2">
-                      Desbloquea todos los presets
-                    </h3>
-                    <p className="text-muted mb-6 text-lg">
-                      Obtén acceso completo a los 12 presets profesionales con
-                      un plan PRO
-                    </p>
-                    <button
-                      onClick={() => setView("pricing")}
-                      className="px-8 py-4 bg-[color:var(--primary)] text-black font-bold rounded-full text-lg hover:opacity-90 transition inline-flex items-center"
-                    >
-                      <Crown className="w-5 h-5 mr-2" />
-                      Ver Planes
-                    </button>
-                  </div>
-                )}
-              </div>
-            </AnimatedSection>
-          </>
-        )}
-
-        {/* CTA Guía PDF */}
-        <section className="py-12 px-4">
-          <div className="max-w-7xl mx-auto text-center">
-            <h3 className="text-2xl font-heading font-semibold mb-3">
-              Guía para crear PROMPTS de retratos profesional{" "}
-              <span className="text-[color:var(--primary)]">GRATIS</span>
-            </h3>
-            <p className="text-lg text-muted mb-6">
-              Descarga nuestra guía en pdf
-            </p>
+      {/* ============================================================ */}
+      {/* HERO SECTION */}
+      {/* ============================================================ */}
+      <section
+        id="hero"
+        className="pt-32 pb-20 bg-gradient-to-b from-[#0A0A0A] to-[#1A1A1A]"
+      >
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-5xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#D4AF37] bg-clip-text text-transparent">
+            Retratos profesionales con IA
+          </h2>
+          <p className="text-xl text-zinc-400 mb-8 max-w-3xl mx-auto">
+            Genera prompts cinematográficos y profesionales para crear retratos
+            de calidad editorial con IA.
+          </p>
+          <div className="flex gap-4 justify-center">
             <a
-              href="/Promptraits_Guia_Completa_Prompts_y_Fotografia_v2.pdf"
-              download
-              className="inline-flex items-center justify-center space-x-2 bg-[color:var(--primary)] text-black px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg transition-all"
+              href="#generator"
+              className="px-8 py-4 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-bold rounded-lg transition text-lg"
             >
-              <Download className="w-5 h-5" />
-              <span>Descargar guía GRATIS</span>
+              Empezar Ahora
+            </a>
+            <a
+              href="#gallery"
+              className="px-8 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition text-lg"
+            >
+              Ver Galería
             </a>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* GALERÍA */}
-        {view === "gallery" && <Gallery />}
+      {/* ============================================================ */}
+      {/* GENERADOR DE PROMPTS - ✅ NUEVA VERSIÓN */}
+      {/* ============================================================ */}
+      <section
+        id="generator"
+        className="py-16 bg-gradient-to-b from-[#1A1A1A] to-[#0A0A0A]"
+      >
+        <PromptGeneratorV2App />
+      </section>
 
-        {/* GENERADOR */}
-        {view === "generator" && (
-          <div className="py-10">
-            <PromptLab isPro={isPro} />
+      {/* ============================================================ */}
+      {/* GALERÍA */}
+      {/* ============================================================ */}
+      <section
+        id="gallery"
+        className="py-20 bg-gradient-to-b from-[#0A0A0A] to-[#1A1A1A]"
+      >
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
+            Galería de Retratos
+          </h2>
+          <p className="text-center text-zinc-400 mb-12">
+            Explora nuestros mejores prompts generados
+          </p>
+          <div className="text-center text-zinc-500 py-20">
+            Galería próximamente...
           </div>
-        )}
+        </div>
+      </section>
 
-        {/* PRESETS - VISTA DEDICADA */}
-        {view === "presets" && (
-          <div className="min-h-screen py-20 px-4">
-            <AnimatedSection className="max-w-6xl mx-auto">
-              <div className="text-center mb-12">
-                <h1 className="text-5xl font-bold mb-4">
-                  Presets Profesionales
-                </h1>
-                <p className="text-muted text-xl mb-2">
-                  Click en cualquier preset para copiarlo
-                </p>
-                <p className="text-sm text-muted">
-                  {isPro
-                    ? "Tienes acceso completo a todos los presets"
-                    : "Los presets PRO requieren suscripción PRO o PREMIUM"}
-                </p>
-              </div>
+      {/* ============================================================ */}
+      {/* PRESETS PROFESIONALES */}
+      {/* ============================================================ */}
+      <section
+        id="presets"
+        className="py-20 bg-gradient-to-b from-[#1A1A1A] to-[#0A0A0A]"
+      >
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
+            Presets Profesionales
+          </h2>
+          <p className="text-center text-zinc-400 mb-4">
+            Click para copiar al portapapeles
+          </p>
 
-              <div className="grid md:grid-cols-3 gap-6 mb-12">
-                {PRESETS.map((preset) => {
-                  const canView = preset.free || isPro;
+          {!isPro && (
+            <div className="max-w-2xl mx-auto mb-12 p-6 bg-zinc-900 border border-[#D4AF37]/30 rounded-xl text-center">
+              <h3 className="text-xl font-bold mb-2 text-[#D4AF37]">
+                🎨 Desbloquea todos los presets
+              </h3>
+              <p className="text-zinc-400 mb-4">
+                Obtén acceso completo a los 12 presets profesionales con un plan
+                PRO
+              </p>
+              <a
+                href="#pricing"
+                className="inline-block px-6 py-3 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-semibold rounded-lg transition"
+              >
+                Ver Planes
+              </a>
+            </div>
+          )}
 
-                  return (
-                    <div
-                      key={preset.id}
-                      className={`bg-[color:var(--surface)] rounded-xl p-6 border transition-all relative group ${
-                        canView
-                          ? "border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer"
-                          : "border-[color:var(--border)] hover:border-[color:var(--primary)] cursor-pointer"
-                      }`}
-                      onClick={() => handleCopyPreset(preset)}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {presets.map((preset) => (
+              <div
+                key={preset.id}
+                className={`bg-zinc-900 rounded-xl p-6 border transition-all ${
+                  preset.isPro && !isPro
+                    ? "border-zinc-800 opacity-60"
+                    : "border-zinc-800 hover:border-[#D4AF37]/50"
+                }`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-white mb-1">
+                      {preset.name}
+                    </h3>
+                    <p className="text-sm text-zinc-400">{preset.subtitle}</p>
+                  </div>
+                  {preset.isPro && !isPro && (
+                    <span className="px-2 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs font-semibold rounded">
+                      PRO
+                    </span>
+                  )}
+                </div>
+
+                {preset.isPro && !isPro ? (
+                  <div className="bg-zinc-800/50 rounded-lg p-4 text-center">
+                    <p className="text-zinc-500 text-sm mb-3">
+                      🔒 Contenido bloqueado
+                    </p>
+                    <a
+                      href="#pricing"
+                      className="inline-block px-4 py-2 bg-[#D4AF37] hover:bg-[#FFD700] text-black text-sm font-semibold rounded-lg transition"
                     >
-                      {!preset.free && (
-                        <div className="absolute top-4 right-4">
-                          <Crown className="w-5 h-5 text-[color:var(--primary)]" />
-                        </div>
-                      )}
+                      Actualiza a PRO
+                    </a>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 mb-3 font-mono leading-relaxed line-clamp-3">
+                      {preset.promptBlock}
+                    </p>
+                    <button
+                      onClick={() => handleCopyPreset(preset.promptBlock)}
+                      className="w-full px-4 py-2 bg-zinc-800 hover:bg-[#D4AF37] hover:text-black font-semibold rounded-lg transition flex items-center justify-center gap-2"
+                    >
+                      📋 Copiar Prompt
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
 
-                      <div
-                        className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
-                          preset.free
-                            ? "bg-green-500/20"
-                            : "bg-[color:var(--primary)]/20"
-                        }`}
-                      >
-                        <Sparkles
-                          className={`w-6 h-6 ${
-                            preset.free
-                              ? "text-green-500"
-                              : "text-[color:var(--primary)]"
-                          }`}
-                        />
-                      </div>
+          <div className="mt-12 text-center">
+            <a
+              href="https://promptraits.com/guia-prompts-retratos.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-8 py-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] text-black font-bold rounded-lg hover:shadow-lg hover:shadow-[#D4AF37]/50 transition text-lg"
+            >
+              📥 Guía para crear PROMPTS de retratos profesional{" "}
+              <span className="bg-red-500 text-white px-2 py-0.5 rounded text-sm ml-2">
+                GRATIS
+              </span>
+            </a>
+            <p className="text-zinc-400 mt-3">Descarga nuestra guía en pdf</p>
+          </div>
+        </div>
+      </section>
+      {/* ============================================================ */}
+      {/* PRICING / PLANES */}
+      {/* ============================================================ */}
+      <section
+        id="pricing"
+        className="py-20 bg-gradient-to-b from-[#0A0A0A] to-[#1A1A1A]"
+      >
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] bg-clip-text text-transparent">
+            Elige tu Plan
+          </h2>
+          <p className="text-center text-zinc-400 mb-12">
+            Desbloquea todo el potencial de Promptraits
+          </p>
 
-                      <h3 className="text-xl font-semibold mb-2">
-                        {preset.name}
-                      </h3>
-                      <p className="text-sm text-[color:var(--primary)] mb-4">
-                        {preset.subtitle}
-                      </p>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* FREE */}
+            <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
+              <h3 className="text-2xl font-bold mb-2">Free</h3>
+              <p className="text-4xl font-bold mb-4">
+                €0<span className="text-lg text-zinc-400">/mes</span>
+              </p>
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> 3 Presets básicos
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> Generador básico
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-500">✗</span> Sin créditos
+                </li>
+              </ul>
+              <button
+                disabled
+                className="w-full px-6 py-3 bg-zinc-800 text-zinc-500 rounded-lg cursor-not-allowed"
+              >
+                Plan Actual
+              </button>
+            </div>
 
-                      {/* ✅ Contenido o mensaje bloqueado */}
-                      <div className="mb-4 min-h-[100px] flex items-center">
-                        {canView ? (
-                          <p className="text-sm text-muted">
-                            {preset.promptBlock}
-                          </p>
-                        ) : (
-                          <div className="w-full flex flex-col items-center justify-center py-6 px-4 bg-black/30 rounded-lg border border-[color:var(--primary)]/40">
-                            <Lock className="w-10 h-10 text-[color:var(--primary)] mb-3" />
-                            <p className="text-sm text-center text-muted mb-1">
-                              Contenido bloqueado
-                            </p>
-                            <p className="text-xs text-center text-[color:var(--primary)] font-semibold">
-                              Actualiza a PRO para desbloquear
-                            </p>
-                          </div>
-                        )}
-                      </div>
+            {/* PRO */}
+            <div className="bg-gradient-to-b from-[#D4AF37]/10 to-zinc-900 rounded-2xl p-8 border-2 border-[#D4AF37] relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#D4AF37] text-black text-sm font-bold rounded-full">
+                MÁS POPULAR
+              </div>
+              <h3 className="text-2xl font-bold mb-2 text-[#D4AF37]">Pro</h3>
+              <p className="text-4xl font-bold mb-4">
+                €6.99<span className="text-lg text-zinc-400">/mes</span>
+              </p>
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> 12 Presets
+                  profesionales
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> Generador avanzado
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> 60 créditos/mes
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> Soporte prioritario
+                </li>
+              </ul>
+              <button
+                onClick={() => handleCheckout("pro")}
+                className="w-full px-6 py-3 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-bold rounded-lg transition"
+              >
+                Empezar Ahora
+              </button>
+            </div>
 
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-2 border-t border-[color:var(--border)]">
-                        {preset.free ? (
-                          <>
-                            <div className="inline-flex items-center text-xs text-green-400">
-                              <Check className="w-4 h-4 mr-1" />
-                              Gratis
-                            </div>
-                            {canView && (
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-green-500">
-                                <Copy className="w-3 h-3 mr-1" />
-                                Copiar
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <div className="inline-flex items-center text-xs text-[color:var(--primary)]">
-                              <Crown className="w-4 h-4 mr-1" />
-                              Plan PRO
-                            </div>
-                            {canView ? (
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-[color:var(--primary)]">
-                                <Copy className="w-3 h-3 mr-1" />
-                                Copiar
-                              </div>
-                            ) : (
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs text-muted">
-                                <span>Ver planes</span>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* PREMIUM */}
+            <div className="bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
+              <h3 className="text-2xl font-bold mb-2">Premium</h3>
+              <p className="text-4xl font-bold mb-4">
+                €19.99<span className="text-lg text-zinc-400">/mes</span>
+              </p>
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> Todo de Pro
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> 300 créditos/mes
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> API access
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> Uso comercial
+                </li>
+              </ul>
+              <button
+                onClick={() => handleCheckout("premium")}
+                className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
+              >
+                Empezar Ahora
+              </button>
+            </div>
+          </div>
+
+          {/* Packs de créditos */}
+          <div className="mt-16 max-w-4xl mx-auto">
+            <h3 className="text-2xl font-bold text-center mb-8">
+              O compra créditos adicionales
+            </h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 text-center">
+                <p className="text-3xl font-bold mb-2">20 créditos</p>
+                <p className="text-2xl text-[#D4AF37] mb-4">€3.99</p>
+                <button
+                  onClick={() => handleCheckout("credits-20")}
+                  className="w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
+                >
+                  Comprar
+                </button>
+              </div>
+              <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 text-center">
+                <p className="text-3xl font-bold mb-2">50 créditos</p>
+                <p className="text-2xl text-[#D4AF37] mb-4">€8.99</p>
+                <button
+                  onClick={() => handleCheckout("credits-50")}
+                  className="w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
+                >
+                  Comprar
+                </button>
+              </div>
+              <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 text-center">
+                <p className="text-3xl font-bold mb-2">100 créditos</p>
+                <p className="text-2xl text-[#D4AF37] mb-4">€15.99</p>
+                <button
+                  onClick={() => handleCheckout("credits-100")}
+                  className="w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
+                >
+                  Comprar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* FOOTER */}
+      {/* ============================================================ */}
+      <footer className="py-12 bg-black border-t border-zinc-800">
+        <div className="container mx-auto px-4 text-center text-zinc-400">
+          <p>© 2024 Promptraits. Todos los derechos reservados.</p>
+        </div>
+      </footer>
+
+      {/* ============================================================ */}
+      {/* MODAL DE AUTENTICACIÓN */}
+      {/* ============================================================ */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 rounded-2xl p-8 max-w-md w-full border border-zinc-800">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">
+                {authMode === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
+              </h2>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="text-zinc-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            {successMessage && (
+              <div className="mb-4 p-3 bg-green-500/20 border border-green-500 rounded-lg text-green-400 text-sm">
+                {successMessage}
+              </div>
+            )}
+
+            {authError && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={authMode === "login" ? handleLogin : handleSignup}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                  required
+                />
               </div>
 
-              {!isPro && (
-                <div className="mt-12 text-center bg-[color:var(--surface)] border border-[color:var(--border)] rounded-2xl p-8">
-                  <Crown className="w-16 h-16 text-[color:var(--primary)] mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold mb-2">
-                    Desbloquea todos los presets
-                  </h3>
-                  <p className="text-muted mb-6 text-lg">
-                    Obtén acceso completo a los 12 presets profesionales con un
-                    plan PRO
-                  </p>
-                  <button
-                    onClick={() => setView("pricing")}
-                    className="px-8 py-4 bg-[color:var(--primary)] text-black font-bold rounded-full text-lg hover:opacity-90 transition inline-flex items-center"
-                  >
-                    <Crown className="w-5 h-5 mr-2" />
-                    Ver Planes
-                  </button>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                  Contraseña
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                  required
+                />
+              </div>
+
+              {authMode === "signup" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">
+                    Confirmar Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                    required
+                  />
                 </div>
               )}
-            </AnimatedSection>
-          </div>
-        )}
 
-        {/* PLANES */}
-        {view === "pricing" && (
-          <Pricing
-            onSelectPlan={handlePlanSelection}
-            currentPlan={profile?.plan || "free"}
-          />
-        )}
-
-        {/* PERFIL */}
-        {view === "profile" && (
-          <Profile
-            onNavigate={(viewName) => setView(viewName)}
-            onAccountDeleted={() => {
-              window.location.reload();
-            }}
-          />
-        )}
-
-        {/* HISTORIAL */}
-        {/* {view === "history" && <History />} */}
-      </main>
-
-      {/* Auth Modal */}
-      {showAuth && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          {authMode === "login" ? (
-            <Login
-              onClose={() => setShowAuth(false)}
-              onSwitchToRegister={() => setAuthMode("register")}
-              onSuccess={() => setShowAuth(false)}
-            />
-          ) : (
-            <Register
-              onClose={() => setShowAuth(false)}
-              onSwitchToLogin={() => setAuthMode("login")}
-              onSuccess={() => {
-                setShowAuth(false);
-                setView("generator");
-              }}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Checkout Modal */}
-      {showCheckout && selectedPlan && (
-        <Checkout
-          selectedPlan={selectedPlan}
-          onClose={() => {
-            setShowCheckout(false);
-            setSelectedPlan(null);
-          }}
-        />
-      )}
-
-      {/* Loading Overlay during checkout */}
-      {isProcessingCheckout && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[color:var(--primary)] mx-auto mb-4"></div>
-            <p className="text-white text-lg font-semibold">
-              Redirigiendo a checkout...
-            </p>
-            <p className="text-gray-400 text-sm mt-2">
-              No cierres esta ventana
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Payment Success Overlay */}
-      {showPaymentSuccess && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-          <div className="max-w-md w-full bg-[color:var(--surface)] rounded-2xl p-8 border border-[color:var(--border)] text-center mx-4">
-            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg
-                className="w-10 h-10 text-green-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+              <button
+                type="submit"
+                disabled={authLoading2}
+                className="w-full px-6 py-3 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-bold rounded-lg transition disabled:opacity-50"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+                {authLoading2
+                  ? "Procesando..."
+                  : authMode === "login"
+                  ? "Iniciar Sesión"
+                  : "Crear Cuenta"}
+              </button>
+            </form>
+
+            <div className="mt-4 text-center">
+              <button
+                onClick={() =>
+                  setAuthMode(authMode === "login" ? "signup" : "login")
+                }
+                className="text-[#D4AF37] hover:underline"
+              >
+                {authMode === "login"
+                  ? "¿No tienes cuenta? Regístrate"
+                  : "¿Ya tienes cuenta? Inicia sesión"}
+              </button>
             </div>
-            <h2 className="text-3xl font-bold mb-4 text-white">
-              ¡Pago Exitoso!
-            </h2>
-            <p className="text-gray-400 mb-6">
-              Tu compra se ha procesado correctamente. Actualizando tu plan y
-              créditos...
-            </p>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[color:var(--primary)] mx-auto"></div>
-            <p className="text-sm text-gray-500 mt-4">
-              Serás redirigido en breve...
-            </p>
           </div>
         </div>
       )}
-
-      <Footer />
-      <CookieBanner />
     </div>
   );
 }
 
-export default function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<AppContent />} />
-          <Route path="/legal/:page" element={<LegalPages />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/contacto" element={<Contacto />} />
-          <Route path="/guia" element={<GuiaUso />} />
-          <Route path="/ejemplos" element={<Ejemplos />} />
-          <Route path="/planes" element={<PlanesPrecios />} />
-          <Route path="/caracteristicas" element={<Caracteristicas />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  );
-}
+export default App;
