@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 import { useAuth } from "./contexts/AuthContext";
-import PromptGeneratorV2App from "./components/PromptGeneratorV2/PromptGeneratorV2App";
+import { PromptGeneratorV2App } from "./components/PromptGeneratorV2/PromptGeneratorV2App";
 
 function App() {
   const { user, profile, loading: authLoading } = useAuth();
